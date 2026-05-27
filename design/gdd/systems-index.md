@@ -25,9 +25,9 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 | 2 | Chess Engine Integration | Core | v0 | Approved (pending OQ#6 spike) | [chess-engine-integration.md](./chess-engine-integration.md) ([review log](./reviews/chess-engine-integration-review-log.md)) | — |
 | 3 | Opening Identification | Gameplay | v0 | Approved (2026-05-27) | [opening-identification.md](./opening-identification.md) | — |
 | 4 | Navigation & Routing | UI | v0 | Approved (2026-05-27) | [navigation-and-routing.md](./navigation-and-routing.md) | — |
-| 5 | Game Lifecycle | Gameplay | v0 | Not Started | — | Chess Board, Chess Engine |
+| 5 | Game Lifecycle | Gameplay | v0 | Approved (2026-05-27) | [game-lifecycle.md](./game-lifecycle.md) | Chess Board, Chess Engine |
 | 6 | Move Annotation Display | UI | v0 | Approved (2026-05-27) | [move-annotation-display.md](./move-annotation-display.md) ([review log](./reviews/move-annotation-display-review-log.md)) | Chess Board |
-| 7 | Post-Game Review | Gameplay | v0 | Not Started | — | Game Lifecycle, Chess Engine, Opening ID, Move Annotation |
+| 7 | Post-Game Review | Gameplay | v0 | Designed (2026-05-27) | [post-game-review.md](./post-game-review.md) | Game Lifecycle, Chess Engine, Opening ID, Move Annotation |
 | 8 | Game Export / Share | Gameplay | v0 | Approved (2026-05-27) | [game-export-share.md](./game-export-share.md) | Game Lifecycle |
 | 9 | Authentication | Persistence | MVP | Not Started | — | — |
 | 10 | Difficulty System | Gameplay | MVP | Not Started | — | Chess Engine |
@@ -158,7 +158,7 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 | System | Risk Type | Risk Description | Mitigation |
 |--------|-----------|-----------------|------------|
 | **Chess Engine Integration** | Technical | stockfish.wasm performance on iPhone Safari is unpredictable. Deep analysis may take too long. | Prototype Stockfish on iPhone Safari before designing Post-Game Review. Set analysis depth caps. |
-| **Post-Game Review** | Design | Move classification thresholds (best/good/inaccuracy/mistake/blunder) need calibration to feel right. Wrong thresholds = feedback feels random or meaningless. | Reference Chesskit's open-source thresholds; iterate during prototype. |
+| **Post-Game Review** | Technical | Stockfish analysis for a full game (20–40 positions at depth 22) may exceed 10 s on iPhone Safari, blocking the review UX. | Validate per-position timing on device. Consider two-pass optimization (OQ-2) if latency is a pain point. |
 | **Skill Scoring** | Design | Scoring formula either feels stagnant (no growth) or chaotic (random shifts). Hardest design problem in the project. | Author an explicit formula ADR. Reference common chess rating systems (Elo, Glicko). Tune from playtest. |
 | **Data Sync (Supabase)** | Technical | Sync conflict resolution when same account plays on two devices simultaneously. Offline behavior on iPhone PWA. | Define schema with conflict-resolution policy in ADR. Start with "last write wins" + game history as append-only. |
 | **Game Export / Share** | Scope | "Pre-formatted Claude.ai prompt" needs to produce useful analysis when pasted — quality depends on prompt design, not just PGN. | Iterate on prompt template. Test with real Claude.ai sessions during v0 build. |
@@ -170,12 +170,12 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 17 |
-| Design docs started | 6 |
-| Design docs reviewed | 6 |
-| Design docs approved | 6 |
-| v0 systems designed | 6/8 |
-| MVP systems designed | 6/14 |
-| Polish systems designed | 6/17 |
+| Design docs started | 7 |
+| Design docs reviewed | 7 |
+| Design docs approved | 7 |
+| v0 systems designed | 7/8 |
+| MVP systems designed | 7/14 |
+| Polish systems designed | 7/17 |
 
 ---
 
