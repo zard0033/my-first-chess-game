@@ -1,87 +1,130 @@
 # Technical Preferences
 
-<!-- Populated by /setup-engine. Updated as the user makes decisions throughout development. -->
 <!-- All agents reference this file for project-specific standards and conventions. -->
 
 ## Engine & Language
 
-- **Engine**: [TO BE CONFIGURED — run /setup-engine]
-- **Language**: [TO BE CONFIGURED]
-- **Rendering**: [TO BE CONFIGURED]
-- **Physics**: [TO BE CONFIGURED]
+- **Platform**: Web App (TypeScript + Browser APIs)
+- **Frontend Framework**: Vue 3 (Composition API) + Vue Router + Pinia
+- **Language**: TypeScript
+- **Rendering**: HTML + CSS (Tailwind) + SVG/Canvas via chessground
+- **Physics**: N/A (no game engine — DOM-based chess board)
 
 ## Input & Platform
 
-<!-- Written by /setup-engine. Read by /ux-design, /ux-review, /test-setup, /team-ui, and /dev-story -->
-<!-- to scope interaction specs, test helpers, and implementation to the correct input methods. -->
-
-- **Target Platforms**: [TO BE CONFIGURED — e.g., PC, Console, Mobile, Web]
-- **Input Methods**: [TO BE CONFIGURED — e.g., Keyboard/Mouse, Gamepad, Touch, Mixed]
-- **Primary Input**: [TO BE CONFIGURED — the dominant input for this game]
-- **Gamepad Support**: [TO BE CONFIGURED — Full / Partial / None]
-- **Touch Support**: [TO BE CONFIGURED — Full / Partial / None]
-- **Platform Notes**: [TO BE CONFIGURED — any platform-specific UX constraints]
+- **Target Platforms**: PC (Windows browser — Chrome / Edge / Firefox), Mobile (iPhone Safari 16+)
+- **Input Methods**: Mouse, Touch
+- **Primary Input**: Mouse (PC) / Touch (iPhone)
+- **Gamepad Support**: None
+- **Touch Support**: Full (chess piece drag + tap-to-select)
+- **Platform Notes**:
+  - Must work in Safari iOS 16+
+  - Touch targets ≥ 44×44px
+  - No hover-only interactions (mobile has no hover state)
+  - PWA-enabled for iPhone "Add to Home Screen" experience
+  - Audio playback requires user gesture on iOS
 
 ## Naming Conventions
 
-- **Classes**: [TO BE CONFIGURED]
-- **Variables**: [TO BE CONFIGURED]
-- **Signals/Events**: [TO BE CONFIGURED]
-- **Files**: [TO BE CONFIGURED]
-- **Scenes/Prefabs**: [TO BE CONFIGURED]
-- **Constants**: [TO BE CONFIGURED]
+- **Classes/Interfaces**: PascalCase (e.g., `ChessGame`, `ReviewSession`, `BoardConfig`)
+- **Variables/functions**: camelCase (e.g., `moveHistory`, `analyzePosition`)
+- **Vue components**: PascalCase in templates, kebab-case in filenames (e.g., `<ChessBoard />` from `chess-board.vue`)
+- **Composables**: camelCase with `use` prefix (e.g., `useStockfish`, `useReviewSession`)
+- **Pinia stores**: camelCase with `use` prefix + `Store` suffix (e.g., `useUserStore`, `useGameStore`)
+- **Files**: kebab-case (e.g., `chess-engine.ts`, `board-view.vue`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `MAX_DEPTH`, `DEFAULT_TIME_MS`)
+- **Types**: PascalCase (e.g., `ChessMove`, `ReviewResult`)
 
 ## Performance Budgets
 
-- **Target Framerate**: [TO BE CONFIGURED]
-- **Frame Budget**: [TO BE CONFIGURED]
-- **Draw Calls**: [TO BE CONFIGURED]
-- **Memory Ceiling**: [TO BE CONFIGURED]
+- **Target Framerate**: 60fps
+- **Frame Budget**: 16.6ms
+- **Memory Ceiling**: < 150MB total (including stockfish.wasm worker)
+- **Initial Load**: < 3s on mobile 4G
+- **Stockfish Analysis**: ≤ 5s for typical post-game review (iPhone Safari)
 
 ## Testing
 
-- **Framework**: [TO BE CONFIGURED]
-- **Minimum Coverage**: [TO BE CONFIGURED]
-- **Required Tests**: Balance formulas, gameplay systems, networking (if applicable)
+- **Unit Test Framework**: Vitest
+- **E2E Test Framework**: Playwright (lichess also uses this)
+- **Minimum Coverage**: Core game logic (engine wrapper, move validation, scoring formulas)
+- **Required Tests**:
+  - Chess move validation
+  - Stockfish interface (UCI message parsing)
+  - Review data parsing
+  - Skill scoring formulas
+  - Supabase data sync
 
 ## Forbidden Patterns
 
-<!-- Add patterns that should never appear in this project's codebase -->
 - [None configured yet — add as architectural decisions are made]
 
 ## Allowed Libraries / Addons
 
-<!-- Add approved third-party dependencies here -->
-- [None configured yet — add as dependencies are approved]
+### Phase 1 (current)
+
+| Package | Purpose | Source |
+|---------|---------|--------|
+| `vue` ^3.x | Frontend framework | vuejs.org |
+| `vue-router` ^4.x | Multi-screen routing | Vue official |
+| `pinia` ^2.x | State management | Vue official |
+| `typescript` ^5.x | Programming language | Microsoft |
+| `vite` ^5.x | Dev server + bundler | Community |
+| `vite-plugin-pwa` ^0.x | PWA support for iPhone Home Screen | Community |
+| `tailwindcss` ^3.x | Utility-first CSS | Community |
+| `vue3-chessboard` ^1.x | Chess board Vue component (wraps chessground) | qwerty084 |
+| `chess.js` | Chess rules (bundled with vue3-chessboard) | Community |
+| `stockfish` (WASM) | Chess engine, browser version | lichess fork |
+| `chess-openings` | Opening name database | lichess |
+| `@supabase/supabase-js` ^2.x | Cloud database + Auth client | Supabase |
+| `vitest` ^1.x | Unit test framework | Community |
+| `@playwright/test` ^1.x | E2E test framework | Microsoft |
+
+### Phase 2 (planned, not yet added)
+
+| Package | Purpose | Source |
+|---------|---------|--------|
+| `@lichess-org/pgn-viewer` | Game replay viewer | lichess |
+| `@anthropic-ai/sdk` | Claude API client (server-side) | Anthropic |
+
+> **Guardrail**: Do NOT add Phase 2 libraries until Phase 1 MVP is shipped and
+> validated. Adding them early creates unused code and configuration overhead.
 
 ## Architecture Decisions Log
 
-<!-- Quick reference linking to full ADRs in docs/architecture/ -->
-- [No ADRs yet — use /architecture-decision to create one]
+- [No ADRs yet — use `/architecture-decision` to create one]
+
+### Required ADRs (to author before Production phase)
+
+1. **Stockfish integration strategy** — Web Worker vs main thread, UCI message protocol
+2. **Supabase schema design** — Tables for games, moves, skill scores, lessons
+3. **State management boundaries** — What lives in Pinia vs Vue Router vs Supabase
+4. **Bidirectional lesson-to-game linking** — How positions are indexed and matched
+5. **Skill scoring formula** — How tactics/opening/endgame scores are computed
+6. **PWA caching strategy** — What's cached for offline use, what isn't
+7. **Phase 2 backend boundary** — When to introduce Edge Functions for Claude API
 
 ## Engine Specialists
 
-<!-- Written by /setup-engine when engine is configured. -->
-<!-- Read by /code-review, /architecture-decision, /architecture-review, and team skills -->
-<!-- to know which specialist to spawn for engine-specific validation. -->
+> **Note**: This is a Web App project, not a traditional game engine project.
+> Traditional engine-specialist agents (godot-specialist, unity-specialist, etc.)
+> are not applicable. Code review and architecture work should follow standard
+> web/TypeScript practices.
 
-- **Primary**: [TO BE CONFIGURED — run /setup-engine]
-- **Language/Code Specialist**: [TO BE CONFIGURED]
-- **Shader Specialist**: [TO BE CONFIGURED]
-- **UI Specialist**: [TO BE CONFIGURED]
-- **Additional Specialists**: [TO BE CONFIGURED]
-- **Routing Notes**: [TO BE CONFIGURED]
+- **Primary**: Use general `/code-review` skill (not engine-specific specialists)
+- **Code Review Focus**: TypeScript correctness, Vue 3 Composition API patterns,
+  Tailwind class conventions, accessibility (ARIA, keyboard nav, focus management)
+- **Performance Review**: Browser performance (paint, layout, JS execution time),
+  bundle size, lazy loading boundaries
 
-### File Extension Routing
+### File Type Routing
 
-<!-- Skills use this table to select the right specialist per file type. -->
-<!-- If a row says [TO BE CONFIGURED], fall back to Primary for that file type. -->
-
-| File Extension / Type | Specialist to Spawn |
-|-----------------------|---------------------|
-| Game code (primary language) | [TO BE CONFIGURED] |
-| Shader / material files | [TO BE CONFIGURED] |
-| UI / screen files | [TO BE CONFIGURED] |
-| Scene / prefab / level files | [TO BE CONFIGURED] |
-| Native extension / plugin files | [TO BE CONFIGURED] |
-| General architecture review | Primary |
+| File Type | Review Focus |
+|-----------|-------------|
+| `*.vue` (components) | Vue 3 Composition API patterns, props/emits, slot usage |
+| `*.ts` (logic, composables, stores) | TypeScript types, pure-function design, testability |
+| `*.test.ts` (unit tests) | Test isolation, assertion coverage, edge cases |
+| `tests/e2e/*.spec.ts` (Playwright) | User flow coverage, selector robustness |
+| `tailwind.config.ts`, `vite.config.ts` | Build correctness, plugin order |
+| `supabase/migrations/*.sql` | Schema integrity, RLS policies |
+| Architecture / cross-cutting | General `/code-review` skill (no specialist) |
