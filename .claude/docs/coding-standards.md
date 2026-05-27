@@ -23,6 +23,7 @@
   6. **Dependencies** -- other systems listed
   7. **Tuning Knobs** -- configurable values identified
   8. **Acceptance Criteria** -- testable success conditions
+- **Accepted alias**: `Detailed Design` is an accepted heading for section 3 (`Detailed Rules`). Several GDDs use it; both spellings satisfy the completeness check.
 - Balance values must link to their source formula or rationale
 
 # Testing Standards

@@ -21,14 +21,14 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Chess Board & Move System | Core | v0 | Designed | [chess-board-and-move-system.md](./chess-board-and-move-system.md) | — |
-| 2 | Chess Engine Integration | Core | v0 | Not Started | — | — |
-| 3 | Opening Identification | Gameplay | v0 | Not Started | — | — |
-| 4 | Navigation & Routing | UI | v0 | Not Started | — | — |
+| 1 | Chess Board & Move System | Core | v0 | Approved (round 2, 2026-05-27) | [chess-board-and-move-system.md](./chess-board-and-move-system.md) ([review log](./reviews/chess-board-and-move-system-review-log.md)) | — |
+| 2 | Chess Engine Integration | Core | v0 | Approved (pending OQ#6 spike) | [chess-engine-integration.md](./chess-engine-integration.md) ([review log](./reviews/chess-engine-integration-review-log.md)) | — |
+| 3 | Opening Identification | Gameplay | v0 | Approved (2026-05-27) | [opening-identification.md](./opening-identification.md) | — |
+| 4 | Navigation & Routing | UI | v0 | Approved (2026-05-27) | [navigation-and-routing.md](./navigation-and-routing.md) | — |
 | 5 | Game Lifecycle | Gameplay | v0 | Not Started | — | Chess Board, Chess Engine |
-| 6 | Move Annotation Display | UI | v0 | Not Started | — | Chess Board |
+| 6 | Move Annotation Display | UI | v0 | Approved (2026-05-27) | [move-annotation-display.md](./move-annotation-display.md) ([review log](./reviews/move-annotation-display-review-log.md)) | Chess Board |
 | 7 | Post-Game Review | Gameplay | v0 | Not Started | — | Game Lifecycle, Chess Engine, Opening ID, Move Annotation |
-| 8 | Game Export / Share | Gameplay | v0 | Not Started | — | Game Lifecycle |
+| 8 | Game Export / Share | Gameplay | v0 | Approved (2026-05-27) | [game-export-share.md](./game-export-share.md) | Game Lifecycle |
 | 9 | Authentication | Persistence | MVP | Not Started | — | — |
 | 10 | Difficulty System | Gameplay | MVP | Not Started | — | Chess Engine |
 | 11 | Data Sync (Supabase) | Persistence | MVP | Not Started | — | Authentication |
@@ -170,12 +170,12 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 17 |
-| Design docs started | 1 |
-| Design docs reviewed | 0 |
-| Design docs approved | 0 |
-| v0 systems designed | 1/8 |
-| MVP systems designed | 1/14 |
-| Polish systems designed | 1/17 |
+| Design docs started | 6 |
+| Design docs reviewed | 6 |
+| Design docs approved | 6 |
+| v0 systems designed | 6/8 |
+| MVP systems designed | 6/14 |
+| Polish systems designed | 6/17 |
 
 ---
 
