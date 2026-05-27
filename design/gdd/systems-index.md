@@ -21,7 +21,7 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 
 | # | System Name | Category | Priority | Status | Design Doc | Depends On |
 |---|-------------|----------|----------|--------|------------|------------|
-| 1 | Chess Board & Move System | Core | v0 | Not Started | — | — |
+| 1 | Chess Board & Move System | Core | v0 | Designed | [chess-board-and-move-system.md](./chess-board-and-move-system.md) | — |
 | 2 | Chess Engine Integration | Core | v0 | Not Started | — | — |
 | 3 | Opening Identification | Gameplay | v0 | Not Started | — | — |
 | 4 | Navigation & Routing | UI | v0 | Not Started | — | — |
@@ -170,12 +170,12 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 17 |
-| Design docs started | 0 |
+| Design docs started | 1 |
 | Design docs reviewed | 0 |
 | Design docs approved | 0 |
-| v0 systems designed | 0/8 |
-| MVP systems designed | 0/14 |
-| Polish systems designed | 0/17 |
+| v0 systems designed | 1/8 |
+| MVP systems designed | 1/14 |
+| Polish systems designed | 1/17 |
 
 ---
 
