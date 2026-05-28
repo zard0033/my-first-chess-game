@@ -1,7 +1,9 @@
 # ADR-0005: Pinia Store Module Boundaries and CompletedGame Transport
 
 ## Status
-Proposed
+Accepted
+
+> **Review complete (2026-05-28)**: No blocking gaps. ADR-0004 dependency ✅ Accepted. Knowledge Risk LOW; Pinia 2 + Vue 3 Composition API are stable. Verification is behavioral (test suite). No spikes required.
 
 ## Date
 2026-05-28

@@ -1,9 +1,9 @@
 # ADR-0006: Move Annotation Rendering Substrate
 
 ## Status
-Proposed
+Accepted
 
-> **Next action to reach Accepted**: Complete the 1-day chessground `drawable` spike (Validation Criterion 1) to confirm or update the provisional decision below. If the spike proves chessground sufficient, update Decision §1 and remove the "provisional" qualifier.
+> **Spike complete (2026-05-28)**: `scripts/spike-adr0006-drawable-audit.mjs` — chessground `drawable` FAILS Criteria 2 and 3; custom SVG overlay confirmed. See Validation Criteria results below.
 
 ## Date
 2026-05-28
@@ -58,21 +58,25 @@ GDD Open Question #1 explicitly documents this spike. Without a formal ADR, a pr
 
 ## Decision
 
-### 1. Provisional Decision: Custom SVG Overlay over `boardRef`
+### 1. Decision: Custom SVG Overlay over `boardRef`
 
-**Provisional** (pending the OQ#1 spike — see Validation Criteria): the rendering substrate is a **custom `pointer-events: none` SVG element** absolutely-positioned over the `boardRef` element, sized to match it exactly.
+The rendering substrate is a **custom `pointer-events: none` SVG element** absolutely-positioned over the `boardRef` element, sized to match it exactly.
+
+> **Spike confirmed (2026-05-28)**: `scripts/spike-adr0006-drawable-audit.mjs` audited chessground 9.2.1 `drawable.shapes` against the 4 acceptance criteria. chessground FAILS Criteria 2 and 3; custom SVG overlay is the confirmed substrate. See Validation Criteria §1 for full results.
 
 The eval bar is a separate layout element outside the SVG (a vertical flex child or absolutely-positioned strip alongside the board), not part of the annotation SVG.
 
-**Rationale for custom SVG over chessground `drawable`:**
+**Rationale for custom SVG over chessground `drawable` (spike-confirmed):**
 
-chessground's `drawable` API (`brushes` + `shapes`) is designed for lichess-style interactive arrow drawing (right-click drag to draw, shift-click to erase). It serves that use case well. For this project's requirements, it has three specific mismatches:
+chessground's `drawable` API (`brushes` + `shapes`) is designed for lichess-style interactive arrow drawing (right-click drag to draw, shift-click to erase). It serves that use case well. For this project's requirements, the spike (`scripts/spike-adr0006-drawable-audit.mjs`) confirmed three specific mismatches:
 
-1. **Arrowhead termination geometry**: chessground renders arrows from square center to square center, with the arrowhead pointing at the destination square center. GDD Rule 12 requires the arrowhead tip at the destination square *edge*, with the piece glyph kept ≥70% unoccluded. Overriding chessground's internal SVG `<marker>` element geometry to achieve edge termination requires patching the library's rendering internals — fragile and update-unsafe.
+1. **Arrowhead termination geometry** ❌: chessground renders arrows with the arrowhead tip at the destination square *center* (spike measured 0.34px from center at all arrow types on a 352px board; square edge is 22px away). GDD Rule 12 requires termination at the destination square *edge* (piece glyph ≥70% unoccluded). The `arrowMargin` (10/64 units) and marker `refX` (2.05) nearly cancel, leaving the tip within 0.5px of center. Achieving edge termination requires patching internal SVG `<marker>` geometry — fragile and update-unsafe.
 
-2. **Per-role color control**: chessground brushes are named globally in the chessground config (`movable.color`, `highlight.color`, etc.). Achieving multiple per-role colors (bestMove/teal, playedMove/gray, threat/amber) with different opacities per role may require multiple brush definitions. Whether chessground's `shapes` API allows per-shape brush lookup is version-dependent — the spike must confirm.
+2. **`aria-hidden` on the drawable SVG** ❌: chessground's `cg-shapes` SVG is created internally (confirmed in `wrap.js`) without `aria-hidden`. Setting it requires DOM post-patch, which is fragile. A custom SVG overlay has `aria-hidden="true"` by construction.
 
-3. **Cursor isolation**: chessground's drawable overlay is part of chessground's own SVG layer, which is managed by the library. A custom SVG overlay is in our DOM tree, giving full control over z-order, `aria-hidden`, forced-colors fallback, and `pointer-events: none`.
+3. **Cursor isolation**: chessground's drawable overlay is part of chessground's own SVG layer, managed by the library. A custom SVG overlay is in our DOM tree, giving full control over z-order, `aria-hidden`, forced-colors fallback, and `pointer-events: none`.
+
+**Note — per-shape brush colors** ✅: chessground 9.x *does* support per-shape brush lookup via `DrawShape.brush: string` referencing keys in `drawable.brushes` (open index `[color: string]: DrawBrush`). This criterion passes, but the arrowhead geometry and aria failures are disqualifying.
 
 **Why custom SVG is not high-risk:** The geometry the custom SVG must compute is straightforward:
 - Arrow from center(`from`) to edge-of(`to`) — two points derived from `squareToRect()`
@@ -275,14 +279,17 @@ No existing annotation implementation. This ADR establishes the initial substrat
 
 ## Validation Criteria
 
-1. **[BLOCKING spike — chessground `drawable` audit]**
-   One-day code check before implementation:
-   - Instantiate `vue3-chessboard` (chessground 9.x) in a test harness
-   - Add 3 shapes via the `drawable.shapes` API with distinct brush colors (teal, gray, amber)
-   - Measure: does the arrowhead tip land at the destination square center or edge?
-   - Measure: at board size 352px, what % of the destination piece glyph bounding box is covered by the arrowhead?
-   - Confirm: can brushes be customized per-shape (not just globally)?
-   - If criteria in Decision §4 are met → update this ADR to use chessground drawable. Else → custom SVG confirmed.
+1. **[Spike — chessground `drawable` audit]** ✅ COMPLETE (2026-05-28)
+   Script: `scripts/spike-adr0006-drawable-audit.mjs` (static analysis of chessground 9.2.1 source)
+
+   | Criterion | Result | Detail |
+   |---|---|---|
+   | ≥4 named brushes, per-shape | ✅ PASS | `DrawBrushes[color:string]` open index; `DrawShape.brush` per-shape key lookup |
+   | Arrowhead at square EDGE (≥70% glyph unoccluded) | ❌ FAIL | Tip lands 0.34px from center at all arrow types on 352px board; edge is 22px away |
+   | `aria-hidden` on drawable SVG | ❌ FAIL | `cg-shapes` SVG created without `aria-hidden`; post-patch required |
+   | Resize redraws via callback | ⚠️ PARTIAL | Caller must call `redrawAll()`; not automatic (acceptable — caller controls) |
+
+   **Verdict**: chessground `drawable` FAILS Criteria 2 and 3. Custom SVG overlay confirmed.
 
 2. **[Unit — arrowhead edge termination]**
    For a horizontal arrow (e2→e4) on a 352px board: the computed tip `x` must be ≤ `toCenter.x + squarePx/2` AND the arrowhead base must be outside the `squarePx × 0.40` keep-clear disc around toCenter.

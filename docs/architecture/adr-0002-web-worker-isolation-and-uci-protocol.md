@@ -1,7 +1,9 @@
 # ADR-0002: Web Worker Isolation and UCI Communication Protocol
 
 ## Status
-Proposed
+Accepted
+
+> **Review complete (2026-05-28)**: No blocking gaps. ADR-0001 dependency ✅ Accepted. Knowledge Risk LOW; all APIs stable and within training data. Verification is behavioral (unit + integration tests at implementation time). No spikes required.
 
 ## Date
 2026-05-28

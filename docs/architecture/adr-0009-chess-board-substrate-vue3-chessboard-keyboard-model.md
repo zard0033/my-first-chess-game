@@ -1,12 +1,9 @@
 # ADR-0009: Chess Board Substrate, vue3-chessboard Integration, and Custom Roving-Tabindex Keyboard Model
 
 ## Status
-Proposed
+Accepted
 
-> **Next action to reach Accepted**: Complete three BLOCKING spikes (Validation Criteria 1–3)
-> before implementation begins. Spikes confirm the chessground 9.x `drawable.shapes` API
-> schema, focus-cell keydown event propagation, and vue3-chessboard `boardRef` expose pattern.
-> One-day combined code check.
+> **Spikes complete (2026-05-28)**: `scripts/spike-adr0009-chessboard-api-audit.mjs` — all three blocking questions answered. Decision §1/§3 patched with concrete API patterns. See Validation Criteria results below.
 
 ## Date
 2026-05-28
@@ -77,6 +74,8 @@ accessibility implementation and API drift across the chess board stories.
 - Full keyboard navigation matching the GDD specification (roving tabindex, 64 navigable
   squares, arrow/Home/End/PgUp/PgDn/Enter/Space/Escape)
 - `move-made` event with `{ from, to, promotion?, fen, animationDoneAt }` payload
+
+> **Spike V.C.1 — `animationDoneAt` (2026-05-28)**: No built-in animation completion hook in vue3-chessboard or chessground. Timed fallback confirmed: `animation.duration` default is **300ms** (not 200ms as originally estimated). `animationDoneAt = new Promise<void>(r => setTimeout(r, configuredAnimDuration))` — store the value when configuring the board.
 - `squareToRect(square: Square): { x, y, width, height } | null` via `defineExpose`
 - Screen-reader announcements via two `aria-live` regions (assertive + polite)
 - Promotion dialog focus trap
@@ -94,6 +93,15 @@ accessibility implementation and API drift across the chess board stories.
 - Exposes `boardRef` and `squareToRect()` via `defineExpose` for annotation overlay consumers
 - Does **not** leak chessground's own config API to parent components — all chessground
   configuration is internal to `ChessBoard.vue`
+
+> **Spike V.C.3 (2026-05-28)**: `TheChessboard.vue` does NOT call `defineExpose()` and `BoardApi` has no public DOM getter. `boardRef` is captured via `boardConfig.events.insert` callback:
+> ```typescript
+> const boardRef = ref<HTMLElement | null>(null)
+> // inside boardConfig passed to <TheChessboard :boardConfig="boardConfig">:
+> events: { insert: (elements) => { boardRef.value = elements.wrap } }
+> // elements.wrap === the .cg-wrap element; offsetWidth === full board CSS width
+> ```
+> Fallback: template ref on wrapper div + `querySelector('.cg-wrap')`.
 
 This thin-wrapper pattern keeps the board API at three concepts (position, ownership,
 interactability) and hides chessground's larger config surface (brushes, drawable, movable,
@@ -161,17 +169,29 @@ rendered via **chessground's native `config.drawable.shapes` API**, not Vue-reac
 When the state machine transitions to PIECE_SELECTED:
 
 ```typescript
-// Pseudocode — exact chessground 9.x API to be confirmed by Spike V.C.1
-chessgroundApi.setShapes(
-  legalSquares.map(sq => ({
-    orig: selectedSquare,
-    dest: sq,
-    brush: isCapture(sq) ? 'captureRing' : 'legalDot',
-  }))
-)
+// Spike V.C.1 confirmed pattern (2026-05-28):
+// BoardApi.setShapes() TypeScript restricts brush to 8 fixed BrushColors — cannot use custom names.
+// Use boardApi.setConfig() to set both custom brushes AND shapes in one call:
+boardApi.setConfig({
+  drawable: {
+    brushes: {
+      // inherit chessground defaults; extend with project-specific brushes
+      green: { key: 'green', color: '#15781B', opacity: 1, lineWidth: 10 },
+      red:   { key: 'red',   color: '#882020', opacity: 1, lineWidth: 10 },
+      // selection feedback brushes (values are tuning knobs — see annotation-tuning.ts)
+      legalDot:    { key: 'legalDot',    color: '#3e9c35', opacity: 0.5, lineWidth: 10 },
+      captureRing: { key: 'captureRing', color: '#ee6644', opacity: 0.6, lineWidth: 10 },
+    },
+    shapes: legalSquares.map(sq => ({
+      orig: selectedSquare,
+      dest: sq,
+      brush: isCapture(sq) ? 'captureRing' : 'legalDot',
+    })),
+  },
+})
 ```
 
-When selection clears: `chessgroundApi.setShapes([])`
+When selection clears: `boardApi.setConfig({ drawable: { shapes: [] } })`
 
 This is the GDD-mandated approach and avoids a full vDOM diff for up to 27 simultaneous
 legal-move indicators (centralized queen).
@@ -423,29 +443,36 @@ greenfield implementation. No migration required.
 
 ## Validation Criteria
 
-1. **[BLOCKING spike — chessground `drawable.shapes` schema + `animationDoneAt`]**
-   Before implementation begins:
-   - Instantiate vue3-chessboard (chessground 9.x) in a test harness
-   - Add shapes via `drawable.shapes` with brush names `'legalDot'` and `'captureRing'`
-   - Confirm shapes render on legal destination squares; confirm `setShapes([])` clears them
-   - Confirm whether an animation-complete callback/hook exists for `animationDoneAt: Promise<void>`;
-     if not, document the timed fallback (e.g., `new Promise(resolve => setTimeout(resolve, pieceMoveAnimationMs))`)
-   - If API schema differs: update Decision §3 and §1 before implementation begins
+1. **[Spike — drawable.shapes schema + `animationDoneAt`]** ✅ COMPLETE (2026-05-28)
+   Script: `scripts/spike-adr0009-chessboard-api-audit.mjs`
 
-2. **[BLOCKING spike — focus-cell `keydown` event confirmation]**
-   - Instantiate vue3-chessboard in a test harness
-   - Mount a transparent `<div tabindex="0">` absolutely positioned over the board
-   - Confirm `keydown` events on the div fire when the div has focus, even while chessground's
-     own pointer/touch listeners are active on the same DOM region
-   - If blocked: test mounting the focus cell **outside** chessground's DOM subtree (as a
-     sibling to the board wrapper rather than a child); update Decision §2 diagram accordingly
+   | Question | Result |
+   |---|---|
+   | Custom brush names via `setShapes()` | ❌ Restricted to 8 `BrushColor` values — use `setConfig({ drawable: { brushes, shapes } })` instead |
+   | Custom brushes via `setConfig()` | ✅ `BoardConfig.drawable.brushes` uses chessground's open `DrawBrushes` — any key allowed |
+   | Shapes render and clear via `setConfig` | ✅ Confirmed (chessground `drawable.shapes` driven by `setConfig`) |
+   | `animationDoneAt` built-in hook | ❌ NONE — timed fallback: `new Promise(r => setTimeout(r, configuredAnimDuration))` |
+   | Default `animation.duration` | **300ms** (not 200ms as estimated) |
 
-3. **[BLOCKING spike — vue3-chessboard `boardRef` exposure]**
-   - Confirm vue3-chessboard ^1.x exposes the chessground container `HTMLElement` (via a
-     named `boardRef` expose, a documented prop callback, or a known DOM attribute)
-   - Confirm `offsetWidth` is non-zero after component mount
-   - If not directly exposed: confirm wrapper `ref` on the div containing `<TheChessboard>`
-     gives the correct element with correct dimensions; update Decision §1 accordingly
+2. **[Spike — focus-cell keydown event propagation]** ✅ COMPLETE (2026-05-28)
+   Script: `scripts/spike-adr0009-chessboard-api-audit.mjs`
+
+   | Question | Result |
+   |---|---|
+   | chessground registers keydown/keyup listener | ❌ NO — only `contextmenu`, `touchstart`, `mousedown` |
+   | `pointer-events: none` blocks keyboard events | ❌ NO (CSS spec: pointer-events is pointer-only) |
+   | Focus-cell keydown fires when focused | ✅ YES — guaranteed by browser spec |
+   | DOM structure change needed | ❌ NO — Decision §2 diagram implementable as specified |
+
+3. **[Spike — vue3-chessboard `boardRef` exposure]** ✅ COMPLETE (2026-05-28)
+   Script: `scripts/spike-adr0009-chessboard-api-audit.mjs`
+
+   | Question | Result |
+   |---|---|
+   | `TheChessboard.vue` calls `defineExpose()` | ❌ NO — not in component setup |
+   | `BoardApi` has public DOM getter | ❌ NO — `board` element is private field |
+   | `boardConfig.events.insert` callback available | ✅ YES — present in `BoardConfig.d.ts` and confirmed called in bundle |
+   | `elements.wrap` gives `.cg-wrap` element | ✅ YES — same element passed to chessground init; `offsetWidth` = full board CSS size |
 
 4. **[Unit — `squareToRect()` board-local convention]**
    On a 400 px board (White orientation):

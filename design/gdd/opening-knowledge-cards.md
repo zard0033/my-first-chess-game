@@ -1,6 +1,6 @@
 # Opening Knowledge Cards (GDD)
 
-> **Status**: Skeleton — written 2026-05-28 per Pillar 2 Option A decision. Full sections to be authored via `/design-system opening-knowledge-cards` or `/quick-design "opening knowledge cards"`.
+> **Status**: Draft — written 2026-05-28 per Pillar 2 Option A decision; sections 3/5/8 authored 2026-05-28 (S1-08).
 > **Tier**: v0
 > **Category**: Gameplay (Feature layer)
 > **Depends on**: Opening Identification (system #3), Post-Game Review (system #7)
@@ -28,13 +28,60 @@ The system is **data-only** at the architecture layer: no new Worker, no new Pin
 
 ## 3. Detailed Rules
 
-**TO AUTHOR.** Suggested structure:
+### Data model
 
-- Each ECO code maps to at most one card; if `OpeningResult.eco === null` (unknown opening), no card is shown.
-- Cards are markdown strings; rendered inside a collapsible panel beneath the opening header on the Post-Game Review screen.
-- Default state: **collapsed on mobile** (calm-default per [ADR-0007 §5](../../docs/architecture/adr-0007-post-game-review-analysis-loop-and-sessionstorage-schema.md)), **expanded on desktop**.
-- Tap/click the opening header to toggle.
-- If a knowledge card does not exist for the identified ECO, the panel is not rendered at all (no "No card yet" placeholder — avoids feeling incomplete).
+```typescript
+interface KnowledgeCard {
+  eco: string;   // ECO code key (e.g. 'C50')
+  name: string;  // Opening display name (e.g. 'Italian Game')
+  body: string;  // Markdown body; bold/italic inline only; max 4 sentences
+}
+```
+
+The canonical data lives in `src/data/opening-knowledge-cards.ts`:
+
+```typescript
+export const OPENING_CARDS: Readonly<Record<string, KnowledgeCard>>
+```
+
+This is a build-time static module — no runtime fetch, no Worker, no Pinia store. Tree-shaken to zero cost if the Post-Game Review screen is never loaded.
+
+### Lookup rule
+
+```typescript
+const card: KnowledgeCard | null = OPENING_CARDS[openingResult.eco] ?? null
+```
+
+If `openingResult.eco` is `null` (unknown opening) or the ECO code has no authored card, `card` is `null` and the panel component renders nothing.
+
+### Placement
+
+The card panel renders inside the **Post-Game Review** screen, directly beneath the opening header (the line displaying opening name + ECO code). Post-Game Review owns the panel slot; this system provides the `<OpeningKnowledgeCard>` component only.
+
+In v0 the card uses the **headline opening only** — the ECO of the first matching entry for the full move sequence. Per-move ECO switching is a Phase 2 concern.
+
+### Collapse / expand behavior
+
+| Context | Default state | Toggle trigger |
+| ------- | ------------ | ------------- |
+| Mobile (< 768 px) | Collapsed | Tap opening header |
+| Desktop (≥ 768 px) | Expanded | Click opening header |
+
+- One tap/click on the opening header toggles the panel.
+- Keyboard: the header element receives `role="button"` and `tabindex="0"`, responding to `Space` and `Enter`.
+- Toggle state is **session-ephemeral** — resets to default on each new review session.
+
+### Markdown rendering
+
+Card `body` supports only inline formatting:
+
+| Syntax | Rendered as |
+| ------ | ----------- |
+| `**text**` | Bold |
+| `_text_` | Italic |
+| Plain text | Plain text |
+
+No HTML passthrough, no links, no images. The renderer must escape all other markup. Never pass raw card content to `innerHTML`.
 
 ---
 
@@ -46,12 +93,10 @@ The system is **data-only** at the architecture layer: no new Worker, no new Pin
 
 ## 5. Edge Cases
 
-**TO AUTHOR.** Initial candidates:
-
-- **EC-01**: `OpeningResult.isUnknown === true` → no card rendered, no error
-- **EC-02**: ECO matched but card not authored → no card rendered, no placeholder
-- **EC-03**: Card markdown contains a link to a position diagram → out of scope for v0 (text-only)
-- **EC-04**: Player is reviewing a historical game whose card has since been edited → no problem; cards are reload-fresh; no per-game snapshot
+- **EC-01**: `openingResult.eco === null` (unknown opening) → no card rendered, no error state, no placeholder DOM element.
+- **EC-02**: ECO code has a value but no entry in `OPENING_CARDS` → no card rendered, no placeholder. Treated identically to EC-01 from the UI's perspective.
+- **EC-03**: Card `body` contains raw HTML or a link — out of scope for v0; the renderer strips it. Cards are hand-authored, but the renderer enforces this as a safety net.
+- **EC-04**: Player reviews a historical game whose opening card has since been edited → not a problem. Cards are loaded fresh from the module on each review session; there is no per-game snapshot of card content.
 
 ---
 
@@ -82,20 +127,49 @@ The system is **data-only** at the architecture layer: no new Worker, no new Pin
 
 ## 8. Acceptance Criteria
 
-**TO AUTHOR.** Initial candidates:
-
-- **AC-01**: For an identified `eco = 'C50'` (Italian Game), the matching knowledge card is rendered beneath the opening header on the Post-Game Review screen
-- **AC-02**: For an identified `eco = null` (unknown opening), no knowledge card panel renders (DOM element not present)
-- **AC-03**: On mobile viewport (< 768px), the card panel is collapsed by default; the opening header acts as the toggle
-- **AC-04**: On desktop viewport (≥ 768px), the card panel is expanded by default
-- **AC-05**: Card markdown renders as plain text + supported inline formatting (bold, italic); no HTML injection vulnerability (use a vetted markdown renderer or restrict to bold/italic via a tiny parser)
-- **AC-06**: ≥ 20 ECO codes have hand-authored cards before v0 ships; coverage list documented in this GDD's appendix
-- **AC-07**: Card content tone passes a "no judgment" check — no phrases like "should have played", "you missed", "bad choice"; only describes the opening's plan and what to look for
+- **AC-01**: For `eco = 'C50'` (Italian Game), `<OpeningKnowledgeCard>` renders beneath the opening header on the Post-Game Review screen, displaying the card body text.
+- **AC-02**: For `openingResult.eco === null` (unknown opening), no card panel DOM element is present in the Post-Game Review screen.
+- **AC-03**: For an ECO code with no authored card (e.g. `eco = 'A99'`), no card panel DOM element is present — same result as AC-02 (covers EC-02).
+- **AC-04**: On mobile viewport (< 768 px), the card panel is collapsed by default; tapping the opening header expands it.
+- **AC-05**: On desktop viewport (≥ 768 px), the card panel is expanded by default; clicking the opening header collapses it.
+- **AC-06**: Card body renders `**bold**` and `_italic_` correctly; raw HTML in a card body is not injected into the DOM.
+- **AC-07**: ≥ 20 ECO codes have hand-authored cards in `src/data/opening-knowledge-cards.ts` before v0 ships; ECO codes covered are listed in the Appendix below.
+- **AC-08**: Card body tone passes a "no judgment" review — no phrases such as "should have played", "you missed", "bad choice"; text describes only the opening's strategic plan and what to look for.
 
 ---
 
-## Authoring Notes (delete when GDD is fully authored)
+## Appendix: ECO Coverage (v0)
 
-This skeleton was generated 2026-05-28 to track that v0 includes Opening Knowledge Cards per Pillar 2 Option A. Sections 1, 2, 4, 6 are complete enough for architecture purposes; sections 3, 5, 7, 8 need fuller authoring before implementation stories can be created.
+ECO codes are matched against `chess-openings@0.1.1` return values. Codes marked "approx." should be verified against `lookupSync` output during integration — the library may return a more specific sub-variant code for the same opening family.
 
-Recommend authoring via `/design-system opening-knowledge-cards` or `/quick-design "opening knowledge cards"` when the next design session begins. Content authoring (the actual ~20 cards) is a separate Sprint 1 deliverable (active.md punch list 5b) and lives in `src/data/opening-knowledge-cards.ts` or similar.
+### Sprint 1 — Authored (10 cards)
+
+Cards live in `src/data/opening-knowledge-cards.ts`.
+
+| ECO | Opening Name | Status |
+| --- | ------------ | ------ |
+| C50 | Italian Game | ✅ authored |
+| C65 | Ruy Lopez | ✅ authored |
+| B20 | Sicilian Defense | ✅ authored |
+| C00 | French Defense | ✅ authored |
+| B10 | Caro-Kann Defense | ✅ authored |
+| D02 | London System | ✅ authored |
+| B01 | Scandinavian Defense | ✅ authored |
+| D30 | Queen's Gambit Declined | ✅ authored |
+| A10 | English Opening | ✅ authored |
+| C42 | Petrov Defense | ✅ authored |
+
+### Sprint 2 Backlog — Content (10 cards)
+
+| ECO (approx.) | Opening Name |
+| ------------- | ------------ |
+| C20 | King's Gambit |
+| D10 | Slav Defense |
+| E62 | King's Indian Defense |
+| E21 | Nimzo-Indian Defense |
+| B06 | Modern Defense |
+| A80 | Dutch Defense |
+| D70 | Grünfeld Defense |
+| B90 | Sicilian Najdorf |
+| B70 | Sicilian Dragon |
+| C25 | Vienna Game |

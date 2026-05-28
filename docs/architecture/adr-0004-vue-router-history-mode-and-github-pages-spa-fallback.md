@@ -1,7 +1,9 @@
 # ADR-0004: Vue Router History Mode and GitHub Pages SPA Fallback
 
 ## Status
-Proposed
+Accepted
+
+> **Review complete (2026-05-28)**: No blocking gaps. Knowledge Risk LOW; Vue Router 4 + GitHub Pages `404.html` SPA fallback are stable and well-documented. One verification item (GitHub Pages deep-link) is post-deploy only — not a blocker for implementation. No spikes required.
 
 ## Date
 2026-05-28
