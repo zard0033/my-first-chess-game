@@ -1,10 +1,81 @@
 # Active Session State
 
-**Last updated**: 2026-05-28 (Sprint 1 execution started)
+**Last updated**: 2026-05-29 (Sprint 2 READY — /create-epics + /create-stories + /sprint-plan 全部完成)
 
 ## Current Task
 
-**Sprint 1 in progress** (2026-05-29 ~ 06-11). Next task: S1-04 ADR-0006 spike.
+**Sprint 2 READY for implementation.**
+
+### 立即下一步（明天到公司繼續）
+
+1. **執行 `/qa-plan sprint`** — 在開始任何實作之前必做，定義每個 story 的測試規格
+2. **執行 `/story-readiness production/epics/chess-board/story-001-fen-rendering.md`** — 確認第一個 story 準備好
+3. **執行 `/dev-story production/epics/chess-board/story-001-fen-rendering.md`** — 開始實作
+
+### Sprint 2 Must Have 順序（依賴鏈）
+
+```
+S2-01 chess-board FEN (2.5h)
+  → S2-02 chess-board 雙輸入 (5h)
+    → S2-03 squareToRect (2h)
+    → S2-08 Promotion Dialog [Should Have]
+
+S2-04 chess-engine UCI (4.5h)
+  → S2-05 play() + AbortSignal (3.5h)
+
+S2-06 CSP 配置 (1.5h) [可獨立執行]
+S2-07 app-router 路由表 (2.5h) [可獨立執行]
+```
+
+### Sprint 2 完成條件
+- 人類可以在瀏覽器對 Stockfish HCE 下棋
+- 所有 Logic story 有通過的 unit tests
+- CSP 在 Chrome DevTools 無錯誤
+
+## Session Extract — /create-epics + /create-stories + /sprint-plan 2026-05-29
+
+### /create-epics
+- 建立 **9 個 epic 檔案** + `production/epics/index.md`
+- Foundation: chess-board (7 TRs), chess-engine (9 TRs), opening-id (4 TRs), app-router (6 TRs)
+- Core: game-lifecycle (5 TRs), move-annotation (5 TRs)
+- Feature: post-game-review (7 TRs), game-export (4 TRs), opening-knowledge-cards (Blocked — GDD 未完成)
+- 全部 44 個 TR-ID 均有 ADR 覆蓋
+- Producer 自評（full mode）：REALISTIC
+
+### /create-stories（全部 8 個 ready epic）
+- 建立 **28 個 story 檔案**，每個 story 包含 TR-ID、ADR 指引、AC、QA 測試案例
+- chess-board: 7 stories (001-007)
+- chess-engine: 7 stories (001-007)
+- opening-id: 1 story
+- app-router: 2 stories
+- game-lifecycle: 2 stories
+- move-annotation: 2 stories
+- post-game-review: 5 stories (包含兩次分析迴圈、cpLoss 公式、biggestSwingCursor、sessionStorage、手機靜默模式)
+- game-export: 2 stories (PGN/Prompt assembly、Tier-1/2/3 state machine)
+- QA Lead 自評（full mode）：全部 28 stories ADEQUATE
+
+### /sprint-plan Sprint 2
+- 期間：2026-06-12 to 2026-06-25（14 天，~24h available）
+- Must Have: S2-01 ~ S2-07（7 stories，~21.5h）
+- Should Have: S2-08 ~ S2-10（3 stories，~9.5h，延伸目標）
+- Nice to Have: S2-11 ~ S2-13（鍵盤導覽、Review Engine、視覺回饋）
+- **⚠️ 無 QA Plan — 開始實作前必須執行 `/qa-plan sprint`**
+
+## Files Modified This Session (2026-05-29)
+
+- `production/epics/index.md` — NEW（Epic 索引，28 stories 全部計入）
+- `production/epics/chess-board/EPIC.md` + 7 story files — NEW
+- `production/epics/chess-engine/EPIC.md` + 7 story files — NEW
+- `production/epics/opening-id/EPIC.md` + 1 story file — NEW
+- `production/epics/app-router/EPIC.md` + 2 story files — NEW
+- `production/epics/game-lifecycle/EPIC.md` + 2 story files — NEW
+- `production/epics/move-annotation/EPIC.md` + 2 story files — NEW
+- `production/epics/post-game-review/EPIC.md` + 5 story files — NEW
+- `production/epics/game-export/EPIC.md` + 2 story files — NEW
+- `production/epics/opening-knowledge-cards/EPIC.md` — NEW（Blocked）
+- `production/sprints/sprint-2.md` — NEW（Sprint 2 計畫）
+- `production/sprint-status.yaml` — UPDATED（Sprint 1 → Sprint 2）
+- `production/session-state/active.md` — UPDATED（本檔）
 
 ### Sprint 1 Task Status
 
@@ -13,12 +84,15 @@
 | S1-01 | npm install → package-lock.json | ✅ DONE (already existed) |
 | S1-02 | Vite project scaffold | ✅ DONE 2026-05-28 |
 | S1-03 | ADR-0003 spike → Accepted | ✅ DONE 2026-05-28 |
-| S1-04 | ADR-0006 spike + C1 patch → Accepted | ⬜ next |
-| S1-05 | ADR-0009 spikes ×3 → Accepted | ⬜ |
-| S1-06 | ADR-0010 spikes ×2 → Accepted | ⬜ |
-| S1-07 | ADR-0002 + ADR-0004 + ADR-0005 → Accepted | ⬜ |
-| S1-08 | Opening Knowledge Cards GDD (Should Have) | ⬜ |
-| S1-09..12 | Component/Router/Store/Engine (Should/Nice) | ⬜ |
+| S1-04 | ADR-0006 spike + C1 patch → Accepted | ✅ DONE 2026-05-28 |
+| S1-05 | ADR-0009 spikes ×3 → Accepted | ✅ DONE 2026-05-28 |
+| S1-06 | ADR-0010 spikes ×2 → Accepted | ✅ DONE 2026-05-28 |
+| S1-07 | ADR-0002 + ADR-0004 + ADR-0005 → Accepted | ✅ DONE 2026-05-28 |
+| S1-08 | Opening Knowledge Cards GDD (Should Have) | ✅ DONE 2026-05-28 |
+| S1-09 | Chess Board component skeleton | ✅ DONE 2026-05-28 |
+| S1-10 | Navigation / Routing skeleton | ✅ DONE 2026-05-28 |
+| S1-11 | Pinia store shells | ✅ DONE 2026-05-28 |
+| S1-12 | Chess Engine Worker wrapper (Nice to Have) | ✅ DONE 2026-05-28 |
 
 ### Key findings this session
 - `chess-openings@0.1.1` (not 3.x) — version corrected in package.json
@@ -26,8 +100,16 @@
 - chess-openings `ECO.lookupSync(fen)` aligns exactly — **no normalization needed**
 - API simpler than ADR assumed: no build-time Map needed; runtime `lookupSync` is the interface
 - ADR-0003 updated + marked **Accepted**
-- chessground@9.2.1 has deprecation warning (npm) — relevant for S1-04/S1-05 spikes
-- Spike script kept at `scripts/spike-adr0003-ep-convention.mjs`
+- chessground@9.2.1 has deprecation warning (npm) — relevant for S1-05 spike
+- Spike script S1-03: `scripts/spike-adr0003-ep-convention.mjs`
+- **ADR-0006 spike complete**: chessground `drawable` FAILS (arrowhead tip 0.34px from center on 352px board; `cg-shapes` SVG has no `aria-hidden`). Custom SVG overlay confirmed. Per-shape brushes ✅ PASS (acceptable).
+- ADR-0006 status → **Accepted**; C1 doc-drift patch already applied in prior session
+- Spike script S1-04: `scripts/spike-adr0006-drawable-audit.mjs`
+- **ADR-0009 spikes ×3 complete**: (1) custom brush via `setConfig()` path confirmed (not `setShapes()`); `animation.duration` = 300ms, no built-in hook → timed Promise fallback. (2) focus-cell keydown: PASS — chessground has zero keyboard listeners, `pointer-events:none` div receives keyboard events normally. (3) boardRef: PASS via `boardConfig.events.insert(elements)` → `elements.wrap` is `.cg-wrap`. ADR-0009 status → **Accepted**; Decision §1/§3 patched.
+- Spike script S1-05: `scripts/spike-adr0009-chessboard-api-audit.mjs`
+- **ADR-0010 spikes ×2 complete**: Desktop delivery pattern fully verified (4 scenarios pass); canShare `{text}`-only shape correct; CSP compatibility confirmed. iOS user-activation + canShare reachability: DEFERRED (real iPhone session before Sprint 3 — `active.md` open questions updated). ADR-0010 → **Accepted** with iPhone caveat.
+- Spike script S1-06: `scripts/spike-adr0010-export-gesture-audit.mjs`
+- **S1-07 complete**: ADR-0002 (Worker isolation), ADR-0004 (Vue Router/GH Pages), ADR-0005 (Pinia stores) — all reviewed, no blocking gaps, all Knowledge Risk LOW, no Post-Cutoff APIs. All three → **Accepted**.
 
 ### Session history (older)
 `/create-control-manifest` complete (2026-05-29): `docs/architecture/control-manifest.md` written.
@@ -86,10 +168,10 @@ Suggested order from TD/PR (highest-uncertainty trio first):
 1. ~~ADR-0001 HCE build availability~~ — **DONE 2026-05-28** (`stockfish@16.0.0`, single-threaded, HCE via `Use NNUE false`)
 2. ADR-0008 iOS Safari meta-CSP `worker-src 'self' blob:` + `'wasm-unsafe-eval'` verification — real iPhone device
 3. ADR-0007 iPhone Safari depth-22 reachability + peak RSS measurement — real iPhone device
-4. ADR-0003 en passant EPD convention check (chess.js vs chess-openings dataset)
-5. ADR-0006 chessground 9.x `drawable.shapes` audit (arrowhead geometry + per-shape brush colors)
-6. ADR-0009 (×3): drawable.shapes schema, focus-cell keydown propagation, vue3-chessboard `boardRef` expose
-7. ADR-0010 (×2): iOS user-activation pattern + `canShare({text})` reachability
+4. ~~ADR-0003 en passant EPD convention check~~ — **DONE 2026-05-28**
+5. ~~ADR-0006 chessground 9.x `drawable.shapes` audit~~ — **DONE 2026-05-28** (custom SVG confirmed)
+6. ~~ADR-0009 (×3): drawable.shapes schema, focus-cell keydown, vue3-chessboard boardRef~~ — **DONE 2026-05-28**
+7. ~~ADR-0010 (×2): iOS user-activation + `canShare({text})`~~ — **DONE 2026-05-28** (iPhone items deferred)
 
 ## ADR Summary (ADR-0001..0010 all Proposed)
 

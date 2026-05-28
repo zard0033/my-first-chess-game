@@ -8,141 +8,147 @@
 #   review         ↔  In Review
 #   done           ↔  Complete
 #   blocked        ↔  Blocked
-#
-# Note: Sprint 1 tasks are spikes, scaffold, and design work — not formal
-# epic/story files. story.file is empty until /create-epics + /create-stories
-# are run before Sprint 2.
 
-sprint: 1
-goal: "Resolve all non-iPhone ADR spikes, scaffold Vue project, clear blockers for Sprint 2 implementation"
-start: "2026-05-29"
-end: "2026-06-11"
-generated: "2026-05-28"
-updated: "2026-05-28"
+sprint: 2
+goal: "實作 Foundation 層關鍵路徑 — 首次端到端可玩遊戲迴圈（人類 vs Stockfish 瀏覽器對弈）"
+start: "2026-06-12"
+end: "2026-06-25"
+generated: "2026-05-29"
+updated: "2026-05-29"
 
 stories:
-  # --- Must Have ---
+  # ---- Must Have (必須完成) ----
 
-  - id: "1-01"
-    name: "npm install → commit package-lock.json"
-    file: ""
+  - id: "S2-01"
+    name: "chess-board: FEN Rendering and Position Sync"
+    file: "production/epics/chess-board/story-001-fen-rendering.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.1
+    estimate_days: 0.31
     blocker: ""
     completed: ""
 
-  - id: "1-02"
-    name: "Vite project scaffold (Vue 3 + TS + Tailwind + Router + Pinia)"
-    file: ""
+  - id: "S2-02"
+    name: "chess-board: Dual Input — Drag + Tap-Tap + move-made"
+    file: "production/epics/chess-board/story-002-input.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.4
-    blocker: ""
+    estimate_days: 0.63
+    blocker: "S2-01"
     completed: ""
 
-  - id: "1-03"
-    name: "ADR-0003 spike: en passant EPD convention → Accepted"
-    file: ""
+  - id: "S2-03"
+    name: "chess-board: squareToRect() Geometry Contract"
+    file: "production/epics/chess-board/story-004-square-to-rect.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.2
-    blocker: ""
+    estimate_days: 0.25
+    blocker: "S2-01"
     completed: ""
 
-  - id: "1-04"
-    name: "ADR-0006 spike: drawable.shapes arrowhead + C1 doc patch → Accepted"
-    file: ""
+  - id: "S2-04"
+    name: "chess-engine: Play Engine — Worker Scaffold + UCI Handshake"
+    file: "production/epics/chess-engine/story-001-play-engine-uci.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.3
+    estimate_days: 0.56
     blocker: ""
     completed: ""
 
-  - id: "1-05"
-    name: "ADR-0009 spikes ×3 (shapes schema, keydown, boardRef) → Accepted"
-    file: ""
+  - id: "S2-05"
+    name: "chess-engine: play() Method with AbortSignal + Race Guard"
+    file: "production/epics/chess-engine/story-002-play-engine-play.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.5
-    blocker: ""
+    estimate_days: 0.44
+    blocker: "S2-04"
     completed: ""
 
-  - id: "1-06"
-    name: "ADR-0010 spikes ×2 (clipboard user-activation, canShare) → Accepted"
-    file: ""
+  - id: "S2-06"
+    name: "chess-engine: CSP Headers + WASM Deployment Config"
+    file: "production/epics/chess-engine/story-006-csp-wasm-deployment.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.2
+    estimate_days: 0.19
     blocker: ""
     completed: ""
 
-  - id: "1-07"
-    name: "ADR-0002 + ADR-0004 + ADR-0005 review → Accepted"
-    file: ""
+  - id: "S2-07"
+    name: "app-router: Route Table, Lazy Loading, SPA Fallback"
+    file: "production/epics/app-router/story-001-route-table.md"
     priority: must-have
     status: ready-for-dev
     owner: ""
-    estimate_days: 0.2
+    estimate_days: 0.31
     blocker: ""
     completed: ""
 
-  # --- Should Have ---
+  # ---- Should Have (延伸目標) ----
 
-  - id: "1-08"
-    name: "Opening Knowledge Cards GDD: all 8 sections + 8-10 ECO blurbs"
-    file: "design/gdd/opening-knowledge-cards.md"
+  - id: "S2-08"
+    name: "chess-board: Promotion Dialog — Deliberate Selection"
+    file: "production/epics/chess-board/story-003-promotion.md"
     priority: should-have
     status: backlog
     owner: ""
-    estimate_days: 0.4
+    estimate_days: 0.44
+    blocker: "S2-02"
+    completed: ""
+
+  - id: "S2-09"
+    name: "app-router: Navigation Guards (in-game + beforeunload + popstate)"
+    file: "production/epics/app-router/story-002-navigation-guards.md"
+    priority: should-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.44
+    blocker: "S2-07"
+    completed: ""
+
+  - id: "S2-10"
+    name: "opening-id: ECO.lookupSync + identifyOpening()"
+    file: "production/epics/opening-id/story-001-opening-lookup.md"
+    priority: should-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.31
     blocker: ""
     completed: ""
 
-  - id: "1-09"
-    name: "Chess Board component skeleton (chess-board.vue + use-chess-board.ts)"
-    file: ""
-    priority: should-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.5
-    blocker: "ADR-0009 must be Accepted first (resolved by 1-05)"
-    completed: ""
+  # ---- Nice to Have (有餘力再做) ----
 
-  - id: "1-10"
-    name: "Navigation / Routing skeleton (App.vue + router + 3 route stubs)"
-    file: ""
-    priority: should-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.3
-    blocker: "ADR-0004 must be Accepted first (resolved by 1-07)"
-    completed: ""
-
-  - id: "1-11"
-    name: "Pinia store shells (useGameStore, useUiStore)"
-    file: ""
-    priority: should-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.2
-    blocker: ""
-    completed: ""
-
-  # --- Nice to Have ---
-
-  - id: "1-12"
-    name: "Chess Engine Worker wrapper init (stockfish-worker.ts + use-stockfish.ts)"
-    file: ""
+  - id: "S2-11"
+    name: "chess-board: Keyboard Navigation (useBoardKeyboard)"
+    file: "production/epics/chess-board/story-005-keyboard-nav.md"
     priority: nice-to-have
     status: backlog
     owner: ""
-    estimate_days: 0.5
-    blocker: "ADR-0002 must be Accepted first (resolved by 1-07)"
+    estimate_days: 0.81
+    blocker: "S2-02"
+    completed: ""
+
+  - id: "S2-12"
+    name: "chess-engine: Review Engine — Lazy Load + analyze() + Auto-Terminate"
+    file: "production/epics/chess-engine/story-003-review-engine.md"
+    priority: nice-to-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.56
+    blocker: "S2-04"
+    completed: ""
+
+  - id: "S2-13"
+    name: "chess-board: Visual Feedback — Check Indicator + Reduced Motion"
+    file: "production/epics/chess-board/story-006-visual-feedback.md"
+    priority: nice-to-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.56
+    blocker: "S2-01, S2-03"
     completed: ""
