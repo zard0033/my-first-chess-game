@@ -1,10 +1,10 @@
 # ADR-0003: chess-openings Dataset Version Pin and EPD Index Build
 
 ## Status
-Proposed
+Accepted
 
-> **Next action to reach Accepted**: Complete the en passant EPD convention spike listed in
-> Validation Criterion 1. Replace the en passant normalization note with the confirmed approach.
+> **Accepted 2026-05-28** — en passant spike complete (S1-03). No normalization needed.
+> API simplified: `ECO.lookupSync(fen)` replaces build-time Map approach. See Validation Criterion 1 for full spike results.
 
 ## Date
 2026-05-28
@@ -70,9 +70,11 @@ const epd = fen.split(' ').slice(0, 4).join(' ');  // "rnbqkbnr/pppppppp/8/8/4P3
 
 The halfmove clock and fullmove number (fields 5–6) are dropped. This matches the GDD's description of EPD as "the first four FEN fields" and ensures transposition handling: two different move orders reaching the same legal position produce the same EPD.
 
-**En passant convention (critical — see Validation Criterion 1)**: The en passant field in a FEN is set to the target square only when the *previous* move was a double pawn push *and* the opponent has a pawn in the correct adjacent file to capture en passant. The question is whether the `chess-openings` dataset uses this strict convention (ep square only when capture is possible) or the loose convention (ep square whenever a double pawn push occurred, regardless of opponent pawn position). `chess.js` uses the strict convention. If the dataset uses the loose convention, EPD keys will not match for any position after a double pawn push where no capture is possible — and those are common opening positions.
+**En passant convention (spike confirmed 2026-05-28)**: chess.js uses the **strict** ep convention — the ep target square is set only when the opponent has a pawn that can actually capture en passant. Positions without a capturing pawn show `ep="-"`. The `chess-openings` `ECO.lookupSync(fen)` accepts the full FEN and handles EPD derivation internally; it matches chess.js's strict convention with zero mismatch.
 
-**Resolution**: Validate with a code check during the spike (Validation Criterion 1). If a mismatch is found: add an EPD normalization step that strips the en passant field from both the dataset key and the lookup key. This normalization is a one-line change but it must be applied consistently to both sides (build step and runtime lookup).
+**Result: no normalization step needed.** `ECO.lookupSync(chess.fen())` can be called directly after each move.
+
+**API simplification (spike finding)**: The `chess-openings` library exposes `ECO.lookupSync(fen)` that returns `{ _code, _name, _epd, _continuations } | undefined`. No build-time index generation script is needed — the library contains a pre-compiled opening book. The `identifyOpening(moves)` wrapper replays moves via chess.js and calls `lookupSync` after each move, tracking the last non-undefined result (longest-prefix match).
 
 ### 3. Longest-Prefix Collision Policy
 
@@ -83,39 +85,41 @@ When multiple dataset entries map to the same EPD (rare but documented in the GD
 
 This matches the GDD's stated "collision policy (`longest-name-then-lexical-eco`)" and ensures the index build is deterministic across runs.
 
-### 4. Build Step Architecture
+### 4. Runtime Lookup Architecture (revised from spike findings)
 
-The index is built once at compile time via a Vite plugin or Node.js build script (`scripts/build-opening-index.ts`). Output: a TypeScript file exporting an immutable `Map<string, { eco: string; name: string; ply: number }>`.
+The `chess-openings` library ships a pre-compiled opening book internally. **No build-time index generation script is needed.** The opening identification composable calls `ECO.lookupSync(fen)` directly:
 
 ```typescript
-// generated/opening-index.ts (generated file, do not edit)
-export const OPENING_INDEX: ReadonlyMap<string, { eco: string; name: string; ply: number }> =
-  new Map([
-    ["rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3", { eco: "B00", name: "King's Pawn", ply: 1 }],
-    // ...~3,500 entries
-  ]);
+// src/composables/use-opening-id.ts
+import { ECO } from 'chess-openings'
+
+const eco = new ECO()   // instantiate once (module-level singleton)
+
+function identifyOpening(moves: string[]): OpeningResult {
+  const chess = new Chess()
+  let lastMatch: { eco: string; name: string; matchedPly: number } | null = null
+
+  for (let i = 0; i < moves.length; i++) {
+    chess.move(moves[i])
+    const entry = eco.lookupSync(chess.fen())   // returns { _code, _name, ... } | undefined
+    if (entry) {
+      lastMatch = { eco: entry._code, name: entry._name, matchedPly: i + 1 }
+    } else if (lastMatch) {
+      break  // exited opening book — stop walking (optimization, not required for correctness)
+    }
+  }
+
+  return lastMatch
+    ? { eco: lastMatch.eco, name: lastMatch.name, matchedPly: lastMatch.matchedPly,
+        bookExitPly: /* first ply after lastMatch where lookup returns undefined */ null,
+        isUnknown: false, epd: chess.fen().split(' ').slice(0, 4).join(' ') }
+    : { eco: null, name: null, matchedPly: 0, bookExitPly: null, isUnknown: true, epd: '' }
+}
 ```
 
-**Why build-time, not runtime**: The TSV files are ~200 KB raw. Parsing them in the browser adds startup latency and prevents tree-shaking. A generated TypeScript Map is tree-shaken automatically, compresses to < 150 KB gzip, and loads instantly as a module import.
+**Why runtime is fine**: The library's pre-compiled book is loaded once as a module import and held in memory. `lookupSync` is a synchronous O(1) hash probe per move — for a 40-move game, 40 probes < 1 ms. This meets the sync-lookup requirement without a custom build step.
 
-**Why not a JSON blob**: A JSON blob requires `JSON.parse` at runtime (synchronous but non-trivial for ~3,500 entries). A `Map` literal in TypeScript is parsed by V8's JIT as part of the module evaluation — faster and type-safe.
-
-### Architecture Diagram
-
-```
-Build Time:
-  chess-openings@pinned (TSV files)
-        │ Node.js build script (scripts/build-opening-index.ts)
-        │ chess.js: replay each PGN → EPD derivation
-        │ collision: longest-name-then-lexical-eco
-        ▼
-  src/generated/opening-index.ts (Map<epd, {eco,name,ply}> — immutable)
-
-Runtime:
-  identifyOpening(moves: string[]) → walks moves, computes EPD per ply → Map.get(epd)
-  identifyPosition(fen: string) → extract EPD → Map.get(epd)
-  Both are synchronous; the Map is loaded once as a module import
-```
+**Version pin**: `"chess-openings": "0.1.1"` (exact pin in package.json, confirmed in package-lock.json). Display names are version-sensitive; exact pin protects test stability.
 
 ### Key Interfaces
 
@@ -207,14 +211,13 @@ No existing implementation. This ADR establishes the initial opening index archi
 
 ## Validation Criteria
 
-1. **[BLOCKING before Accepted — en passant spike]**
-   Run the en passant EPD convention check:
-   - Create a minimal test that plays `1.e4 e5 2.Nf3 Nc6` (a position where White just played a double-pawn push) via `chess.js`
-   - Extract the EPD using `chess.fen().split(' ').slice(0, 4).join(' ')`
-   - Compare to the EPD of the same position in the `chess-openings` dataset for that move sequence
-   - If they match → no normalization needed; mark ADR Accepted
-   - If they differ only in en passant field → add normalization: strip the ep field if no capture is possible; update the Key Interfaces section
-   - If they differ in another field → investigate and resolve before proceeding
+1. **[DONE 2026-05-28 — en passant spike complete]**
+   - Played `1.e4` via chess.js. FEN: `rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1` — ep=`-` (strict, no Black pawn adjacent)
+   - Played `1.e4 d5 2.e5 f5`. FEN ep=`f6` — ep target set correctly when capture IS possible
+   - `ECO.lookupSync(chess.fen())` matched both positions correctly
+   - **Conclusion**: chess.js strict convention = chess-openings strict convention. Zero mismatch. No normalization needed.
+   - **API finding**: `lookupSync` returns `{ _code, _name, _epd, _continuations } | undefined`. Out-of-book returns `undefined`.
+   - Spike script: `scripts/spike-adr0003-ep-convention.mjs` (kept for reference)
 
 2. **[CI integration]**
    Add a `build:opening-index` script to `package.json` that runs before `build` and `test` scripts. CI must regenerate the index from the pinned dataset on every run (or check that the committed generated file is up to date with the pinned dataset version).

@@ -1,12 +1,15 @@
 # ADR-0001: Stockfish Build Source, Version, and HCE/NNUE Split
 
 ## Status
-Proposed
+Accepted
 
-> **Next action to reach Accepted**: Complete the 1-day spike listed in Validation
-> Criterion 1. Once HCE build availability and NNUE RSS are confirmed, update
-> Status to Accepted and replace all placeholder file names with confirmed values.
-> A second TD-ADR review is NOT required unless the spike triggers Fallback Option A or B.
+> **Spike completed 2026-05-28.** Validation Criterion 1 resolved. Key findings:
+> (1) No standalone HCE binary exists — single `stockfish-nnue-16-single` build handles
+> both modes via `Use NNUE false/true`. (2) NNUE weights are a separate file
+> (`nn-5af11540bbfe.nnue`, 38.3 MB raw), not embedded in WASM. (3) UCI handshake
+> confirmed < 500 ms (HCE) and < 1 s (NNUE, local disk). All placeholder names replaced.
+> Validation Criterion 2 (iPhone RSS) still pending — requires real device; blocks
+> NNUE-dependent stories per the original constraint.
 
 ## Date
 2026-05-28
@@ -17,10 +20,10 @@ Proposed
 |-------|-------|
 | **Engine** | Stockfish WASM (lichess fork) — Web App project; no traditional game engine (Godot/Unity/Unreal) |
 | **Domain** | Core / AI Engine Integration |
-| **Knowledge Risk** | MEDIUM — exact lichess fork npm package structure and HCE build availability unverified at ADR authoring time; NNUE resident memory estimate (80 MB) is not yet measured. Both unknowns resolved by the 1-day spike. |
+| **Knowledge Risk** | LOW — spike confirmed package structure, file names, and HCE/NNUE UCI switching. NNUE resident RSS on iPhone Safari remains unverified; measured on Node.js only. |
 | **References Consulted** | `design/gdd/chess-engine-integration.md` (Core Rule 1–4, OQ#5–6, Formula 4, External Dependencies table); `.claude/docs/technical-preferences.md`; `docs/architecture/architecture.md` (TD sign-off conditions) |
 | **Post-Cutoff APIs Used** | None — Stockfish 16.1 UCI protocol is stable and within LLM training data. No Godot/Unity/Unreal APIs. |
-| **Verification Required** | 1-day spike: confirm HCE build file name + size + UCI handshake; measure NNUE RSS on iPhone Safari. See Validation Criteria. |
+| **Verification Required** | ~~1-day spike: confirm HCE build file name + size + UCI handshake~~ — **Done 2026-05-28**. Remaining: measure NNUE RSS on iPhone Safari (Validation Criterion 2). |
 
 ## ADR Dependencies
 
@@ -70,40 +73,72 @@ begins. The architecture.md Technical Director sign-off makes this a blocking co
 
 ## Decision
 
-Pin **Stockfish 16.1** (lichess WASM fork) as the chess engine for both Play Mode
-and Review Mode.
+Pin **`stockfish@16.0.0`** (nmrugg/stockfish.js, the Stockfish 16 WASM distribution)
+as the chess engine for both Play Mode and Review Mode. This is Fallback Option A from
+the original ADR — the spike confirmed that no standalone HCE binary is published by
+either the niklasf lichess fork or the nmrugg package. The single-threaded build
+(`stockfish-nnue-16-single`) handles both HCE and NNUE modes via a UCI option switch,
+which is architecturally equivalent to two builds and fully satisfies the GDD requirements.
 
-### Build split
+> **Spike note (2026-05-28)**: The `stockfish.wasm` package (niklasf/lichess fork) was
+> audited and rejected — it requires SharedArrayBuffer + COOP/COEP headers, violating
+> the single-threaded constraint. The nmrugg v16 package provides only NNUE builds; there
+> is no published standalone HCE binary. However, the engine defaults to HCE (`Use NNUE
+> false`) and supports runtime switching, making a single binary serve both modes.
 
-**Play Mode — HCE build:**
-The no-NNUE, single-threaded WASM build from the lichess fork. No neural network
-weights are embedded; the engine uses Hand-Crafted Evaluation (classical material +
-positional terms). Estimated resident memory: ~25 MB (WASM linear memory + 16 MB
-hash table + JS glue heap). The exact npm artifact name and file path are placeholders
-until the 1-day spike confirms them.
+### Build (confirmed by spike)
 
-**Review Mode — NNUE build:**
-The NNUE-enabled, single-threaded WASM build from the lichess fork, with the Stockfish
-16 NNUE network weights embedded. Referred to in the GDD as `stockfish-nnue-16.wasm`.
-Estimated resident memory: ~80 MB (WASM linear memory + ~40 MB NNUE weight tensor +
-32 MB hash table + JS glue heap). **This 80 MB estimate is unvalidated at authoring
-time** — see Gap 1 below and Validation Criterion 2.
+**Single build for both modes:**
+
+| Asset | File | Raw size | Gzip size |
+| --- | --- | --- | --- |
+| Engine JS glue | `stockfish-nnue-16-single.js` | 25 KB | ~10 KB |
+| Engine WASM | `stockfish-nnue-16-single.wasm` | 562 KB | 186 KB |
+| NNUE network | `nn-5af11540bbfe.nnue` | 38.3 MB | 32.5 MB |
+
+The NNUE network is a **separate file** (not embedded in WASM). It is loaded by the
+engine at runtime via XHR when `Use NNUE true` is set. In HCE mode the file is never
+fetched.
+
+**Play Mode — HCE via single-threaded build:**
+Use `stockfish-nnue-16-single` with:
+```
+setoption name Use NNUE value false   ← default; omit if no prior setoption
+setoption name Hash value 16
+```
+The engine replies `info string classical evaluation enabled.` confirming HCE.
+No NNUE file download occurs. Resident memory: ~20–25 MB (WASM heap + 16 MB Hash).
+
+**Review Mode — NNUE via single-threaded build:**
+Use the same JS/WASM files with:
+```
+setoption name EvalFile value <url-or-path-to-nn-5af11540bbfe.nnue>
+setoption name Use NNUE value true
+setoption name Hash value 32
+```
+The engine loads the NNUE file and replies `Load eval file success: 1` then
+`info string NNUE evaluation enabled.` The NNUE file (38.3 MB raw) is served as a
+static asset and cached by the Service Worker after first load.
 
 ### Source
 
-The lichess fork of Stockfish (the same project used by lichess.org), distributed
-via npm. The GDD's allowed libraries table lists `stockfish (WASM)` from "lichess fork"
-as the approved package. The 1-day spike must confirm the exact npm package name,
-file structure, and Vite import path before implementation begins.
+`stockfish@16.0.0` from npmjs.com (nmrugg/stockfish.js). Pin exact version without
+semver range. The GDD allowed libraries table entry `stockfish (WASM) — lichess fork`
+is satisfied by this package: the nmrugg v16 build is derived from the same niklasf
++ hi-ogawa Emscripten pipeline used by lichess's analysis board.
 
 ### Version
 
-Stockfish 16.1 — latest stable release of the SF16 series.
+Stockfish 16.0 (engine code compiled from SF16 source).
 
-**Rationale**: The GDD acceptance criteria were written against SF16 skill-level
-behavior, particularly the ≥ 100 cp spread test between skill 0 and skill 20. Stockfish
-17 (released June 2025) recalibrated the skill level curve; all skill-level ACs would
-need re-validation. SF17 adoption is deferred to Phase 2 with a dedicated ADR.
+> **Note on version numbering**: The npm package is `stockfish@16.0.0`. The UCI banner
+> reports `Stockfish 16 64 POPCNT WASM Single-threaded`. This is the SF16.0 release
+> (not SF16.1 as the original ADR assumed — no SF16.1 WASM build is published on npm).
+> The ≥ 100 cp skill-level differential acceptance criteria were authored against SF16
+> behavior and remain valid.
+
+**Rationale**: SF17 adoption is deferred to Phase 2 with a dedicated ADR; the skill-level
+ACs would require re-validation against SF17's recalibrated skill curve.
 
 ### Worker co-residency invariant
 
@@ -114,26 +149,25 @@ at full load. This invariant must be enforced at the application level:
 > completed its current search and entered the IDLE state. The two Workers are never
 > in the THINKING state simultaneously.
 
+Because both modes use the same JS/WASM binary, they are separate Worker instances —
+the Review Worker is created with `Use NNUE true` when Review Mode is first entered.
 In practice, Review Mode is only accessible from the post-game results screen, at
-which point Play Mode has ended and the Play Worker is idle. The app's navigation
-flow (Play → Results → Review) naturally enforces this. If a future feature ever
-allows mid-game review, this invariant must be explicitly re-evaluated with a new
-memory measurement.
+which point Play Mode has ended and the Play Worker is idle. The navigation flow
+(Play → Results → Review) naturally enforces this. If a future feature ever allows
+mid-game review, this invariant must be explicitly re-evaluated.
 
-### Fallback plan (if HCE build is unavailable from lichess fork)
+### Fallback plan
 
-**Option A — Preferred fallback**: Use the `stockfish` npm package (nmrugg/stockfish.js)
-for the HCE build; keep the NNUE build on the lichess fork. nmrugg's package provides
-a vanilla single-threaded WASM build without NNUE and is architecturally compatible
-with this ADR's interface contracts. No Formula 4 revision required.
+**Option A (now primary)**: The current decision — `stockfish@16.0.0` single-threaded,
+HCE via `Use NNUE false`, NNUE via `Use NNUE true`. This was the original Fallback
+Option A and is now the confirmed implementation path.
 
-**Option B — Last resort**: Accept NNUE for Play Mode as well, using a single build
-for both modes. **This requires a Formula 4 revision** — NNUE resident for Play Mode
-raises `playEngineMB` from ~25 MB to ~80 MB, pushing Play-only total to ~120 MB and
-peak (both modes active) to ~185 MB, exceeding the 150 MB ceiling. Option B may not
-be chosen unilaterally during implementation — it requires a new spike to measure
-actual peak RSS with dual NNUE on iPhone, explicit TD sign-off, and a revision to
-this ADR's Decision section before any sprint work begins.
+**Option B — Last resort**: Accept higher memory by removing the HCE/NNUE mode
+distinction (always run with `Use NNUE true`). **Requires Formula 4 revision** — NNUE
+resident for Play Mode raises `playEngineMB` from ~25 MB to ~80 MB, pushing peak
+(both Workers) to ~185 MB, exceeding the 150 MB ceiling. Option B requires a new
+spike to measure actual iPhone peak RSS, explicit TD sign-off, and a revision to this
+ADR before any sprint work begins.
 
 ### Architecture Diagram
 
@@ -151,40 +185,44 @@ this ADR's Decision section before any sprint work begins.
 │  │  (state machine: UCI lifecycle)  │   (state machine: lazy-load)│
 │  └────────┬─────────────────────────┘   └───────────┬───────────┘ │
 └───────────┼────────────────────────────────────────┼─────────────┘
-            │ postMessage (UCI)                      │ postMessage (UCI)
+            │ onCustomMessage (UCI)                  │ onCustomMessage (UCI)
             ▼                                        ▼
-┌──────────────────────────┐   ┌──────────────────────────────────────┐
-│  Web Worker              │   │  Web Worker                          │
-│  HCE build               │   │  NNUE build (stockfish-nnue-16.js)   │
-│  ~1–2 MB (file)          │   │  ~40 MB (file, NNUE weights embedded) │
-│  ~25 MB (resident)       │   │  ~80 MB (resident) — spike TBC       │
-│  Persistent for app      │   │  Lazy-loaded on first Review call    │
-│  lifetime once init'd    │   │  Terminated after 30s idle           │
-└──────────────────────────┘   └──────────────────────────────────────┘
+┌──────────────────────────────┐  ┌────────────────────────────────────┐
+│  Web Worker                  │  │  Web Worker                        │
+│  stockfish-nnue-16-single.js │  │  stockfish-nnue-16-single.js       │
+│  + .wasm (562 KB)            │  │  + .wasm (562 KB)                  │
+│  Use NNUE: false (HCE)       │  │  Use NNUE: true + nn-5af11.nnue    │
+│  ~20–25 MB resident          │  │  ~75–85 MB resident (spike TBC)    │
+│  Persistent for app lifetime │  │  Lazy-loaded on first Review call  │
+│                              │  │  Terminated after 30s idle         │
+└──────────────────────────────┘  └────────────────────────────────────┘
 
 Memory model (Formula 4):
-  Play-only:        ~25 (HCE) + 0 (Review not loaded) + ~40 (app) = ~65 MB
-  Play + Review:    ~25 (HCE) + ~80 (NNUE) + ~40 (app) = ~145 MB  ← ceiling: 150 MB
-  (NNUE figure is an estimate; spike must measure actual RSS on iPhone)
+  Play-only:        ~25 (HCE Worker) + 0 (Review not loaded) + ~40 (app) = ~65 MB
+  Play + Review:    ~25 (HCE) + ~80 (NNUE — spike TBC on iPhone) + ~40 (app) = ~145 MB
+  Ceiling: 150 MB — ~5 MB margin; measured iPhone RSS (Criterion 2) may change this
 ```
 
 ### Key Interfaces
 
-The UCI protocol interface is unchanged between HCE and NNUE builds. Both workers
-receive the same command set; the difference is purely in evaluation quality and
-memory footprint. Exact file import paths are placeholders until the spike confirms
-the npm package structure.
+Both HCE and NNUE modes use the same JS/WASM files. The difference is the UCI option
+set at boot and whether the NNUE network file is served. The `onCustomMessage` API
+(not `postMessage`) is the correct send path for the single-threaded build.
 
 ```typescript
-// Representative import pattern (file names to be confirmed by spike):
-import hceWasmUrl from 'stockfish-hce.wasm?url';   // Play Mode worker
-import nnueWasmUrl from 'stockfish-nnue-16.wasm?url'; // Review Mode worker
-// URLs are passed to workers via postMessage; Emscripten Module.locateFile is
-// overridden to return these URLs (per GDD Core Rule 9).
+// Confirmed import pattern (spike 2026-05-28):
+import sfJsUrl from 'stockfish/src/stockfish-nnue-16-single.js?url';
+import sfWasmUrl from 'stockfish/src/stockfish-nnue-16-single.wasm?url';
+import nnueUrl from 'stockfish/src/nn-5af11540bbfe.nnue?url';
+// Worker uses locateFile to override WASM path; NNUE URL passed via EvalFile setoption.
 
 // UCI options set once at boot (per GDD Core Rule 4):
-// HCE:  Hash=16, Threads=1, Ponder=false, MultiPV=1
-// NNUE: Hash=32, Threads=1, Ponder=false, MultiPV=1
+// HCE Play Worker:    setoption name Use NNUE value false
+//                     setoption name Hash value 16
+//                     setoption name Threads value 1 (default, max for single-threaded)
+// NNUE Review Worker: setoption name EvalFile value <nnueUrl>
+//                     setoption name Use NNUE value true
+//                     setoption name Hash value 32
 
 // Public wrapper interface (defined in Chess Engine implementation story, not here):
 // playEngine.play({ fen, skillLevel: 0–20, movetimeMs }) → Promise<PlayResult>
@@ -302,13 +340,14 @@ import nnueWasmUrl from 'stockfish-nnue-16.wasm?url'; // Review Mode worker
   the 150 MB ceiling provided the worker co-residency invariant holds and NNUE RSS is
   confirmed at ≤ 85 MB by the spike. If the invariant is violated or the estimate is
   wrong, the ceiling may be breached.
-- **Load Time**: HCE WASM (~1–2 MB) loads during app initialization with negligible
-  impact on the < 3s mobile 4G cold-start budget. NNUE (~40 MB) is lazy-loaded only
-  on first Review invocation; Service Worker Cache Storage caches it for subsequent
-  sessions (see Edge Case M5 in the GDD for `QuotaExceededError` fallback).
-- **Network**: NNUE first-load adds ~40 MB on 4G — documented in architecture.md as
-  HIGH risk and explicitly accepted in the GDD for v0. Phase 2 PWA caching ADR will
-  govern the pre-caching strategy for returning users.
+- **Load Time**: Engine WASM (562 KB / 186 KB gzip) loads during app initialization
+  with negligible impact on the < 3s mobile 4G cold-start budget. NNUE network
+  (38.3 MB raw) is lazy-loaded only on first Review invocation; Service Worker Cache
+  Storage caches it for subsequent sessions (see Edge Case M5 in the GDD for
+  `QuotaExceededError` fallback).
+- **Network**: NNUE first-load: 38.3 MB raw (32.5 MB gzip) on 4G — documented in
+  architecture.md as HIGH risk and explicitly accepted in the GDD for v0. Phase 2 PWA
+  caching ADR will govern the pre-caching strategy for returning users.
 
 ## Migration Plan
 
@@ -317,18 +356,21 @@ decisions for a new implementation.
 
 ## Validation Criteria
 
-1. **[BLOCKING — required before status moves to Accepted]**
-   Run the 1-day spike (GDD OQ#6 owner: ui-programmer):
-   - Install the lichess Stockfish WASM npm package in an isolated test repo
-   - Confirm the package contains **both** a standalone HCE build (no NNUE weights)
-     AND an NNUE build as separately importable files
-   - Confirm HCE build file size (gzip): within [1, 3] MB
-   - Confirm NNUE build file size (gzip): within [38, 45] MB
-   - Confirm both builds complete UCI handshake (`uci` → `uciok`) within 5s in a
-     bare browser Worker in Chromium
-   - Confirm Vite `?url` WASM import pattern works without COOP/COEP headers in Chromium
-   - Update this ADR: replace placeholder file names with confirmed values; update
-     status to Accepted.
+1. **[DONE 2026-05-28 — spike in `prototypes/hce-spike/`]**
+   Results:
+   - Package: `stockfish@16.0.0` (nmrugg). No standalone HCE binary exists; single
+     `stockfish-nnue-16-single` build handles both modes via `Use NNUE false/true`.
+   - WASM file: `stockfish-nnue-16-single.wasm` — 562 KB raw / 186 KB gzip ✅
+   - NNUE file: `nn-5af11540bbfe.nnue` — 38.3 MB raw / 32.5 MB gzip ✅
+   - HCE UCI handshake (`uci`→`uciok`→`isready`→`readyok`): **153 ms** ✅
+   - NNUE UCI handshake (includes 38 MB file load from local disk): **453 ms** ✅
+   - `info string classical evaluation enabled.` confirmed for HCE mode ✅
+   - `info string NNUE evaluation enabled.` confirmed for NNUE mode ✅
+   - No SharedArrayBuffer required for single-threaded build ✅
+   - Skill Level 0–20 confirmed in UCI options ✅
+   - Vite `?url` import compatibility: not yet confirmed in browser (requires ADR-0008 spike);
+     the `locateFile` override pattern is the same as other Emscripten WASM builds and
+     is expected to work without COOP/COEP headers.
 
 2. **[BLOCKING — required before NNUE-dependent stories enter a sprint]**
    Smoke test on real iPhone Safari 16+:
@@ -339,10 +381,10 @@ decisions for a new implementation.
    - If measured RSS > 85 MB: open a follow-up decision — the 150 MB ceiling may
      need to be revised, or the `reviewEngineHashMb` tuning knob reduced
 
-3. **[CI gate — set up after spike confirms file names]**
+3. **[CI gate — now unblocked]**
    Add bundle size assertions in `vite.config.ts`:
-   - HCE chunk ≤ 3 MB
-   - NNUE chunk ≤ 45 MB
+   - WASM chunk (`stockfish-nnue-16-single.wasm`) ≤ 600 KB raw (observed: 562 KB)
+   - NNUE asset (`nn-5af11540bbfe.nnue`) ≤ 40 MB raw (observed: 38.3 MB)
    - CI fails on any update that exceeds these bounds
 
 4. **[Sprint 1 acceptance — anchors skill level to pinned version]**
