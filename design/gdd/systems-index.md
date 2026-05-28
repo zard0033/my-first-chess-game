@@ -2,7 +2,7 @@
 
 > **Status**: Draft
 > **Created**: 2026-05-27
-> **Last Updated**: 2026-05-27
+> **Last Updated**: 2026-05-28
 > **Source Concept**: [design/gdd/game-concept.md](./game-concept.md)
 
 ---
@@ -27,8 +27,9 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 | 4 | Navigation & Routing | UI | v0 | Approved (2026-05-27) | [navigation-and-routing.md](./navigation-and-routing.md) | — |
 | 5 | Game Lifecycle | Gameplay | v0 | Approved (2026-05-27) | [game-lifecycle.md](./game-lifecycle.md) | Chess Board, Chess Engine |
 | 6 | Move Annotation Display | UI | v0 | Approved (2026-05-27) | [move-annotation-display.md](./move-annotation-display.md) ([review log](./reviews/move-annotation-display-review-log.md)) | Chess Board |
-| 7 | Post-Game Review | Gameplay | v0 | Designed (2026-05-27) | [post-game-review.md](./post-game-review.md) | Game Lifecycle, Chess Engine, Opening ID, Move Annotation |
+| 7 | Post-Game Review | Gameplay | v0 | Approved (round 2, 2026-05-28) | [post-game-review.md](./post-game-review.md) ([review log](./reviews/post-game-review-review-log.md)) | Game Lifecycle, Chess Engine, Opening ID, Move Annotation |
 | 8 | Game Export / Share | Gameplay | v0 | Approved (2026-05-27) | [game-export-share.md](./game-export-share.md) | Game Lifecycle |
+| 8b | Opening Knowledge Cards | Gameplay | v0 | **Not Started** (added 2026-05-28 per Pillar 2 Option A) | — | Opening Identification, Post-Game Review |
 | 9 | Authentication | Persistence | MVP | Not Started | — | — |
 | 10 | Difficulty System | Gameplay | MVP | Not Started | — | Chess Engine |
 | 11 | Data Sync (Supabase) | Persistence | MVP | Not Started | — | Authentication |
@@ -93,7 +94,7 @@ This project uses two custom tiers (v0 → MVP) instead of the standard four-tie
 
 ### Feature Layer (depends on Core)
 
-1. **Post-Game Review** — depends on: Game Lifecycle, Chess Engine, Opening ID, Move Annotation. Re-analyzes the completed game, classifies each move (best/good/inaccuracy/mistake/blunder), shows the better line.
+1. **Post-Game Review** — depends on: Game Lifecycle, Chess Engine, Opening ID, Move Annotation. Re-analyzes the completed game and shows each move's centipawn swing as a neutral pawn-unit number (no judgment labels) plus the engine's best line; surfaces the single biggest-swing moment as the anchor.
 2. **Game History** — depends on: Game Lifecycle, Data Sync. Persists completed games as PGN; lists past games; supports re-watching.
 3. **Game Export / Share** — depends on: Game Lifecycle (current game), optionally Game History (past games). Generates PGN + pre-formatted Claude.ai prompt, copies to clipboard.
 4. **Skill Scoring** — depends on: Post-Game Review, Data Sync. Computes per-game deltas for Opening/Tactics/Endgame scores; persists them.
@@ -121,8 +122,9 @@ Combining dependency layer + priority tier. Within the same row of a layer, syst
 | 6 | Move Annotation Display | Core | S | Needs #1, parallel with #5 |
 | 7 | Post-Game Review | Feature | L | Needs #2, #3, #5, #6 — largest v0 system |
 | 8 | Game Export / Share | Feature | S | Needs #5 |
+| 8b | Opening Knowledge Cards | Feature | XS | Needs #3, #7 — data-only (~20 ECO→markdown blurbs), surfaced inside Review panel |
 
-**v0 completion**: 8 GDDs. Estimated effort: ~12 design sessions.
+**v0 completion**: 9 GDDs. Estimated effort: ~13 design sessions.
 
 ### Phase: MVP (Full Phase 1)
 
@@ -169,13 +171,13 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 17 |
-| Design docs started | 7 |
-| Design docs reviewed | 7 |
-| Design docs approved | 7 |
-| v0 systems designed | 7/8 |
-| MVP systems designed | 7/14 |
-| Polish systems designed | 7/17 |
+| Total systems identified | 18 |
+| Design docs started | 9 (skeleton for #8b Opening Knowledge Cards added 2026-05-28) |
+| Design docs reviewed | 8 |
+| Design docs approved | 8 |
+| v0 systems designed | 8/9 (Opening Knowledge Cards GDD pending — skeleton exists) |
+| MVP systems designed | 8/15 |
+| Polish systems designed | 8/18 |
 
 ---
 

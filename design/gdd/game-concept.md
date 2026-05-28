@@ -58,6 +58,10 @@ Lessons are not isolated content. They surface in real games as relevant feedbac
 
 *Design test*: If a learning feature doesn't connect to actual played games, it's a candidate for cutting.
 
+> **v0 minimum-viable manifestation (added 2026-05-28)**: v0 ships **static opening knowledge cards** — when Post-Game Review identifies the opening (`identifyOpening(moves)`), it surfaces a one-paragraph card describing the opening's core idea (e.g., "Italian Game: rapid development, central control, pressure on f7"). This is the *knowledge → game* half of the bidirectional hook, proven with a hand-authored ~20-entry data table (ECO code → markdown blurb). The *game → knowledge* half (Claude explanations + cross-game pattern matching) remains Phase 2.
+>
+> v0 differentiation story: "Already connects opening names to coaching prose; Phase 2 makes the link bidirectional and AI-powered."
+
 ### Pillar 3: Single Player, No Pressure
 
 This is a training ground, not a competition. No timer pressure, no leaderboards, no other humans. Mistakes are learning opportunities, not losses.
@@ -138,6 +142,71 @@ One complete game from opening to endgame against AI. Win, lose, or draw — gam
 
 ---
 
+## Visual Identity Anchor
+
+> *Added 2026-05-28 per AD-PHASE-GATE recommendation. This anchor replaces a full art bible for this project — the visual surface is mostly off-the-shelf (chessground + Tailwind), with per-role color contracts already locked in [ADR-0006](../../docs/architecture/adr-0006-move-annotation-rendering-substrate.md).*
+
+### One-line visual rule
+
+**"lichess-clean meets Nippon traditional colors — the board is the protagonist; everything else recedes."**
+
+### Reference and counter-reference
+
+| Reference | What we take | What we reject |
+| --- | --- | --- |
+| **lichess.org** | Board takes ~70% of viewport; UI elements minimal; no ads; calm chrome | — |
+| **chess.com** | — | Banner ads, social-pressure widgets, red/green emotive feedback, crowded sidebars |
+| **Nippon Colors** ([nipponcolors.com](https://nipponcolors.com/)) | Traditional Japanese palette — naturally desaturated, culturally calm, anti-judgmental | Western "alert red / success green" semaphore |
+
+### Visual principles
+
+1. **Calm-default**: every visible element starts in its quietest state. Bring intensity only when the player asks for it (Show detail toggle, hover/tap, etc.). Mobile (< 768px) hides eval bar, played-move arrow, and preliminary `~` chips by default — binding per [ADR-0007 §5](../../docs/architecture/adr-0007-post-game-review-analysis-loop-and-sessionstorage-schema.md).
+2. **Role-neutral color, never emotive**: color carries *navigational* meaning (bestMove / playedMove / threat / keySquare), never *judgmental* meaning (good / bad / brilliant / blunder). The annotation `role` enum is structurally enforced via static grep — see [ADR-0006 §VC4](../../docs/architecture/adr-0006-move-annotation-rendering-substrate.md).
+3. **The board is the protagonist**: navigation, history, settings, exports all live in the periphery. The board is where attention lands.
+
+### Per-role color palette (Nippon Colors)
+
+| Role | Color name | Hex | Use |
+| --- | --- | --- | --- |
+| `bestMove` arrow | 青磁色 seiji-iro | `#7ebea5` | Calm teal — "the engine's recommendation", confident without being assertive |
+| `playedMove` arrow | 利休鼠 rikyū-nezu | `#888e7e` | Neutral grey-green — "what you actually did", no judgment |
+| `alternateLine` arrow | 浅葱色 asagi-iro | `#33a6b8` | Light blue — "another viable line", invitational |
+| `threat` arrow | 紅鬱金 beni-ukon | `#e08e79` | Muted coral — warning without alarm; deliberately *not* fire-red |
+| `keySquare` highlight | 山吹色 yamabuki-iro | `#f8b500` | Warm gold — "this square matters", attention without urgency |
+| Light squares | 胡粉色 gofun-iro | `#fffffc` | Off-white — warmer than pure white, less glare on mobile |
+| Dark squares | 桑染 kuwazome | `#946259` | Mulberry-dyed brown — Japanese alternative to lichess's olive |
+| Eval bar — White side | 胡粉色 gofun-iro | `#fffffc` | Matches light squares |
+| Eval bar — Black side | 桑染 kuwazome | `#946259` | Matches dark squares |
+| Peak marker (biggest swing) | 山吹色 yamabuki-iro | `#f8b500` | Same gold as keySquare — consistent "this is the moment" signal |
+
+> All colors are sourced from [nipponcolors.com](https://nipponcolors.com/) and verified for [forced-colors](https://www.w3.org/TR/css-color-adjust-1/#forced) fallback (system colors override the palette when forced-colors mode is on; arrow outlines remain visible).
+
+### Piece set
+
+**`cburnett`** — the chessground default, served as inline SVG.
+
+- **Why cburnett**: highest forced-colors compatibility (clean strokes), familiar to chess.com/lichess migrants (the entire target audience), tested on every chessground deployment in the wild. Picking it now prevents re-screenshotting every UI test mid-v0.
+- **Custom piece art**: explicitly never. We do not commission, generate, or commit custom piece SVGs. Re-evaluating means revisiting accessibility contrast, forced-colors fallback, and dark-mode (when added) — not worth the cost for a training tool.
+
+### Explicit deferrals
+
+| Deferred | Decision | Why |
+| --- | --- | --- |
+| Dark mode | Phase 2 (post-MVP) | Adds palette + contrast verification + chessground theme swap. Out of v0 scope. `forced-colors` covers high-contrast accessibility in the meantime. |
+| Custom piece art | Never | See above |
+| Animated transitions beyond chessground defaults | Phase 2 | chessground's built-in slide + fade is sufficient for v0; Lottie / GSAP additions deferred |
+| Per-user theme picker | Phase 2 | One theme in v0 — minimise tuning-knob surface |
+
+### UI surface allocation (target)
+
+- **~70% of viewport**: chess board + annotation overlay (per-role colors)
+- **~20%**: peripheral panels (move list, eval badge, opening header, navigation buttons)
+- **~10%**: app chrome (header / footer / status)
+
+On mobile (< 768px), the proportions shift to ~85% board, ~15% essentials (per ADR-0007 calm default).
+
+---
+
 ## Target Player Profile
 
 | Attribute | Detail |
@@ -158,7 +227,7 @@ One complete game from opening to endgame against AI. Win, lose, or draw — gam
 | ---- | ---- |
 | **Recommended Stack** | Web App: Vue 3 + TypeScript + chessground + stockfish.wasm + Supabase (see [technical-preferences.md](../../.claude/docs/technical-preferences.md)) |
 | **Key Technical Challenges** | (1) Stockfish performance on iPhone Safari; (2) Bidirectional position-to-lesson matching algorithm; (3) PWA offline behavior for in-progress games |
-| **Art Style** | Clean, modern, calm — chess board takes center stage, UI fades into background |
+| **Art Style** | See [Visual Identity Anchor](#visual-identity-anchor) — lichess-clean + Nippon Colors palette + cburnett piece set; calm-default, role-neutral, board-as-protagonist |
 | **Art Pipeline Complexity** | Low — chess pieces use existing SVG sets from chessground; UI elements use Tailwind defaults + customization |
 | **Audio Needs** | Minimal — move sounds, check warning, level-up cue. No music. |
 | **Networking** | None (local play vs AI only) |
@@ -201,16 +270,17 @@ One complete game from opening to endgame against AI. Win, lose, or draw — gam
 **Required for MVP (Phase 1)**:
 1. **Play a complete game vs Stockfish** with adjustable difficulty
 2. **Post-game review** showing Stockfish's evaluation of each move (best move, played move, evaluation delta) + opening name
-3. **Skill score system** with three axes (Opening / Tactics / Endgame) updated after each game
-4. **Level progression** that unlocks harder AI opponents
-5. **Game history** that lets the player re-watch any past game with annotations
-6. **Cross-device sync** via Supabase + Magic Link login
+3. **Static opening knowledge cards** — when the post-game review names an opening (via ADR-0003 opening identification), surface a hand-authored one-paragraph card describing its core idea, key squares, and typical plans. Hand-authored data table of ~20 named openings. *This is v0's minimum-viable manifestation of Pillar 2 ("Knowledge Connects to Play") — see Pillar 2 v0 note above.* (Decided 2026-05-28)
+4. **Skill score system** with three axes (Opening / Tactics / Endgame) updated after each game
+5. **Level progression** that unlocks harder AI opponents
+6. **Game history** that lets the player re-watch any past game with annotations
+7. **Cross-device sync** via Supabase + Magic Link login
 
 **Explicitly NOT in MVP** (deferred to Phase 2):
-- Natural language AI explanations of moves (requires Claude API)
-- Bidirectional lesson-to-game linking (requires lessons + matching algorithm)
+- Natural language AI explanations of moves (requires Claude API) — *completes the bidirectional hook by analyzing the player's specific move in the context of the named opening's plan*
+- **Game → knowledge half**: identifying that a position from a played game matches a lesson example (cross-game pattern matching)
 - Puzzle generation from played games
-- Structured lesson library
+- Structured lesson library (interactive lesson screens, beyond the static opening cards)
 
 ### Scope Tiers
 

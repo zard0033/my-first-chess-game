@@ -263,13 +263,13 @@ This procedure is pure and deterministic given the same `CompletedGame` + templa
 
 | System | Status | What we need from it | Interface (handoff requirement) |
 |--------|--------|----------------------|--------------------------------|
-| **Game Lifecycle** | **NOT YET DESIGNED** | The completed game to serialize | A `CompletedGame` object (shape specified below). This is the critical handoff — Game Lifecycle does not exist yet, so the interface below is a *requirement we are placing on it*, not an existing contract. |
+| **Game Lifecycle** | Approved (v0) | The completed game to serialize | A `CompletedGame` object (shape specified below) — read from the Pinia game store where Game Lifecycle writes it on terminal (Lifecycle Rule 7), and additionally available on the `game-completed` event. The interface below matches Lifecycle's canonical `CompletedGame`; rows marked **(defensive-only, not v0-reachable)** exist for Phase 2 / future emissions and are unreachable through v0 gameplay. |
 | **Opening Identification** | Not Started (v0 Foundation) | Opening name + ECO code, if determined | Optional `{ openingName: string, eco: string }`; absence is handled (tags + line omitted). |
 | **Post-Game Review** | Not Started (v0 Feature) | Optional hint of turning-point move numbers to enrich the prompt | Optional `{ keyMoveNumbers: number[] }`; absence is handled. |
 
 #### Handoff requirement — `CompletedGame` shape (placed on Game Lifecycle)
 
-Because **Game Lifecycle is not yet designed**, this GDD does not assume any existing object. It declares the minimum data this system requires Game Lifecycle to expose when a game reaches a terminal state. When the Game Lifecycle GDD is authored, it MUST provide an object with at least these fields (names indicative; exact API negotiated at Game Lifecycle design time):
+Game Lifecycle is now designed (Approved v0). The interface below mirrors Lifecycle's `CompletedGame`, plus the future-reserved `endReason` values (`draw-agreement`, `abandoned`) and `result: '*'` that v0 **does not emit** — these are kept in the type for defensive handling and Phase-2 readiness. **In v0, `result` is always `'1-0' | '0-1' | '1/2-1/2'` (never `'*'`), and `endReason` is one of the six checkmate/resignation/stalemate/threefold/fifty-move/insufficient-material values.** Anything else in the union below is **not v0-reachable** through Lifecycle and should be treated as defensive-only:
 
 ```ts
 interface CompletedGame {
@@ -281,8 +281,14 @@ interface CompletedGame {
                             //  encoding; this system replays via chess.js regardless and
                             //  lets chess.js convert to SAN at the PGN boundary.
   playerColor: 'white' | 'black';   // which side the human played
-  result: '1-0' | '0-1' | '1/2-1/2' | '*';   // standard PGN result token
-  endReason:                         // maps to PGN Termination tag (standard-only: see Core Rule 5)
+  result: '1-0' | '0-1' | '1/2-1/2' | '*';   // standard PGN result token.
+                            //  v0-emitted: '1-0' | '0-1' | '1/2-1/2'.
+                            //  '*' is defensive-only (Phase 2 / abandoned) — not v0-reachable.
+  endReason:                         // maps to PGN Termination tag (standard-only: see Core Rule 5).
+                            //  v0-emitted: 'checkmate' | 'resignation' | 'stalemate'
+                            //              | 'threefold' | 'fifty-move' | 'insufficient-material'.
+                            //  'draw-agreement' and 'abandoned' are defensive-only
+                            //  (Phase 2 / future emissions) — not v0-reachable through Lifecycle.
     | 'checkmate' | 'resignation' | 'stalemate'
     | 'draw-agreement' | 'threefold' | 'fifty-move'
     | 'insufficient-material' | 'abandoned';

@@ -19,38 +19,354 @@
 #             /story-readiness (validate TR-ID exists and is active)
 #
 # ID FORMAT: TR-[system-slug]-[NNN]
-#   system-slug = short slug matching the GDD system name
-#   NNN = three-digit zero-padded sequence per system, starting at 001
-#
 # STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
 
-version: 1
-last_updated: ""
+version: 2
+last_updated: "2026-05-28"
 
-requirements: []
+requirements:
 
-# --- EXAMPLE ENTRIES (remove when first real entries are added) ---
-#
-# - id: TR-combat-001
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Player takes damage from enemies based on attack power minus defence"
-#   created: 2026-03-10
-#   revised: ""
-#   status: active
-#
-# - id: TR-combat-002
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Combo window timing is 0.4 seconds between hits"
-#   created: 2026-03-10
-#   revised: "2026-04-01"
-#   status: active
-#
-# - id: TR-combat-003
-#   system: combat
-#   gdd: design/gdd/combat-system.md
-#   requirement: "Old damage formula using raw stats"
-#   created: 2026-03-10
-#   revised: ""
-#   status: superseded-by: TR-combat-001
+  # ---- Chess Board & Move System ----
+  - id: TR-chess-board-001
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "Render FEN string to board within 100ms of mount"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-board-002
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "Dual input: drag-drop + tap-tap, both always active"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-board-003
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "Promotion dialog: deliberate selection only (no auto-queen)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-board-004
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "squareToRect(): orientation-aware pixel geometry for overlay"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-board-005
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "WCAG 2.1 AA keyboard nav (custom roving tabindex — chessground 9.x does not provide)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-board-006
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "60fps budget: transform + opacity only (no layout/paint animations)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-board-007
+    system: chess-board
+    gdd: design/gdd/chess-board-and-move-system.md
+    requirement: "Bundle ≤ 120 KB gzipped (board + chess.js + piece SVGs)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Chess Engine Integration ----
+  - id: TR-chess-engine-001
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "Two engines: HCE Play + NNUE Review (separate WASM builds)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-002
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "Single-threaded WASM only — no SharedArrayBuffer, no COOP/COEP"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-003
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "UCI protocol: strict uci→uciok→setoption→isready→readyok handshake"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-004
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "AbortSignal cancellation + requestId race guard"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-005
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "Review worker auto-terminates after 30s idle"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-006
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "Memory budget: peak ≤ 150 MB (Formula 4)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-007
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "CSP: script-src 'wasm-unsafe-eval'; worker-src 'self' blob:"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-008
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "EngineUnavailableError → degrade to two-human local play"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-chess-engine-009
+    system: chess-engine
+    gdd: design/gdd/chess-engine-integration.md
+    requirement: "iOS visibility change: liveness ping on resume, respawn if dead"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Opening Identification ----
+  - id: TR-opening-id-001
+    system: opening-id
+    gdd: design/gdd/opening-identification.md
+    requirement: "EPD-keyed Map, built at compile time (no TSV parsing in browser)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-opening-id-002
+    system: opening-id
+    gdd: design/gdd/opening-identification.md
+    requirement: "Longest-prefix match: O(N) hash lookups only (no full-table scan)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-opening-id-003
+    system: opening-id
+    gdd: design/gdd/opening-identification.md
+    requirement: "Lookup ≤ 5ms desktop, ≤ 20ms iPhone (Formula 3)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-opening-id-004
+    system: opening-id
+    gdd: design/gdd/opening-identification.md
+    requirement: "Index ≤ 150 KB gzipped, ≤ 1 MB resident (Formula 4)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Navigation & Routing ----
+  - id: TR-nav-routing-001
+    system: nav-routing
+    gdd: design/gdd/navigation-and-routing.md
+    requirement: "Vue Router HTML5 history mode (createWebHistory)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-nav-routing-002
+    system: nav-routing
+    gdd: design/gdd/navigation-and-routing.md
+    requirement: "In-game guard: beforeRouteLeave + isGameInProgress check"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-nav-routing-003
+    system: nav-routing
+    gdd: design/gdd/navigation-and-routing.md
+    requirement: "window.beforeunload listener for full-page exit"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-nav-routing-004
+    system: nav-routing
+    gdd: design/gdd/navigation-and-routing.md
+    requirement: "Route-level lazy loading (Play + Review chunks deferred)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-nav-routing-005
+    system: nav-routing
+    gdd: design/gdd/navigation-and-routing.md
+    requirement: "GitHub Pages SPA fallback: 404.html → index.html shim"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-nav-routing-006
+    system: nav-routing
+    gdd: design/gdd/navigation-and-routing.md
+    requirement: "Popstate guard with deterministic history.pushState restore"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Game Lifecycle ----
+  - id: TR-game-lifecycle-001
+    system: game-lifecycle
+    gdd: design/gdd/game-lifecycle.md
+    requirement: "chess.js is sole authoritative state — board is renderer only"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-lifecycle-002
+    system: game-lifecycle
+    gdd: design/gdd/game-lifecycle.md
+    requirement: "5-priority terminal detection (checkmate → 50-move, priority order)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-lifecycle-003
+    system: game-lifecycle
+    gdd: design/gdd/game-lifecycle.md
+    requirement: "CompletedGame written to Pinia gameStore as canonical transport"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-lifecycle-004
+    system: game-lifecycle
+    gdd: design/gdd/game-lifecycle.md
+    requirement: "isGameInProgress: set false BEFORE router.push('/review')"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-lifecycle-005
+    system: game-lifecycle
+    gdd: design/gdd/game-lifecycle.md
+    requirement: "playerMoveTimes[]: indexed against player moves only (not global index)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Move Annotation Display ----
+  - id: TR-move-annotation-001
+    system: move-annotation
+    gdd: design/gdd/move-annotation-display.md
+    requirement: "Declarative annotations prop — no imperative add-arrow API"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-move-annotation-002
+    system: move-annotation
+    gdd: design/gdd/move-annotation-display.md
+    requirement: "SVG overlay positioned via boardRef + squareToRect (no own geometry)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-move-annotation-003
+    system: move-annotation
+    gdd: design/gdd/move-annotation-display.md
+    requirement: "Neutral role semantics — no emotive labels anywhere in rendering"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-move-annotation-004
+    system: move-annotation
+    gdd: design/gdd/move-annotation-display.md
+    requirement: "Eval bar: Formula 1 fillRatio + sign normalisation to White's perspective"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-move-annotation-005
+    system: move-annotation
+    gdd: design/gdd/move-annotation-display.md
+    requirement: "rAF-coalesced resize throttle (Formula 4)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Post-Game Review ----
+  - id: TR-post-game-review-001
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "Two-pass analysis: preview depth-12 → deep depth-22 (v0 requirement)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-post-game-review-002
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "F2 cpLoss = max(0, E[i] + E[i+1]) — both evals in side-to-move convention"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-post-game-review-003
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "biggestSwingCursor: computed once at COMPLETE, never moves"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-post-game-review-004
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "Depth-comparability guard: |depth[i] − depth[i+1]| ≤ DEPTH_MISMATCH_TOLERANCE"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-post-game-review-005
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "sessionStorage persistence: pv stripped, key pgr:analysis:<gameId>, throttled write"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-post-game-review-006
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "Mobile calm default: best-move arrow only; no played-move arrow, no eval bar (<768px)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-post-game-review-007
+    system: post-game-review
+    gdd: design/gdd/post-game-review.md
+    requirement: "REVIEW_TOTAL_TIME_BUDGET_MS = 90s hard ceiling on Pass 2"
+    created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Game Export / Share ----
+  - id: TR-game-export-001
+    system: game-export
+    gdd: design/gdd/game-export-share.md
+    requirement: "PGN serialisation via chess.js; valid per PGN standard (round-trip)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-export-002
+    system: game-export
+    gdd: design/gdd/game-export-share.md
+    requirement: "Tier-1/2/3 delivery: Web Share → Clipboard API → textarea fallback"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-export-003
+    system: game-export
+    gdd: design/gdd/game-export-share.md
+    requirement: "Clipboard write synchronous in tap gesture (iOS user-activation)"
+    created: 2026-05-28
+    revised: ""
+    status: active
+  - id: TR-game-export-004
+    system: game-export
+    gdd: design/gdd/game-export-share.md
+    requirement: "Claude.ai prompt template: deterministic, pure synchronous assembly"
+    created: 2026-05-28
+    revised: ""
+    status: active

@@ -106,7 +106,7 @@ Each engine instance has its own state machine:
 
 **Notes:**
 - Concurrent `analyze()` calls are not queued: each call cancels and replaces the previous one.
-- `ucinewgame` is sent before a `position` from an unrelated game (Play between games, Review when starting a new game's analysis); not sent between adjacent positions in the same Review session.
+- `ucinewgame` is sent before a `position` from an unrelated game (Play between games, Review when starting a new game's analysis); not sent between adjacent positions in the same Review session. The wrapper detects "a new game" via a `gameId` passed by the caller (the review session's `gameId`) — callers never send `ucinewgame` manually; the wrapper emits it on first analysis of a `gameId` it has not seen, which prevents transposition-table state from leaking between consecutive games' reviews.
 - Worker may transition to CRASHED at any state on worker `error` / `messageerror` / 30s heartbeat timeout.
 - **DISPOSED vs. IDLE_TERMINATED are distinct states with opposite respawn behaviour.** IDLE_TERMINATED is entered only by the 30s idle timer (Review worker only); calling `analyze()` from IDLE_TERMINATED triggers automatic respawn (LOADING → HANDSHAKING → IDLE). DISPOSED is entered only by an explicit `dispose()` call; calling `analyze()` from DISPOSED rejects synchronously with `EngineDisposedError` and does NOT respawn. Implementation must track the reason for worker termination to select the correct path.
 
@@ -123,7 +123,7 @@ Each engine instance has its own state machine:
 
 **Cross-system notes** (not owned by this system but documented for downstream GDDs):
 - **Player per-move thinking time tracking** is Game Lifecycle's job (it knows when the player started thinking and when they moved); Post-Game Review aggregates it for progress trends. Chess Engine has no visibility into player time.
-- **Move classification** ("best / good / inaccuracy / mistake / blunder") is Post-Game Review's job, not this system's; this system only returns the raw `evalCp` / `evalMate` delta between played move and bestmove.
+- **Move-quality display** is Post-Game Review's job, not this system's: it renders the raw `evalCp` / `evalMate` delta as a neutral pawn-swing number (no "inaccuracy / mistake / blunder" classification ladder — that was removed in Post-Game Review's round-2 review). This system only returns the raw `evalCp` / `evalMate` delta between played move and bestmove.
 - **Opening detection** is Opening Identification's job using `chess-openings` database, not this system.
 
 ## Formulas
@@ -300,7 +300,7 @@ The **60:1 ratio** (tolerance:response) is intentional: tolerate long background
 - When **Game Lifecycle** GDD is authored, it must declare calling `playEngine.play()` with `{ fen, skillLevel, movetimeMs }` and consuming `Promise<PlayResult>` with UCI long algebraic `bestMove`
 - When **Post-Game Review** GDD is authored, it must declare:
   - Looping `reviewEngine.analyze()` sequentially over completed-game positions
-  - Owning the move classification logic (`evalCp` delta → "inaccuracy / mistake / blunder")
+  - Owning the move-quality display logic (`evalCp` delta → a neutral pawn-swing number; no classification ladder)
   - Persisting Review-in-progress state for resume after iOS tab kill
 - When **Difficulty System** GDD is authored, it must declare:
   - Skill-level-to-difficulty mapping (Engine GDD accepts only raw 0-20)
@@ -427,7 +427,7 @@ These values live in a TypeScript config file (e.g., `src/config/engine-tuning.t
 ### Design questions
 
 1. **Skill-level-to-difficulty mapping**: This GDD only accepts raw UCI `skillLevel: 0-20`. The mapping from human-facing difficulty tiers ("Beginner / Intermediate / Advanced") to skill levels — and the handling of Skill Level 0's intentional-resign quirk — is owned by the future **Difficulty System GDD** (MVP tier). **Owner**: Difficulty System GDD author. **Resolution**: Before MVP implementation.
-2. **Move classification thresholds**: This GDD returns raw `evalCp` deltas. The thresholds that turn deltas into "inaccuracy / mistake / blunder" labels are owned by the future **Post-Game Review GDD**. **Owner**: Post-Game Review GDD author. **Resolution**: Before v0 implementation of Post-Game Review (reference Chesskit's open-source thresholds as a starting point).
+2. **Move-quality display**: This GDD returns raw `evalCp` deltas. Post-Game Review (now designed, round-2 approved) renders these as a neutral pawn-swing number and uses cpLoss magnitude only to rank the single biggest-swing moment — it does **not** define "inaccuracy / mistake / blunder" label thresholds (that ladder was removed in round-2). **RESOLVED** — no classification threshold table is needed.
 3. **MultiPV=3 timing**: Phase 1 ships MultiPV=1. Phase 2 lesson features (which surface alternative top-3 lines) will need MultiPV=3. **Owner**: Phase 2 ADR + Post-Game Review v2. **Resolution**: When Phase 2 lesson system is scoped. Not blocking v0.
 4. **Threefold-repetition move history**: This GDD documents that without `moveHistory`, Stockfish cannot detect threefold repetition. Whether downstream consumers (Game Lifecycle, Post-Game Review) always send history is their decision. **Owner**: Game Lifecycle + Post-Game Review GDDs. **Resolution**: Before v0 implementation of those systems.
 

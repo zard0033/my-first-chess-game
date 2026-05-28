@@ -41,7 +41,7 @@
 - **Frame Budget**: 16.6ms
 - **Memory Ceiling**: < 150MB total (including stockfish.wasm worker)
 - **Initial Load**: < 3s on mobile 4G
-- **Stockfish Analysis**: ≤ 5s for typical post-game review (iPhone Safari)
+- **Stockfish Analysis**: ≤ 5s **per position** (iPhone Safari). A full post-game review analyzes many positions across two passes and is bounded by the review's own time budgets (`REVIEW_TOTAL_TIME_BUDGET_MS` etc.), not this per-position figure — see the Post-Game Review GDD.
 
 ## Testing
 

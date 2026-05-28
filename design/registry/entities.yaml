@@ -17,19 +17,28 @@
 #
 # WRITTEN BY: /design-system (Phase 5 — after GDD sections are approved)
 #             /consistency-check (when resolving conflicts)
+#             Manual seed by /review-all-gdds follow-up (2026-05-28)
 # READ BY:    /design-system (Phase 2 — before authoring begins, and after
 #               Section C/D writes to conflict-check new entities/formulas)
 #             /consistency-check (primary input — grep-first, GDD-second)
 #             /review-all-gdds (Phase 1 — baseline for Phase 2 checks)
 #             /architecture-review (data structure and interface validation)
 #
+# NOTE for this project (Chess Training Companion):
+#   This is a chess training tool — no game-world entities (NPCs, items,
+#   enemies) exist. The registry captures cross-system NUMERIC contracts
+#   (formulas, constants) only; the cross-system INTERFACE contracts
+#   (CompletedGame, OpeningResult, analyze() return shape) live in their
+#   source GDDs (game-lifecycle, opening-identification, chess-engine-
+#   integration) and are referenced by their consumers via the Dependencies
+#   sections — those are out of scope for this YAML schema.
+#
 # SEARCH PATTERNS (for skills using Grep):
-#   All entity names:        Grep pattern="^  - name:" path="design/registry/entities.yaml"
-#   Specific entity:         Grep pattern="  - name: goblin" path="design/registry/entities.yaml"
-#   All items:               Grep pattern="^  - name:" path="design/registry/entities.yaml" (items section)
-#   What combat.md owns:     Grep pattern="source: design/gdd/combat.md"
-#   What inventory.md uses:  Grep pattern="referenced_by.*inventory"
-#   All gold values:          Grep pattern="value_gold:"
+#   All entries:             Grep pattern="^  - name:" path="design/registry/entities.yaml"
+#   Specific entry:          Grep pattern="  - name: cpLoss_F2" path="design/registry/entities.yaml"
+#   What PGR owns:           Grep pattern="source: design/gdd/post-game-review.md"
+#   What chess-engine uses:  Grep pattern="referenced_by.*chess-engine-integration"
+#   All cp values:           Grep pattern="unit: cp"
 #   Deprecated entries:      Grep pattern="status: deprecated"
 #
 # FORMAT: YAML. Consistent indentation is critical for grep reliability.
@@ -37,132 +46,95 @@
 #   Each entry: name, status, source, referenced_by[], attributes{}, added, revised
 
 version: 1
-last_updated: ""
+last_updated: "2026-05-28"
 
 # ─── ENTITIES ────────────────────────────────────────────────────────────────
 # Named game-world objects: enemies, NPCs, characters, factions, bosses.
-# Register an entity here when it appears in more than one GDD — e.g., an
-# enemy defined in combat.md that also drops items listed in inventory.md.
-#
-# Required fields: name, status, source, referenced_by, added
-# Attribute fields: any key stats that could appear in another GDD
-#   (health, damage, drops, faction, etc.)
+# Not applicable to this project (chess has no NPCs / enemies / factions).
 
 entities: []
-
-# Example (remove when first real entry is added):
-#
-# entities:
-#   - name: goblin
-#     status: active              # active | deprecated
-#     source: design/gdd/combat.md
-#     referenced_by:
-#       - design/gdd/combat.md
-#       - design/gdd/inventory.md
-#     health: 40
-#     damage: 8
-#     drops:
-#       - item: goblin_arm        # must match an entry in items section
-#         qty: 1
-#         drop_rate: 0.8          # 0.0–1.0
-#     added: 2026-03-26
-#     revised: ""
 
 
 # ─── ITEMS ───────────────────────────────────────────────────────────────────
 # Named collectables, equipment, consumables, crafting materials, currency.
-# Register an item when its name or value appears in more than one GDD.
-#
-# Required fields: name, status, source, referenced_by, added
-# Attribute fields: value_gold, weight, stackable, category, and any stat
-#   modifiers that another system (e.g., economy, crafting) might reference.
+# Not applicable to this project (no inventory, no economy in v0).
 
 items: []
-
-# Example:
-#
-# items:
-#   - name: goblin_arm
-#     status: active
-#     source: design/gdd/combat.md   # drop defined in combat GDD
-#     referenced_by:
-#       - design/gdd/combat.md
-#       - design/gdd/inventory.md    # inventory GDD lists its weight/stack rules
-#       - design/gdd/economy.md      # economy GDD references its sell price
-#     value_gold: 5
-#     weight: 1
-#     stackable: true
-#     category: crafting_material
-#     added: 2026-03-26
-#     revised: ""
 
 
 # ─── FORMULAS ────────────────────────────────────────────────────────────────
 # Named calculations with defined variables and output ranges.
 # Register a formula when its output feeds into another system's input,
 # or when another GDD references it by name.
-#
-# Required fields: name, status, source, referenced_by, variables[],
-#   output_range[min, max], added
-# Optional: expression (the actual formula), notes
 
-formulas: []
+formulas:
+  - name: cpLoss_F2
+    status: active
+    source: design/gdd/post-game-review.md
+    referenced_by:
+      - design/gdd/post-game-review.md
+      - design/gdd/chess-engine-integration.md
+    variables:
+      - E_i           # eval at position i, side-to-move convention (cp)
+      - E_i_plus_1    # eval at position i+1, side-to-move flips (cp)
+    output_range: [0, 60000]
+    expression: "max(0, E[i] + E[i+1])"
+    notes: "Centipawn loss for a player move. Consumes side-to-move-convention evalCp/evalMate from chess-engine-integration; F2a normalises evalMate via F4 (MATE_CP) before this formula. Negative raw results clamp to 0 (EC-9). Display layer renders this as pawn units (cpLoss/100); mate-involved cpLoss is intercepted by F2b label path before reaching the F2 numeric formatter (Rule 22 precedence ladder). Max output ~60000 only via mate substitution and never displayed numerically."
+    added: 2026-05-28
+    revised: ""
 
-# Example:
-#
-# formulas:
-#   - name: damage_formula
-#     status: active
-#     source: design/gdd/combat.md
-#     referenced_by:
-#       - design/gdd/combat.md
-#       - design/gdd/progression.md   # progression GDD scales attack variable
-#     variables:
-#       - attack
-#       - defense
-#       - crit_chance
-#       - crit_multiplier
-#     output_range: [0, 999]
-#     expression: "max(0, attack - defense) * (1 + crit_chance * crit_multiplier)"
-#     notes: "Output feeds into health-system damage intake. Min is 0 (armour
-#       can absorb all damage). Max is uncapped in formula but tuning knob
-#       damage_cap in combat.md clamps at 999."
-#     added: 2026-03-26
-#     revised: ""
+  - name: bookExitMoveNumber_F5
+    status: active
+    source: design/gdd/post-game-review.md
+    referenced_by:
+      - design/gdd/post-game-review.md
+      - design/gdd/opening-identification.md
+    variables:
+      - bookExitPly   # 1-based ply count from Opening ID
+    output_range: [1, 100]
+    expression: "Math.ceil(bookExitPly / 2)"
+    notes: "Converts the 1-based ply count emitted by Opening Identification (Rule 8: 1.e4 = ply 1) into the 1-based player-facing move number. No +1 — the 0-based cursor in Post-Game Review numerically equals plies played, so `cursor >= bookExitPly` first fires at the position where book ended (Rule 25 confirms no off-by-one)."
+    added: 2026-05-28
+    revised: ""
 
 
 # ─── CONSTANTS ───────────────────────────────────────────────────────────────
 # Named numerical values referenced across multiple systems.
-# Register a constant when it is defined in one GDD but another GDD must
-# agree with it (e.g., gold carry limit defined in economy but checked in
-# inventory, or base inventory slots defined in inventory but displayed in HUD).
-#
-# Required fields: name, status, source, referenced_by, value, unit, added
 
-constants: []
+constants:
+  - name: reviewTargetDepth
+    status: active
+    source: design/gdd/chess-engine-integration.md
+    referenced_by:
+      - design/gdd/chess-engine-integration.md
+      - design/gdd/post-game-review.md
+    value: 22
+    unit: plies
+    notes: "Pass-2 (deep) analysis target depth. Provisional pending the iPhone Safari device spike (OQ-5 in post-game-review.md, OQ#6/OQ-7 in chess-engine-integration.md); may be lowered if depth 22 is unreachable on the reference device. The Rule 22a depth-comparability guard in Post-Game Review absorbs lower-than-target depths without invalidating cpLoss display. Tuning-knob safe range: 14–25 (engine) / 12–26 (PGR)."
+    added: 2026-05-28
+    revised: ""
 
-# Example:
-#
-# constants:
-#   - name: gold_carry_limit
-#     status: active
-#     source: design/gdd/economy.md
-#     referenced_by:
-#       - design/gdd/economy.md
-#       - design/gdd/inventory.md   # inventory enforces the carry limit
-#       - design/gdd/ui.md          # HUD displays current gold vs limit
-#     value: 9999
-#     unit: gold
-#     added: 2026-03-26
-#     revised: ""
-#
-#   - name: base_inventory_slots
-#     status: active
-#     source: design/gdd/inventory.md
-#     referenced_by:
-#       - design/gdd/inventory.md
-#       - design/gdd/progression.md  # progression unlocks additional slots
-#     value: 20
-#     unit: slots
-#     added: 2026-03-26
-#     revised: ""
+  - name: reviewMaxMoveTimeMs
+    status: active
+    source: design/gdd/chess-engine-integration.md
+    referenced_by:
+      - design/gdd/chess-engine-integration.md
+      - design/gdd/post-game-review.md
+    value: 10000
+    unit: ms
+    notes: "Per-position cap for Pass-2 (deep) analysis. Distinct from REVIEW_PREVIEW_MOVE_TIME_MS (1500ms) used for Pass-1 (preview) — that constant is internal to Post-Game Review and not registered here. Pass-2 total wall-time is bounded by REVIEW_TOTAL_TIME_BUDGET_MS (90s, also internal to PGR)."
+    added: 2026-05-28
+    revised: ""
+
+  - name: evalCp_typical_range
+    status: active
+    source: design/gdd/move-annotation-display.md   # MAD pins the ±3000 magnitude (lines 122/169/171); chess-engine-integration emits raw cp but does not declare the empirical range
+    referenced_by:
+      - design/gdd/move-annotation-display.md
+      - design/gdd/chess-engine-integration.md
+      - design/gdd/post-game-review.md
+    value: "±3000"
+    unit: cp
+    notes: "Practical (non-mate) evalCp range from Stockfish for chess positions short of forced mate. Conventions: side-to-move (engine output) — chess-engine-integration owns the sign; the display layer (move-annotation-display Rule 7) owns the single flip to White's perspective; consumers (post-game-review Rule 24) must NOT pre-flip and must supply sideToMove. Move Annotation Display clamps the eval bar at evalBarClampCp (default 1000, internal to MAD) for visual purposes; PGR's F2 ranking operates on raw values up to ±MATE_CP for mate substitution but never renders such numbers (F2b label path)."
+    added: 2026-05-28
+    revised: ""

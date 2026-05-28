@@ -6,7 +6,7 @@
 > **Implements Pillar**: Pillar 1 (Accumulation Over Sessions) — every game from start to finish produces a permanent trace in skill scores and history; Pillar 3 (Single Player, No Pressure) — no time controls, no social opponent, no penalty for resignation
 > **Priority**: v0 / Core
 > **Depends on**: Chess Board & Move System, Chess Engine Integration
-> **Depended on by**: Post-Game Review, Game Export / Share, Game History (MVP)
+> **Depended on by**: Post-Game Review, Game Export / Share, Navigation & Routing, Game History (MVP)
 
 ## Overview
 
@@ -90,15 +90,20 @@ interface CompletedGame {
              'threefold' | 'fifty-move' | 'insufficient-material';
   completedAt: number;                // epoch ms
   aiSkillLevel: number;               // 0–20
+  playerMoveTimes: number[];          // per-player-move thinking times in ms; indexed against player moves only (see EC-11)
   isTerminal: true;
 }
 ```
 
-Emitted via `game-completed` event immediately after assembly, before overlay renders. Immutable after emission. `"draw-agreement"` and `"abandoned"` from the Game Export / Share GDD spec are valid `endReason` values but are not emitted in v0 (no offer/accept draw; navigation-away abandonment is out of scope).
+**Transport:** at terminal detection the assembled `CompletedGame` is **written to the Pinia game store as the canonical source of truth** — Navigation & Routing reads it from there (its `hasFinishedGameInStore` guard) and Post-Game Review loads it from there on route entry. The `game-completed` **event** is emitted *in addition* for fire-and-forget consumers (Game Export / Share, future Game History); event subscribers must not assume an object payload survives a route change. Vue Router (history mode) cannot carry an object payload, so the store — not a route payload — is the contractual handoff channel. Immutable after assembly.
 
-8. **Game-over transition**: Set `phase = "ended"`, disable board, assemble `CompletedGame`, emit `game-completed`, show result overlay. Overlay shows: result headline (`"You Win"` / `"You Lose"` / `"Draw"`) + plain-language end reason + two actions: **"New Game"** (→ SETUP) and **"Review"** (→ Post-Game Review route, available once that system is implemented). Overlay does not auto-dismiss.
+`"draw-agreement"` and `"abandoned"` from the Game Export / Share GDD spec are valid `endReason` values but are not emitted in v0 (no offer/accept draw; navigation-away abandonment is out of scope).
 
-9. **Player thinking time tracking**: Owned by this system. Start timer when PLAYER_TURN is entered (including at game start if player is white). Stop and record elapsed ms when `move-made` fires. Store as `playerMoveTimes: number[]` alongside `moves[]`. Passed to Post-Game Review when requested.
+8. **Game-over transition**: Set `phase = "ended"` and `isGameInProgress = false` (Rule 10), disable board, assemble `CompletedGame`, emit `game-completed`, show result overlay. Overlay shows: result headline (`"You Win"` / `"You Lose"` / `"Draw"`) + plain-language end reason + two actions: **"New Game"** (→ SETUP) and **"Review"** (→ Post-Game Review route, available once that system is implemented). Overlay does not auto-dismiss. Both actions navigate *after* `isGameInProgress` is already `false`, so Navigation & Routing's leave-guard (which warns when leaving an in-progress game) does not false-fire on the Play→Review push — this **disarm-before-navigate** ordering is a hard requirement Navigation & Routing places on this system.
+
+9. **Player thinking time tracking**: Owned by this system. Start timer when PLAYER_TURN is entered (including at game start if player is white). Stop and record elapsed ms when `move-made` fires. Store as `playerMoveTimes: number[]` and emit it as a first-class **field of `CompletedGame`** (Rule 7) — not a separate sibling channel. Indexed against player moves only, not global move index (see EC-11).
+
+10. **`isGameInProgress` flag**: This system exposes `isGameInProgress: boolean` (default `false`) on the game store, derived from `phase` — `true` during `PLAYER_TURN` and `AI_THINKING`, `false` during `SETUP` and `GAME_OVER`/`ended`. Navigation & Routing reads this flag for its route guards (it owns no game state of its own); this system is the sole owner and setter.
 
 ### States and Transitions
 
@@ -370,7 +375,7 @@ Then the system proceeds (runs terminal detection, transitions to PLAYER_TURN or
 **AC-15 — `CompletedGame` event shape**
 Given any game reaches a terminal state
 When the `game-completed` event is emitted
-Then the payload contains exactly: `moves: string[]` (length ≥ 1, UCI), `playerColor: 'white' | 'black'`, `result: '1-0' | '0-1' | '1/2-1/2'`, `endReason` (non-empty string), `completedAt: number` (epoch ms), `aiSkillLevel: number` (0–20), `isTerminal: true`. No required field is `null` or `undefined`.
+Then the payload contains exactly: `moves: string[]` (length ≥ 1, UCI), `playerColor: 'white' | 'black'`, `result: '1-0' | '0-1' | '1/2-1/2'`, `endReason` (non-empty string), `completedAt: number` (epoch ms), `aiSkillLevel: number` (0–20), `playerMoveTimes: number[]` (player-move-indexed thinking times in ms; may be `[]` if the game ended on the AI's turn — see EC-11), `isTerminal: true`. No required field is `null` or `undefined`. The same object is written to the Pinia game store on terminal.
 
 **AC-16 — `CompletedGame.moves` is an immutable snapshot**
 Given a `game-completed` event has been emitted and a consumer holds a reference to `event.moves`
@@ -396,7 +401,7 @@ Then state transitions to SETUP, overlay is hidden, `moves[]` is empty, `playerM
 **AC-20 — "Review" navigates to Post-Game Review route**
 Given the state machine is in GAME_OVER
 When the player clicks "Review"
-Then the app navigates to the Post-Game Review route with the `CompletedGame` record available as the entry payload. The board remains non-interactive; no new engine call is made; state remains GAME_OVER.
+Then the app navigates to the Post-Game Review route, which loads the `CompletedGame` record from the Pinia game store (where Rule 7 wrote it on terminal). The board remains non-interactive; no new engine call is made; state remains GAME_OVER.
 
 ## Open Questions
 

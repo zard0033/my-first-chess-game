@@ -43,7 +43,31 @@ last_updated: ""
 # interface: how other systems access this state (read-only property, method call,
 #   signal, shared resource, etc.) — this is the contract other ADRs depend on.
 
-state_ownership: []
+state_ownership:
+  # ADR-0001: chess engine is stateless from the caller's perspective — no shared state registered
+
+  - state: is_game_in_progress
+    status: active
+    owner_system: game-lifecycle
+    adr: docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+    interface: "gameStore.isGameInProgress (boolean, reactive Pinia ref; read by AppRouter beforeRouteLeave guard)"
+    write_access: game-lifecycle-only   # only GameLifecycle may call setGameInProgress(); router + UI read only
+    referenced_by:
+      - docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+      - docs/architecture/adr-0004-vue-router-history-mode-and-github-pages-spa-fallback.md
+    added: 2026-05-28
+    revised: ""
+
+  - state: completed_game
+    status: active
+    owner_system: game-lifecycle
+    adr: docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+    interface: "gameStore.completedGame (CompletedGame | null, shallowRef; Object.freeze applied on write; read by PostGameReview + GameExport)"
+    write_access: game-lifecycle-only   # set once on terminal detection; immutable snapshot after assembly
+    referenced_by:
+      - docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+    added: 2026-05-28
+    revised: ""
 
 # Example:
 #
@@ -71,7 +95,139 @@ state_ownership: []
 #
 # pattern options: signal | direct_call | event_bus | shared_resource | rpc | none
 
-interfaces: []
+interfaces:
+  - contract: play_engine_api
+    status: active
+    pattern: direct_call
+    producer: chess-engine-integration
+    consumers:
+      - game-lifecycle      # calls play() when it is the AI's turn
+      - difficulty-system   # passes skillLevel + movetimeMs through game-lifecycle
+    adr: docs/architecture/adr-0001-stockfish-build-versioning.md
+    signal_signature: "playEngine.play({ fen: string, skillLevel: 0–20, movetimeMs: number }) → Promise<PlayResult>"
+    notes: "PlayResult fields: bestMove, kind?, evalCp?, evalMate?, depthReached, pv, ponder? (no emotive labels)"
+    referenced_by:
+      - docs/architecture/adr-0001-stockfish-build-versioning.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: review_engine_api
+    status: active
+    pattern: direct_call
+    producer: chess-engine-integration
+    consumers:
+      - post-game-review    # calls analyze() sequentially for each position in a completed game
+    adr: docs/architecture/adr-0001-stockfish-build-versioning.md
+    signal_signature: "reviewEngine.analyze({ fen: string, targetDepth?: number, movetimeMs?: number }, onProgress?: (p) => void) → Promise<ReviewResult>"
+    notes: "ReviewResult fields: bestMove, evalCp?, evalMate?, depthReached, pv — no quality/label/classification fields"
+    referenced_by:
+      - docs/architecture/adr-0001-stockfish-build-versioning.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: opening_index_api
+    status: active
+    pattern: direct_call
+    producer: opening-identification
+    consumers:
+      - post-game-review    # calls identifyOpening(completedGame.moves) once on review screen mount
+    adr: docs/architecture/adr-0003-chess-openings-dataset-pin-and-epd-index.md
+    signal_signature: "identifyOpening(moves: string[]) → OpeningResult (sync); identifyPosition(fenOrEpd: string) → { eco, name } | null (sync)"
+    notes: "OpeningResult fields: eco, name, matchedPly, bookExitPly, isUnknown, epd — no quality/recommendation/evaluative fields. Both functions are synchronous (Map.get — O(N) and O(1) respectively)."
+    referenced_by:
+      - docs/architecture/adr-0003-chess-openings-dataset-pin-and-epd-index.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: game_store_api
+    status: active
+    pattern: direct_call
+    producer: game-lifecycle
+    consumers:
+      - app-router           # reads isGameInProgress in beforeRouteLeave + popstate guard
+      - post-game-review     # reads completedGame on mount
+      - game-export          # reads completedGame to build PGN + Claude prompt
+    adr: docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+    signal_signature: "gameStore.isGameInProgress: boolean (reactive); gameStore.completedGame: CompletedGame | null (shallowRef, Object.freeze)"
+    notes: "Canonical cross-module handoff channel. CompletedGame is immutable after assembly. isGameInProgress MUST be set false before any router.push('/review') call (disarm-before-navigate invariant)."
+    referenced_by:
+      - docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+      - docs/architecture/adr-0004-vue-router-history-mode-and-github-pages-spa-fallback.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: move_annotation_api
+    status: active
+    pattern: direct_call
+    producer: move-annotation-display
+    consumers:
+      - post-game-review     # passes annotations[] + evaluation props; receives rendered SVG overlay
+    adr: docs/architecture/adr-0006-move-annotation-rendering-substrate.md
+    signal_signature: "props: { annotations: Annotation[], evaluation: { evalCp?, evalMate?, sideToMove } | null }"
+    notes: "Declarative props only — no imperative 'add arrow' API. Consumer must NOT pre-flip evalCp/evalMate (component normalises to White's perspective internally). pointer-events: none; zero game-state side effects."
+    referenced_by:
+      - docs/architecture/adr-0006-move-annotation-rendering-substrate.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: board_move_api
+    status: active
+    pattern: direct_call
+    producer: chess-board
+    consumers:
+      - game-lifecycle     # listens for move-made to run the move through chess.js + trigger engine
+      - chess-engine-integration  # may await animationDoneAt before announcing AI response
+    adr: docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    signal_signature: "emit('move-made', { from: Square, to: Square, promotion?: PromotionPiece, fen: string, animationDoneAt: Promise<void> })"
+    notes: "Emitted at the logical commit point (after chess.js validation). For promotion moves, emitted only after the player makes an explicit selection — never on MOVING_PROMOTION. promotion is undefined (not null) for non-promotion moves. animationDoneAt resolves when slide + capture fade complete; consumers that need the visual to finish must await it."
+    referenced_by:
+      - docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: board_geometry_api
+    status: active
+    pattern: direct_call
+    producer: chess-board
+    consumers:
+      - move-annotation-display  # uses squareToRect() to position SVG arrows/highlights over board squares
+    adr: docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    signal_signature: "squareToRect(square: Square): { x: number; y: number; width: number; height: number } | null — board-local coordinates (relative to boardRef's top-left corner, orientation-corrected). Returns null for invalid squares."
+    notes: "Board-local coordinate space: x=0, y=0 is boardRef's top-left pixel. SVG overlay (ADR-0006) is positioned at top:0, left:0 over boardRef, so squareToRect() values are used directly as SVG coordinates — no viewport conversion needed. Accessed via Vue template ref (defineExpose). Values are live (computed from offsetWidth each call); not cached."
+    referenced_by:
+      - docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+      - docs/architecture/adr-0006-move-annotation-rendering-substrate.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: export_payload_assembler_api
+    status: active
+    pattern: direct_call
+    producer: game-export
+    consumers:
+      - game-export        # consumed by its own composable + Vue component at tap time
+      - game-history       # MVP — reuses the assembler for past-game export (no code duplication)
+    adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    signal_signature: "assembleExportPayload(game: CompletedGame, config: ExportConfig): string — PURE SYNC, no `async` keyword permitted; return type is `string` NOT `Promise<string>`"
+    notes: "Structural enforcement of the iOS user-activation invariant. The string-return signature makes any future drift toward async I/O a TypeScript error. ExportConfig fields are all readonly. Same input → byte-identical output (deterministic). Adding `async` to this symbol's declaration is a forbidden pattern (see forbidden_patterns: async_payload_assembler)."
+    referenced_by:
+      - docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    added: 2026-05-28
+    revised: ""
+
+  - contract: game_export_control_api
+    status: active
+    pattern: direct_call
+    producer: game-export
+    consumers:
+      - post-game-review   # mounts the AnalyzeWithClaude component; passes gameStore ref + config
+    adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    signal_signature: "useGameExport(game: Ref<CompletedGame | null>, config: ExportConfig) → { state: Ref<ExportState>, fallbackPayload: Ref<string | null>, oversizeWarning: Ref<boolean>, onAnalyzeTap(): void, dismissFallback(): void }"
+    notes: "ExportState = 'IDLE' | 'SHARING' | 'COPYING' | 'SUCCESS' | 'FALLBACK'. State machine is owned by the composable (NOT Pinia) because export state is per-screen ephemeral and unmount-clean by Vue lifecycle. If Game History MVP ever needs cross-screen export-in-flight state, this composable model must be superseded (see ADR-0010 Decision §3 supersession trigger)."
+    referenced_by:
+      - docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    added: 2026-05-28
+    revised: ""
 
 # Example:
 #
@@ -100,7 +256,17 @@ interfaces: []
 # Register a budget when an ADR explicitly claims a frame time allocation.
 # The registry lets /architecture-review verify the total doesn't exceed the target.
 
-performance_budgets: []
+performance_budgets:
+  - system: total-memory-ceiling
+    status: active
+    budget_ms: ""
+    platform: Mobile    # iPhone Safari is the tightest constraint
+    adr: docs/architecture/adr-0001-stockfish-build-versioning.md
+    notes: "≤ 150 MB total resident memory including both engine workers and app overhead (Formula 4 in chess-engine-integration GDD). Play-only target: ~65 MB. Peak (Play + Review active): ~145 MB. NNUE RSS pending spike confirmation."
+    referenced_by:
+      - docs/architecture/adr-0001-stockfish-build-versioning.md
+    added: 2026-05-28
+    revised: ""
 
 # Example:
 #
@@ -131,7 +297,83 @@ performance_budgets: []
 # Register an API decision when the choice is non-obvious and other ADRs might
 # make a different choice for the same purpose without knowing this was decided.
 
-api_decisions: []
+api_decisions:
+  - purpose: chess_engine_wasm_source
+    status: active
+    api: lichess fork of Stockfish, SF16.1, single-threaded WASM (two separate builds: HCE for Play Mode, NNUE for Review Mode)
+    not: nmrugg/stockfish.js for NNUE builds; Stockfish 17; self-built emscripten WASM; SharedArrayBuffer / multi-threaded builds
+    adr: docs/architecture/adr-0001-stockfish-build-versioning.md
+    reason: "Single-threaded lichess fork is GitHub Pages + iOS Safari 16.0–16.3 compatible. Two-build split is the mechanism that keeps Formula 4 memory budget within the 150 MB ceiling. SF16.1 pins the skill-level AC baseline."
+    referenced_by:
+      - docs/architecture/adr-0001-stockfish-build-versioning.md
+    added: 2026-05-28
+    revised: ""
+
+  - purpose: chess_openings_dataset
+    status: active
+    api: chess-openings npm package (lichess organization), exact version pin (no ^ or ~ in package.json)
+    not: Scid eco.epd; Jeroen Noomen ECO5; any non-npm database; runtime TSV fetch; JSON blob fetch
+    adr: docs/architecture/adr-0003-chess-openings-dataset-pin-and-epd-index.md
+    reason: "chess-openings is the approved package in the allowed libraries table. Exact pin protects display-copy AC strings from silent dataset updates. Build-time TypeScript Map is tree-shakeable, type-safe, and has zero runtime parsing cost."
+    referenced_by:
+      - docs/architecture/adr-0003-chess-openings-dataset-pin-and-epd-index.md
+    added: 2026-05-28
+    revised: ""
+
+  - purpose: vue_router_history_mode
+    status: active
+    api: createWebHistory() (Vue Router 4 HTML5 history mode)
+    not: createWebHashHistory(); createMemoryHistory(); any hash-based routing
+    adr: docs/architecture/adr-0004-vue-router-history-mode-and-github-pages-spa-fallback.md
+    reason: "HTML5 history mode produces clean URLs (no # fragment) required by the UX spec. Requires the GitHub Pages 404.html SPA fallback shim (established in ADR-0004). All future navigation decisions must stay within this routing model."
+    referenced_by:
+      - docs/architecture/adr-0004-vue-router-history-mode-and-github-pages-spa-fallback.md
+    added: 2026-05-28
+    revised: ""
+
+  - purpose: csp_delivery_mechanism
+    status: active
+    api: "<meta http-equiv=\"Content-Security-Policy\"> tag in index.html"
+    not: HTTP response headers; _headers file (Netlify-only); Service Worker header injection
+    adr: docs/architecture/adr-0008-csp-headers-and-wasm-deployment-configuration.md
+    reason: "GitHub Pages serves static files only — no custom HTTP headers. meta CSP is the only viable delivery mechanism for this deployment target. Changing deployment platform would require a superseding ADR."
+    referenced_by:
+      - docs/architecture/adr-0008-csp-headers-and-wasm-deployment-configuration.md
+    added: 2026-05-28
+    revised: ""
+
+  - purpose: chess_board_keyboard_model
+    status: active
+    api: Single roving focus cell — one transparent <div tabindex="0"> repositioned to the focused square via useBoardKeyboard composable
+    not: 64-cell div grid overlay; fork of vue3-chessboard/chessground; chessground native keyboard API (does not exist in 9.x)
+    adr: docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    reason: "O(1) DOM nodes vs O(64) for grid overlay; no library fork required; composable approach survives library updates. GDD specifies roving-tabindex as the required model — this implements it with minimal DOM footprint."
+    referenced_by:
+      - docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    added: 2026-05-28
+    revised: ""
+
+  - purpose: chess_board_selection_overlays
+    status: active
+    api: chessground native drawable.shapes API for legal-move dots and capture rings
+    not: Vue-reactive SVG children (explicitly banned by GDD Tuning Knobs); custom canvas overlay; CSS-only approach
+    adr: docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    reason: "GDD Tuning Knobs mandate: 'Selection overlays must use chessground's native drawable API, not Vue-reactive SVG children, to avoid a full vDOM diff on every selection change (up to 27 simultaneous dots for a centralized queen).' Vue-reactive alternative would cause O(n) vDOM diff on every PIECE_SELECTED transition."
+    referenced_by:
+      - docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    added: 2026-05-28
+    revised: ""
+
+  - purpose: clipboard_delivery_tier_model
+    status: active
+    api: "Three-tier delivery: (1) navigator.share({ text: payload }) when feature-detected AND canShare({ text: payload }) is true synchronously; else (2) navigator.clipboard.writeText(payload); else (3) <textarea v-if> with payload pre-selected for manual copy. Tier branch decided synchronously at top of tap handler before any await."
+    not: SHARING → COPYING runtime fallthrough (forbidden on iOS — gesture already spent); always-clipboard model that drops Web Share; pre-built payload cache on mount; persistent hidden <textarea> for FALLBACK
+    adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    reason: "iOS Safari 16+ consumes the user-activation window on the first async API call. Synchronous tier decision means the handler commits to Tier 1 OR Tier 2 OR Tier 3 in one branch — never retries. canShare({ text: payload }) is probed with the EXACT shape that share() is then called with, closing a known iOS divergence footgun. GDD Core Rule 8 mandates this exact three-tier model."
+    referenced_by:
+      - docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    added: 2026-05-28
+    revised: ""
 
 # Example:
 #
@@ -157,7 +399,70 @@ api_decisions: []
 # Register a pattern when an ADR explicitly bans it AND other ADRs might
 # unknowingly use it (i.e., it's a tempting but wrong approach for this project).
 
-forbidden_patterns: []
+forbidden_patterns:
+  - pattern: engine_request_queuing
+    status: active
+    description: "Callers of playEngine.play() or reviewEngine.analyze() must NOT queue requests.
+      Use AbortSignal to cancel the in-flight request and call analyze() with the new parameters.
+      The engine wrapper itself enforces cancel-replace: a second analyze() call while THINKING
+      transitions the state machine THINKING → STOPPING → IDLE → THINKING (new request)."
+    why: "Queuing allows stale analyses to accumulate. In Play Mode this delivers moves for positions
+      the player has already left. The GDD is explicit (Core Rule 7: 'Never queue searches').
+      Freshness of result is a correctness requirement, not a performance preference."
+    adr: docs/architecture/adr-0002-web-worker-isolation-and-uci-protocol.md
+    added: 2026-05-28
+
+  - pattern: engine_tsv_runtime_parse
+    status: active
+    description: "The chess-openings dataset must NOT be parsed from raw TSV files at browser runtime.
+      The opening index must be pre-built at compile time as a TypeScript Map constant."
+    why: "Runtime TSV parsing adds ~50–100ms synchronous CPU work on mobile, prevents tree-shaking,
+      and violates the < 150 KB gzip bundle requirement. The build-time Map approach satisfies all
+      three constraints simultaneously."
+    adr: docs/architecture/adr-0003-chess-openings-dataset-pin-and-epd-index.md
+    added: 2026-05-28
+
+  - pattern: completed_game_via_event
+    status: active
+    description: "CompletedGame must be transported from GameLifecycle to PostGameReview/GameExport via gameStore.completedGame (Pinia shallowRef). It must NOT be transported via: Vue event payload, router.push() route state/query, window.history.state, or any other ad-hoc channel."
+    why: "Route payloads are not preserved across page refreshes (user navigating back to /review) or iOS PWA relaunches. The store is the only channel that survives navigation round-trips and is readable synchronously on PostGameReview mount without an async boundary."
+    adr: docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
+    added: 2026-05-28
+
+  - pattern: abort_controller_in_vue_reactive
+    status: active
+    description: "AbortController instances stored in Pinia stores MUST be wrapped with markRaw(). They must NOT be passed to ref(), reactive(), or shallowRef() without markRaw. Example: const ctrl = shallowRef(markRaw(new AbortController())). When resetting, replace with a new markRaw-wrapped instance — never reuse an aborted controller."
+    why: "Vue's reactive Proxy wraps the AbortSignal object. Calling .abort() on the proxy may not fire the 'abort' event on the native AbortSignal that an async function already holds a reference to — silently breaking cancellation. This is the most common Vue reactive-proxy pitfall in cancel-replace async patterns. markRaw() prevents Vue from proxying the controller."
+    adr: docs/architecture/adr-0007-post-game-review-analysis-loop-and-sessionstorage-schema.md
+    added: 2026-05-28
+
+  - pattern: vue_reactive_selection_overlays
+    status: active
+    description: "Legal-move dots and capture rings on the chess board must NOT be rendered as Vue-reactive SVG children (<circle>, <path>, etc. in a reactive SVG component). They MUST use chessground's native drawable.shapes API via setShapes()."
+    why: "A centralized queen has up to 27 legal moves. Rendering all selection indicators as Vue reactive SVG children triggers a full vDOM diff on every PIECE_SELECTED transition — up to 27 nodes created/destroyed per selection event. The GDD Tuning Knobs section is explicit: 'Selection overlays must use chessground's native drawable API, not Vue-reactive SVG children, to avoid a full vDOM diff on every selection change.' This is distinct from ADR-0006's annotation SVG overlay (which IS a Vue-reactive SVG sibling — for post-game arrows, not selection feedback)."
+    adr: docs/architecture/adr-0009-chess-board-substrate-vue3-chessboard-keyboard-model.md
+    added: 2026-05-28
+
+  - pattern: async_payload_assembler
+    status: active
+    description: "The exported symbol assembleExportPayload(game, config) in src/modules/game-export/assemble.ts MUST be a pure synchronous function. Its declaration MUST NOT carry the `async` keyword, and its return type MUST be `string` (NOT `Promise<string>`). It MUST contain no `await` expressions, no `fetch()`, no Supabase calls, no `sessionStorage` writes, no Promise-returning side effects. The same applies to any helper it calls in the assembly path."
+    why: "iOS Safari 16+ consumes the user-activation window on the FIRST asynchronous boundary inside a tap handler. If the assembler awaits anything before `navigator.clipboard.writeText()` is called, the clipboard write rejects with NotAllowedError on iOS — silently, and only on iOS (desktop tests stay green). TypeScript's structural type system catches `async` drift via the `string`-not-`Promise<string>` return signature. Adding `async` changes the return type and breaks every caller that consumes it synchronously, surfacing the violation at compile time."
+    adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    added: 2026-05-28
+
+  - pattern: clipboard_retry_after_share
+    status: active
+    description: "Once navigator.share() has been invoked inside a tap handler, the handler MUST NOT subsequently attempt navigator.clipboard.writeText() in the same handler — not on share rejection, not on share resolution, not on any condition. A non-AbortError share rejection routes to FALLBACK (the manual-copy textarea); an AbortError share rejection routes to IDLE; no path from SHARING leads back to COPYING at runtime. This is true on the mobile-first v0 contract regardless of platform."
+    why: "iOS Safari 16+ spends the user-activation token on the `share()` call itself, before the native share sheet even opens. A subsequent `clipboard.writeText()` call in the same handler — even after the share rejection — fails with NotAllowedError because the activation is already consumed. The handler must commit to Tier 1 OR Tier 2 in one synchronous branch decision at the top of the gesture; fallback after a chosen-and-attempted tier is FALLBACK (Tier 3), never the other API tier. The SHARING → COPYING retry was tolerable only as a desktop convenience and is explicitly removed from the v0 contract to keep the mobile path safe."
+    adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    added: 2026-05-28
+
+  - pattern: network_or_persistence_in_export_path
+    status: active
+    description: "The Game Export module (src/modules/game-export/**) MUST NOT call `fetch()`, the Supabase SDK, `localStorage.setItem()`, or `sessionStorage.setItem()` during the export tap path or assembler call. Static grep of the module directory must return zero matches for these tokens. Reads from Pinia stores are permitted (and required — gameStore.completedGame is the canonical input)."
+    why: "GDD Core Rule 10: 'Export is a pure client-side string operation. It does not call Supabase, does not log what was exported, and does not store the PGN anywhere.' Beyond the GDD's design intent, any network or persistence call inside the assembler path introduces an async boundary that would break the iOS user-activation invariant (see async_payload_assembler pattern). The static-grep check is a defensible compile/CI gate that prevents accidental violation."
+    adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
+    added: 2026-05-28
 
 # Example:
 #

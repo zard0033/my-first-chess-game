@@ -26,10 +26,10 @@ The target feeling is **quiet legibility**. The player thinks "ah, I see — the
 - **A coach's hand on the board** — "what about here?" — gesture, not grade
 
 **Explicitly NOT this system's job:**
-- No "Brilliant!" / "Great!" / "Good" / "Inaccuracy" / "Mistake!" / "Blunder!" text labels, icons, or colored glyphs of any kind (those classifications are Post-Game Review's data model, and even there they use neutral terminology — this system never *renders* an emotive label)
+- No "Brilliant!" / "Great!" / "Good" / "Inaccuracy" / "Mistake!" / "Blunder!" text labels, icons, or colored glyphs of any kind (Post-Game Review's data model is a neutral pawn-swing number, not a classification ladder — and this system never *renders* an emotive label either way)
 - No celebratory animation (sparkle, glow pulse, confetti, scale-bounce) on a "good" move and no punitive animation (shake, red flash, X mark) on a "bad" move
 - No sound — this system is silent (move/check sounds belong to Chess Board; this layer adds none)
-- No move *classification* — it does not decide whether a move is best/good/inaccuracy/mistake/blunder; it receives a neutral annotation payload and draws it
+- No move-quality evaluation — it does not decide a move's quality; it receives a neutral annotation payload and draws it
 - No interactivity that changes game state — annotations are display-only; the board owns all input
 
 The discipline here mirrors the Chess Board's "no Brilliant! labels during play" and the Chess Engine's "compass not grade" framing. The eval delta is information; this system renders that information without dressing it in emotion.
@@ -96,7 +96,7 @@ There is no input-driven state — the consumer's prop is the single source of t
 | System | Direction | Interface |
 |--------|-----------|-----------|
 | **Chess Board & Move System** | IN ← | Consumes the board's exposed `boardRef` (HTMLElement) and square-to-pixel coordinate helper to position the overlay and resolve algebraic squares to current pixel coordinates (orientation-aware). Reads board size on resize. |
-| **Post-Game Review** | IN ← | Receives the `annotations` array (arrows + highlights, each with a neutral `role`) and the `evaluation` object (`evalCp` / `evalMate` + side-to-move) per displayed position. Post-Game Review owns *what* to show and the move classification; this system owns *how* to draw it. |
+| **Post-Game Review** | IN ← | Receives the `annotations` array (arrows + highlights, each with a neutral `role`) and the `evaluation` object (`evalCp` / `evalMate` + side-to-move) per displayed position. Post-Game Review owns *what* to show (the neutral pawn-swing number + best line); this system owns *how* to draw it. |
 | **Settings** (future, Polish) | IN ← | Reads annotation theme: arrow colors per role, eval-bar visibility default, eval-bar clamp range, `annotationFadeMs`. Cannot exceed Safe Ranges. |
 
 ## Formulas
@@ -256,7 +256,7 @@ A single rAF callback per frame already guarantees at most one redraw per ~16.6m
 ### Bidirectional consistency notes
 
 - Chess Board GDD Rule 18 now defines: (a) `squareToRect` precise signature relative to `boardRef`; (b) annotation overlay z-position (above in-flight animating piece, below promotion dialog); (c) last-move tint owned by Chess Board in all modes including DISABLED. **B6/B7/B8 all resolved — fully consistent.**
-- When **Post-Game Review** GDD is authored, it must declare: (a) it supplies the `annotations` array and `evaluation` object to this system; (b) it owns move classification (best/good/inaccuracy/mistake/blunder) and converts that into *neutral* annotation roles + a numeric eval before handing off — it must NOT expect this system to render emotive labels; (c) it reuses the single board component in DISABLED mode (per the Chess Board GDD) with this overlay on top.
+- When **Post-Game Review** GDD is authored, it must declare: (a) it supplies the `annotations` array and `evaluation` object to this system; (b) it computes a neutral pawn-swing number (no classification ladder) and supplies *neutral* annotation roles + the numeric eval before handing off — it must NOT expect this system to render emotive labels; (c) it reuses the single board component in DISABLED mode (per the Chess Board GDD) with this overlay on top.
 - This GDD does **not** depend on Chess Engine Integration directly. It consumes already-evaluated numbers handed to it by Post-Game Review. (The sign-convention flip in Rule 7 mirrors the Chess Engine GDD's display-layer note, but there is no runtime coupling.)
 
 ### Soft dependencies (enhanced by but not required)

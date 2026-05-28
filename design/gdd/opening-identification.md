@@ -30,7 +30,7 @@ The tone is strictly informational, never evaluative (Pillar 3: No Pressure). Th
 
 **Explicitly NOT this system's job:**
 - No "good opening / bad opening" judgment, no opening-quality score, no win-rate statistics (that is data this app deliberately does not surface — Pillar 3)
-- No move classification ("inaccuracy / mistake / blunder") — that is Post-Game Review's job using Chess Engine eval deltas
+- No move-quality display — that is Post-Game Review's job (a neutral pawn-swing number from Chess Engine eval deltas; no "inaccuracy / mistake / blunder" classification ladder)
 - No suggestion of what opening the player *should* play, no repertoire coaching (Phase 2 territory at most)
 - No engine analysis — this is a dictionary lookup, not an evaluation
 
@@ -119,7 +119,7 @@ The walk is **O(number of plies)** — one `Map.get` per ply, never a scan of th
 | **Post-Game Review** | OUT → | Returns `{ eco, name } | null` for the single position |
 
 **Cross-system notes** (documented for downstream GDDs, not owned here):
-- **Move classification** ("inaccuracy / mistake / blunder") is Post-Game Review's job via Chess Engine eval deltas — Opening ID never evaluates quality.
+- **Move-quality display** is Post-Game Review's job via Chess Engine eval deltas (a neutral pawn-swing number, no classification ladder) — Opening ID never evaluates quality.
 - **Move list / annotation rendering** (where the "Italian Game" headline is *placed* on screen, fonts, layout) is owned by Post-Game Review + Move Annotation Display, not this system. Opening ID returns strings only.
 - **Phase 2 bidirectional lesson linking** may consume the `epd` field to match a played opening to lessons about that opening. That linking logic is out of scope here; this system only guarantees a stable EPD key.
 
@@ -239,6 +239,7 @@ This system has one core matching algorithm (already given in pseudocode above) 
 |--------|----------------------|-----------|
 | **Post-Game Review** | The headline opening name + ECO for a completed game | `identifyOpening(moves: Move[]) → OpeningResult` |
 | **Post-Game Review** | (Optional) the opening name of a specific scrubbed-to position | `identifyPosition(fenOrEpd: string) → { eco, name } | null` |
+| **Opening Knowledge Cards** (system #8b, v0, added 2026-05-28) | The ECO code from `OpeningResult.eco` to look up a hand-authored knowledge card (one-paragraph description of the opening's core idea). Reads the same `OpeningResult` Post-Game Review already has; does NOT call `identifyOpening` separately. | (consumes existing `OpeningResult.eco` field — no new interface required) |
 
 ### Bidirectional consistency notes (handoff to Post-Game Review)
 
@@ -246,7 +247,7 @@ When the **Post-Game Review** GDD is authored, it must declare:
 - Calling `identifyOpening(moves)` **once** with the completed game's full move list, and consuming the `OpeningResult` (headline opening shown at the top of the review).
 - **Handling `isUnknown = true`** explicitly — deciding whether to render "Unknown opening" or omit the opening line entirely. Opening ID returns `null` name/eco; the *display decision* is Post-Game Review's.
 - **Rendering `bookExitPly`** (if shown) as a neutral, non-evaluative string ("Left book at move N"), never as criticism — to preserve Pillar 3. Opening ID supplies the ply number only; the wording and the "no judgment" framing is enforced in Post-Game Review's copy.
-- **Owning move classification** (best/good/inaccuracy/mistake/blunder) via Chess Engine eval deltas — Opening ID contributes nothing to per-move quality.
+- **Owning move-quality display** (a neutral pawn-swing number via Chess Engine eval deltas; no classification ladder) — Opening ID contributes nothing to per-move quality.
 - That the move-input **format** passed to `identifyOpening` matches this system's contract: **UCI long-algebraic** (aligned with Chess Engine `PlayResult.bestMove`), SAN tolerated via chess.js normalization (Open Question #1, resolved).
 - (Phase 2) If lesson linking is built, it may consume the `epd` field of `OpeningResult` to match the played opening to opening lessons — Opening ID guarantees a stable EPD key but owns no linking logic.
 
