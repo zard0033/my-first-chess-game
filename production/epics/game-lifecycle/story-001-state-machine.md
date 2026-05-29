@@ -1,12 +1,12 @@
 # Story 001: Game State Machine and Terminal Detection
 
 > **Epic**: Game Lifecycle
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: M (4–5 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -80,7 +80,7 @@
 **Story Type**: Logic
 **Required evidence**: `tests/unit/game-lifecycle/state-machine.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: ✅ Created — 25 tests, all pass
 
 ---
 
@@ -88,3 +88,10 @@
 
 - Depends on: Epic chess-board Story 001 must be DONE (ChessBoard exists); Epic chess-engine Story 001 must be DONE (playEngine exists)
 - Unlocks: Story 002 (CompletedGame assembly depends on chess.js state)
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 6/6 passing
+**Deviations**: (1) Implementation at `src/modules/game-lifecycle/use-game-lifecycle.ts` not `src/composables/useGameLifecycle.ts` — consistent with module structure; (2) `detectTerminal()` returns `TerminalState | null` (cleaner union vs `{isTerminal:bool}` shape in notes)
+**Test Evidence**: Logic — `tests/unit/game-lifecycle/state-machine.test.ts` — 25 tests pass
+**Code Review**: Skipped (Lean mode)

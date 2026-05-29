@@ -125,7 +125,7 @@ describe('usePlayEngine — AC-3: uciok timeout', () => {
 })
 
 // -----------------------------------------------------------------------
-// AC-4: readyok not received within 2s after isready → CRASHED + EngineUnavailableError
+// AC-4: readyok not received within 10s after isready → CRASHED + EngineUnavailableError
 // -----------------------------------------------------------------------
 
 describe('usePlayEngine — AC-4: readyok timeout', () => {
@@ -140,7 +140,7 @@ describe('usePlayEngine — AC-4: readyok timeout', () => {
     // Act — uciok arrives but readyok never does
     const promise = init()
     mock.simulateResponse('uciok')
-    vi.advanceTimersByTime(2_001)
+    vi.advanceTimersByTime(10_001)
 
     // Assert
     await expect(promise).rejects.toThrow(EngineUnavailableError)
@@ -155,8 +155,8 @@ describe('usePlayEngine — AC-4: readyok timeout', () => {
     const promise = init()
     mock.simulateResponse('uciok')
 
-    // Advance past the 5s uciok window; only the 2s readyok window should matter now
-    vi.advanceTimersByTime(5_001)
+    // Advance past the 5s uciok window; only the 10s readyok window should matter now
+    vi.advanceTimersByTime(10_001)
 
     // The rejection should be for readyok, not uciok
     await expect(promise).rejects.toThrow(EngineUnavailableError)

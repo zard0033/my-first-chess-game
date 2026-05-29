@@ -1,6 +1,39 @@
 # Active Session State
 
-**Last updated**: 2026-05-29 (smoke-check FAIL → bug fixes in progress; Stockfish WASM loading still blocked)
+**Last updated**: 2026-05-29 (Sprint 3 APPROVED WITH CONDITIONS ✅ — 182 tests pass)
+
+## Session Extract — Sprint 3 完整交付 2026-05-29
+
+### Sprint 3 完成 — APPROVED WITH CONDITIONS
+**所有 Must Have + Should Have stories 完成；182/182 自動化測試通過**
+
+#### 完成清單
+- ✅ S3-01 Housekeeping: FEN dev tool (`/play` DEV panel) + CSS `min-w-[352px]` + `public/favicon.svg` + UCI CI smoke test (4 tests)
+- ✅ S3-02 GameLifecycle: State Machine & Terminal Detection — `src/modules/game-lifecycle/use-game-lifecycle.ts` (25 tests)
+- ✅ S3-03 CompletedGame Assembly & Pinia Transport — extended `use-game-lifecycle.ts` + `game-store.ts` updated (12 tests)
+- ✅ S3-04 MoveAnnotationDisplay: SVG Overlay + Eval Bar — `src/components/move-annotation-display.vue` + `src/modules/move-annotation/` (20 tests)
+- ✅ S3-05 rAF Resize Throttle — extended `move-annotation-display.vue` (6 tests)
+- ✅ S3-06 Review Engine: lazy-load + 30s auto-terminate — `src/modules/chess-engine/review-engine.ts` (11 tests)
+- ✅ S3-07 Visual Feedback: check ring + reduced-motion — extended `chess-board.vue` + `use-reduced-motion.ts` (AC-1 + AC-2 browser-verified)
+- ⬜ S3-08 Keyboard Navigation (Nice-to-Have, backlog)
+
+#### QA 結果
+- Smoke check: PASS WITH WARNINGS (`production/qa/smoke-sprint3-2026-05-29.md`)
+- Team QA: **APPROVED WITH CONDITIONS** (`production/qa/qa-signoff-sprint3-2026-05-29.md`)
+- S3-07 evidence: AC-1 + AC-2 browser-verified by Eason
+
+#### 殘餘條件（不阻塞）
+1. S3-07 AC-3/AC-4 (reduced-motion, forced-colors) — advisory, 有空再測
+2. S3-04 E2E pointer-events Playwright test — Sprint 4
+3. **⭐ Sprint 4 Must Have #1: `useGameLifecycle` 整合進 PlayView.vue** — GAME_OVER overlay + "New Game" + Review 導航目前不在 UI 上
+
+### 明天繼續從這裡
+執行順序：
+1. 確認 Sprint 3 conditions 已足夠（或接受現狀）
+2. 執行 `/sprint-plan Sprint 4` — Sprint 4 首個 Must Have 應是 PlayView.vue ← useGameLifecycle 整合
+3. 執行 `/qa-plan sprint` 再開始實作
+
+---
 
 ## Session Extract — smoke-check + bug-fix 2026-05-29
 
@@ -15,19 +48,47 @@
 3. `chess-board.vue` — 修正 `isPromotionMove`：`move.promotion` 已設定時不再顯示第二個對話框
 4. `use-board-input.ts`, `router/index.ts`, `play-engine-play.test.ts` — 修正 pre-existing TypeScript 錯誤
 
-### Still Failing: Stockfish WASM Loading
-- **症狀**：`Stockfish unavailable — playing without AI`（`engine.init()` 在 UCI handshake 前就 throw）
-- **已嘗試**：把 WASM URL 用 hash 傳給 Worker（`stockfishSingleUrl#encodedWasmUrl`）—— 仍失敗
-- **下一步診斷方向**：
-  1. `catch (err)` 改成 `catch (err) { console.error('Stockfish init error:', err) }` 看真實 error message
-  2. 確認 Worker 是否能載入（DevTools → Network tab 看是否有 Worker 請求）
-  3. 考慮把 `stockfish-nnue-16-single.js` + `.wasm` 複製到 `public/stockfish/` 並改用絕對路徑
-  4. 或在 `vite.config.ts` 加 `optimizeDeps.exclude: ['stockfish']` + `assetsInclude: ['**/*.wasm']`
+### Stockfish WASM Loading — FIXED ✅ (2026-05-29)
+- **根因**：`READYOK_TIMEOUT_MS=2000` 太短；WASM 初始化需 3-8s，`readyok` 超時
+- **修法**：
+  1. `public/stockfish/` 新建目錄，複製 `.js` + `.wasm`（Vite 靜態服務，無 transform）
+  2. `stockfish-play.worker.ts` — 改用 `/stockfish/stockfish-nnue-16-single.js` 絕對路徑
+  3. `play-engine.ts` — `READYOK_TIMEOUT_MS` 2000 → 10000
+  4. `vite.config.ts` — `optimizeDeps.exclude: ['stockfish']` + `assetsInclude: ['**/*.wasm']`
+- **驗證**：Stockfish 回應 AI 走棋 ✅
 
 ### Next Session Steps
-1. 繼續 debug Stockfish WASM loading（見上方診斷方向）
-2. 修好後跑 `/smoke-check sprint --quick` 重新驗證
-3. 通過後繼續 `/team-qa sprint` → `/retrospective` → `/sprint-plan Sprint 3`
+1. ~~跑 `/smoke-check sprint --quick`~~ ✅ DONE — PASS WITH WARNINGS
+2. ~~`/team-qa sprint`~~ ✅ DONE — APPROVED WITH CONDITIONS (S2-08 BLOCKED)
+3. ~~`/retrospective` → `/sprint-plan Sprint 3`~~ ✅ DONE 2026-05-29
+
+### Sprint 3 狀態
+- Retro: `production/retrospectives/retro-sprint-2-2026-05-29.md` ✅
+- Sprint Plan: `production/sprints/sprint-3.md` ✅
+- Sprint Status: `production/sprint-status.yaml` 更新為 Sprint 3 ✅
+- QA Plan: `production/qa/qa-plan-sprint-3-2026-05-29.md` ✅
+- **Sprint 3 實作進度（2026-05-29）**：
+  - ✅ S3-01 Housekeeping (FEN tool + CSS + favicon + UCI CI smoke)
+  - ✅ S3-02 GameLifecycle State Machine (25 tests)
+  - ✅ S3-03 CompletedGame Assembly & Pinia Transport (37 tests)
+  - ✅ S3-04 SVG Overlay Arrows + Eval Bar (20 tests)
+  - ✅ S3-05 rAF Resize Throttle (6 tests)
+  - ✅ S3-06 Review Engine (11 tests)
+  - ✅ S3-07 Visual Feedback (advisory evidence pending manual QA)
+  - ⬜ S3-08 Keyboard Navigation (Nice-to-Have, backlog)
+  - 全套測試：182/182 通過
+  - ✅ `/story-done` S3-01~S3-07 all closed
+- ✅ `/smoke-check sprint` PASS WITH WARNINGS (`production/qa/smoke-sprint3-2026-05-29.md`)
+- ✅ `/team-qa sprint` APPROVED WITH CONDITIONS (`production/qa/qa-signoff-sprint3-2026-05-29.md`)
+- **Sprint 3 close-out conditions**:
+  1. S3-07 manual browser QA sign-off (use FEN dev tool to test check indicator)
+  2. `useGameLifecycle` wired into PlayView.vue → Sprint 4 Must Have story
+  3. S3-04 E2E pointer-events test → Sprint 4
+
+### team-qa 結果摘要
+- 9/10 stories PASS；S2-08 Promotion Dialog BLOCKED（Stockfish 讓升變難以測試）
+- 建議 Sprint 3 加入 FEN setter dev tool 讓 S2-08 可補測
+- sign-off: `production/qa/qa-signoff-sprint2-2026-05-29.md`
 
 ## Session Extract — /story-done S2-08/09/10 2026-05-29
 - S2-08 Verdict: COMPLETE WITH NOTES — PromotionDialog.vue created; manual evidence doc created; sign-offs pending

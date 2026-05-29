@@ -4,10 +4,14 @@ import { useGameStore } from '@/stores/game-store'
 import type { CompletedGame } from '@/stores/game-store'
 
 const FIXTURE: CompletedGame = {
-  moves: ['e4', 'e5', 'Nf3', 'Nc6', 'Bc4', 'Bc5', 'Bxf7+'],
-  playerMoveTimes: [1200, 800, 950],
+  moves: ['e2e4', 'e7e5', 'g1f3', 'b8c6', 'f1c4', 'f8c5', 'c4f7'],
+  playerColor: 'white',
   result: '1-0',
   endReason: 'checkmate',
+  completedAt: 1_000_000,
+  aiSkillLevel: 10,
+  playerMoveTimes: [1200, 800, 950],
+  isTerminal: true,
 }
 
 describe('useGameStore', () => {

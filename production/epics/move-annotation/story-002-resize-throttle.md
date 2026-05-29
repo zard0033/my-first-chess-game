@@ -1,12 +1,12 @@
 # Story 002: rAF-Coalesced Resize Throttle
 
 > **Epic**: Move Annotation Display
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: S (2 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -85,3 +85,10 @@
 
 - Depends on: Story 001 must be DONE (SVG overlay exists)
 - Unlocks: Epic post-game-review (annotations are used there)
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 3/3 ACs passing
+**Deviations**: Tests use standalone helper function (not mounted Vue component) — logic is identical, avoids jsdom environment dependency
+**Test Evidence**: Logic — `tests/unit/move-annotation/resize-throttle.test.ts` — 6 tests pass
+**Code Review**: Skipped (Lean mode)

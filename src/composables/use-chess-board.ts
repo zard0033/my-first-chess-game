@@ -24,7 +24,8 @@ export function useChessBoard() {
   onMounted(async () => {
     try {
       await engine.init()
-    } catch {
+    } catch (err) {
+      console.error('Stockfish init error:', err)
       console.warn('Stockfish unavailable — playing without AI')
     }
   })
@@ -59,10 +60,15 @@ export function useChessBoard() {
     }
   }
 
+  function setDevFen(newFen: string): void {
+    fen.value = newFen
+  }
+
   return {
     fen: readonly(fen),
     playerColor: readonly(playerColor),
     disabled: readonly(disabled),
     handleMoveMade,
+    setDevFen,
   }
 }

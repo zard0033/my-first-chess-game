@@ -82,8 +82,8 @@ const STOP_DRAIN_TIMEOUT_MS = 2_000
 /** ADR-0002 §7: maximum wait for uciok before CRASHED. */
 const UCIOK_TIMEOUT_MS = 5_000
 
-/** ADR-0002 §7: maximum wait for readyok after isready before CRASHED. */
-const READYOK_TIMEOUT_MS = 2_000
+/** ADR-0002 §7: maximum wait for readyok after isready before CRASHED. WASM first-load needs up to ~8s. */
+const READYOK_TIMEOUT_MS = 10_000
 
 /**
  * Runs the strict two-phase UCI handshake.

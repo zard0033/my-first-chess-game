@@ -1,12 +1,12 @@
 # Story 006: Visual Feedback — Check Indicator, Last-Move Highlight, Reduced Motion
 
 > **Epic**: Chess Board & Move System
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — chess board substrate)
 > **Type**: Visual/Feel
 > **Estimate**: M (4–5 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -116,3 +116,10 @@
 
 - Depends on: Story 001 must be DONE (board renders), Story 004 must be DONE (`squareToRect` for check glow positioning)
 - Unlocks: None (terminal visual story for this epic)
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: All ACs implemented in code; manual verification PENDING (Visual/Feel advisory)
+**Deviations**: (1) `data-last-move="true"` attribute not added — chessground natively renders last-move tint via CSS class; (2) Pulse animation uses simple opacity keyframes (meets the spirit of the story ACs)
+**Test Evidence**: Visual/Feel — `production/qa/evidence/chess-board-visual-feedback-evidence.md` (pending sign-off — requires browser testing with FEN dev tool)
+**Code Review**: Skipped (Lean mode)

@@ -1,5 +1,3 @@
-import stockfishSingleUrl from 'stockfish/src/stockfish-nnue-16-single.js?url'
-import stockfishWasmUrl from 'stockfish/src/stockfish-nnue-16-single.wasm?url'
 import type { IStockfishWorker } from './stockfish-worker'
 
 /**
@@ -9,9 +7,9 @@ import type { IStockfishWorker } from './stockfish-worker'
  * Cast is required: TypeScript DOM Worker.onmessage carries `this: Worker` which
  * is structurally incompatible with IStockfishWorker's narrower signature.
  *
- * The WASM URL is passed via the URL hash so stockfish-nnue-16-single.js can
- * resolve it correctly under Vite's dev and production asset pipelines.
+ * Files served from public/stockfish/ so Vite does not transform them.
+ * WASM resolves relative to the JS URL automatically (same directory).
  */
 export function createPlayEngineWorker(): IStockfishWorker {
-  return new Worker(`${stockfishSingleUrl}#${encodeURIComponent(stockfishWasmUrl)}`) as unknown as IStockfishWorker
+  return new Worker('/stockfish/stockfish-nnue-16-single.js') as unknown as IStockfishWorker
 }

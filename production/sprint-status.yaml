@@ -9,146 +9,96 @@
 #   done           ↔  Complete
 #   blocked        ↔  Blocked
 
-sprint: 2
-goal: "實作 Foundation 層關鍵路徑 — 首次端到端可玩遊戲迴圈（人類 vs Stockfish 瀏覽器對弈）"
-start: "2026-06-12"
-end: "2026-06-25"
+sprint: 3
+goal: "實作 Core 層（GameLifecycle + MoveAnnotationDisplay）— 首個完整遊戲迴圈閉環：終局偵測 → CompletedGame → Review 導航"
+start: "2026-06-26"
+end: "2026-07-09"
 generated: "2026-05-29"
-updated: "2026-05-29"  # S2-01~S2-10 completed (all Must Have + all Should Have)
+updated: "2026-05-29"
 
 stories:
   # ---- Must Have (必須完成) ----
 
-  - id: "S2-01"
-    name: "chess-board: FEN Rendering and Position Sync"
-    file: "production/epics/chess-board/story-001-fen-rendering.md"
+  - id: "S3-01"
+    name: "Sprint 3 Housekeeping — FEN dev tool + CSS min-width + favicon + UCI CI smoke"
+    file: ""
+    priority: must-have
+    status: done
+    owner: ""
+    estimate_days: 0.50
+    blocker: ""
+    completed: "2026-05-29"
+
+  - id: "S3-02"
+    name: "game-lifecycle: State Machine & Terminal Detection"
+    file: "production/epics/game-lifecycle/story-001-state-machine.md"
+    priority: must-have
+    status: done
+    owner: ""
+    estimate_days: 0.50
+    blocker: ""
+    completed: "2026-05-29"
+
+  - id: "S3-03"
+    name: "game-lifecycle: CompletedGame Assembly & Pinia Transport"
+    file: "production/epics/game-lifecycle/story-002-completed-game.md"
     priority: must-have
     status: done
     owner: ""
     estimate_days: 0.31
-    blocker: ""
+    blocker: "S3-02"
     completed: "2026-05-29"
 
-  - id: "S2-02"
-    name: "chess-board: Dual Input — Drag + Tap-Tap + move-made"
-    file: "production/epics/chess-board/story-002-input.md"
+  - id: "S3-04"
+    name: "move-annotation: Custom SVG Overlay — Arrows, Highlights, Eval Bar"
+    file: "production/epics/move-annotation/story-001-svg-overlay.md"
     priority: must-have
     status: done
     owner: ""
-    estimate_days: 0.63
-    blocker: "S2-01"
+    estimate_days: 0.50
+    blocker: ""
     completed: "2026-05-29"
 
-  - id: "S2-03"
-    name: "chess-board: squareToRect() Geometry Contract"
-    file: "production/epics/chess-board/story-004-square-to-rect.md"
+  - id: "S3-05"
+    name: "move-annotation: rAF-Coalesced Resize Throttle"
+    file: "production/epics/move-annotation/story-002-resize-throttle.md"
     priority: must-have
     status: done
     owner: ""
     estimate_days: 0.25
-    blocker: "S2-01"
-    completed: "2026-05-29"
-
-  - id: "S2-04"
-    name: "chess-engine: Play Engine — Worker Scaffold + UCI Handshake"
-    file: "production/epics/chess-engine/story-001-play-engine-uci.md"
-    priority: must-have
-    status: done
-    owner: ""
-    estimate_days: 0.56
-    blocker: ""
-    completed: "2026-05-29"
-
-  - id: "S2-05"
-    name: "chess-engine: play() Method with AbortSignal + Race Guard"
-    file: "production/epics/chess-engine/story-002-play-engine-play.md"
-    priority: must-have
-    status: done
-    owner: ""
-    estimate_days: 0.44
-    blocker: "S2-04"
-    completed: "2026-05-29"
-
-  - id: "S2-06"
-    name: "chess-engine: CSP Headers + WASM Deployment Config"
-    file: "production/epics/chess-engine/story-006-csp-wasm-deployment.md"
-    priority: must-have
-    status: done
-    owner: ""
-    estimate_days: 0.19
-    blocker: ""
-    completed: "2026-05-29"
-
-  - id: "S2-07"
-    name: "app-router: Route Table, Lazy Loading, SPA Fallback"
-    file: "production/epics/app-router/story-001-route-table.md"
-    priority: must-have
-    status: done
-    owner: ""
-    estimate_days: 0.31
-    blocker: ""
+    blocker: "S3-04"
     completed: "2026-05-29"
 
   # ---- Should Have (延伸目標) ----
 
-  - id: "S2-08"
-    name: "chess-board: Promotion Dialog — Deliberate Selection"
-    file: "production/epics/chess-board/story-003-promotion.md"
+  - id: "S3-06"
+    name: "chess-engine: Review Engine — Lazy Load + analyze() + 30s Auto-Terminate"
+    file: "production/epics/chess-engine/story-003-review-engine.md"
     priority: should-have
     status: done
     owner: ""
-    estimate_days: 0.44
-    blocker: "S2-02"
+    estimate_days: 0.50
+    blocker: ""
     completed: "2026-05-29"
 
-  - id: "S2-09"
-    name: "app-router: Navigation Guards (in-game + beforeunload + popstate)"
-    file: "production/epics/app-router/story-002-navigation-guards.md"
+  - id: "S3-07"
+    name: "chess-board: Visual Feedback — Check Indicator + Reduced Motion"
+    file: "production/epics/chess-board/story-006-visual-feedback.md"
     priority: should-have
     status: done
     owner: ""
-    estimate_days: 0.44
-    blocker: "S2-07"
-    completed: "2026-05-29"
-
-  - id: "S2-10"
-    name: "opening-id: ECO.lookupSync + identifyOpening()"
-    file: "production/epics/opening-id/story-001-opening-lookup.md"
-    priority: should-have
-    status: done
-    owner: ""
-    estimate_days: 0.31
+    estimate_days: 0.50
     blocker: ""
     completed: "2026-05-29"
 
   # ---- Nice to Have (有餘力再做) ----
 
-  - id: "S2-11"
-    name: "chess-board: Keyboard Navigation (useBoardKeyboard)"
+  - id: "S3-08"
+    name: "chess-board: Keyboard Navigation — useBoardKeyboard"
     file: "production/epics/chess-board/story-005-keyboard-nav.md"
     priority: nice-to-have
     status: backlog
     owner: ""
     estimate_days: 0.81
-    blocker: "S2-02"
-    completed: ""
-
-  - id: "S2-12"
-    name: "chess-engine: Review Engine — Lazy Load + analyze() + Auto-Terminate"
-    file: "production/epics/chess-engine/story-003-review-engine.md"
-    priority: nice-to-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.56
-    blocker: "S2-04"
-    completed: ""
-
-  - id: "S2-13"
-    name: "chess-board: Visual Feedback — Check Indicator + Reduced Motion"
-    file: "production/epics/chess-board/story-006-visual-feedback.md"
-    priority: nice-to-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.56
-    blocker: "S2-01, S2-03"
+    blocker: ""
     completed: ""

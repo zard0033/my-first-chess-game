@@ -4,16 +4,19 @@ import { ref, shallowRef } from 'vue'
 /** Terminal outcome of a completed game. Immutable after assembly by GameLifecycle. */
 export interface CompletedGame {
   readonly moves: readonly string[]
-  readonly playerMoveTimes: readonly number[]
+  readonly playerColor: 'white' | 'black'
   readonly result: '1-0' | '0-1' | '1/2-1/2'
   readonly endReason:
     | 'checkmate'
     | 'stalemate'
     | 'resignation'
-    | 'draw-agreement'
     | 'insufficient-material'
     | 'fifty-move'
-    | 'threefold-repetition'
+    | 'threefold'
+  readonly completedAt: number
+  readonly aiSkillLevel: number
+  readonly playerMoveTimes: readonly number[]
+  readonly isTerminal: true
 }
 
 /**
@@ -32,12 +35,16 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function setCompletedGame(game: CompletedGame): void {
-    // Clone arrays so the stored snapshot is independent of the caller's data
+    // Clone arrays so the stored snapshot is independent of the caller's data (ADR-0005 §4)
     const snapshot: CompletedGame = {
       moves: Object.freeze([...game.moves]),
-      playerMoveTimes: Object.freeze([...game.playerMoveTimes]),
+      playerColor: game.playerColor,
       result: game.result,
       endReason: game.endReason,
+      completedAt: game.completedAt,
+      aiSkillLevel: game.aiSkillLevel,
+      playerMoveTimes: Object.freeze([...game.playerMoveTimes]),
+      isTerminal: true,
     }
     completedGame.value = Object.freeze(snapshot)
   }

@@ -1,12 +1,12 @@
 # Story 003: Review Engine — Lazy Load, analyze(), and 30s Auto-Terminate
 
 > **Epic**: Chess Engine Integration
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — engine workers)
 > **Type**: Logic
 > **Estimate**: M (4–5 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -89,3 +89,10 @@
 
 - Depends on: Story 001 must be DONE (UCI handshake pattern established)
 - Unlocks: Epic post-game-review (consumes reviewEngine.analyze())
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 4/4 ACs passing
+**Deviations**: Co-residency guard (Play Worker not THINKING before Review Worker spawns) not yet wired into real PlayView — currently only enforced at the type/API level. To be wired in a future story when GameLifecycle integrates both engines.
+**Test Evidence**: Logic — `tests/unit/chess-engine/review-engine.test.ts` — 11 tests pass
+**Code Review**: Skipped (Lean mode)

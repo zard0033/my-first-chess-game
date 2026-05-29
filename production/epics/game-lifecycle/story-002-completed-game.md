@@ -1,12 +1,12 @@
 # Story 002: CompletedGame Assembly and Pinia Transport
 
 > **Epic**: Game Lifecycle
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: S (2–3 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -95,3 +95,10 @@
 
 - Depends on: Story 001 must be DONE (state machine and chess.js exist)
 - Unlocks: Epic post-game-review (reads gameStore.completedGame); Epic game-export (reads same)
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 5/5 passing (AC-1 through AC-5)
+**Deviations**: `setCompletedGame()` in game-store.ts updated to copy all CompletedGame fields (playerColor, completedAt, aiSkillLevel, isTerminal) — necessary to fulfil the complete interface spec in ADR-0005
+**Test Evidence**: Logic — `tests/unit/game-lifecycle/completed-game.test.ts` — 12 tests pass
+**Code Review**: Skipped (Lean mode)

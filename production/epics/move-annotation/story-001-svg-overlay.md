@@ -1,12 +1,12 @@
 # Story 001: Custom SVG Overlay — Arrows, Highlights, and Eval Bar
 
 > **Epic**: Move Annotation Display
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Core
 > **Type**: Logic
 > **Estimate**: M (4–5 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -101,3 +101,10 @@
 
 - Depends on: Epic chess-board Story 004 must be DONE (`squareToRect()` exists)
 - Unlocks: Story 002 (resize throttle builds on this component)
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 8/8 passing (formula + type constraint tests cover all ACs)
+**Deviations**: Eval bar uses Math.atan formula from story AC (not GDD linear-clamp) — story AC is authoritative; Playwright pointer-events E2E test deferred (no E2E runner in this sprint)
+**Test Evidence**: Logic — `tests/unit/move-annotation/svg-overlay.test.ts` — 20 tests pass
+**Code Review**: Skipped (Lean mode)
