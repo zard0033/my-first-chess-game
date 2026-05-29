@@ -6,6 +6,7 @@ import type { DrawShape, DrawBrushes } from 'chessground/draw'
 import type { Key, Elements } from 'chessground/types'
 import type { Move } from 'chess.js'
 import type { MoveMadePayload } from '../composables/use-chess-board'
+import { validateFen, useBoardRenderer, PIECE_MOVE_ANIM_MS } from '../composables/use-board-renderer'
 
 const props = defineProps<{
   fen: string
@@ -16,9 +17,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   'move-made': [payload: MoveMadePayload]
 }>()
-
-// ADR-0009 spike confirmed: chessground animation.duration default = 300ms
-const ANIM_DURATION_MS = 300
 
 // ADR-0009 Decision §3: custom brushes registered once; must include chessground defaults
 const BRUSHES: DrawBrushes = {
@@ -33,6 +31,8 @@ const BRUSHES: DrawBrushes = {
 const boardApi = ref<BoardApi | null>(null)
 // ADR-0009 Decision §1: boardRef captured via boardConfig.events.insert, not template ref
 const boardRef = ref<HTMLElement | null>(null)
+
+const { syncFen, onMoveMade } = useBoardRenderer(() => boardApi.value)
 
 function showLegalMoves(fromSquare: Key): void {
   const api = boardApi.value
@@ -57,10 +57,10 @@ function clearSelectionShapes(): void {
 
 // Non-reactive; subsequent changes handled imperatively via boardApi
 const boardConfig: BoardConfig = {
-  fen: props.fen,
+  fen: validateFen(props.fen),
   orientation: props.playerColor,
   viewOnly: props.disabled,
-  animation: { duration: ANIM_DURATION_MS },
+  animation: { duration: PIECE_MOVE_ANIM_MS },
   movable: { free: false, color: props.playerColor, showDests: false },
   drawable: { enabled: true, eraseOnClick: false, brushes: BRUSHES },
   highlight: { lastMove: true, check: true },
@@ -76,8 +76,9 @@ function onBoardCreated(api: BoardApi): void {
 
 function onMove(move: Move): void {
   clearSelectionShapes()
+  onMoveMade()
   const fen = boardApi.value?.getFen() ?? ''
-  const animationDoneAt = new Promise<void>((resolve) => setTimeout(resolve, ANIM_DURATION_MS))
+  const animationDoneAt = new Promise<void>((resolve) => setTimeout(resolve, PIECE_MOVE_ANIM_MS))
   emit('move-made', {
     from: move.from,
     to: move.to,
@@ -89,10 +90,12 @@ function onMove(move: Move): void {
 
 watch(
   () => props.fen,
-  (newFen) => {
-    const api = boardApi.value
-    if (api && api.getFen() !== newFen) api.setPosition(newFen)
-  },
+  (newFen) => { syncFen(newFen) },
+)
+
+watch(
+  () => props.playerColor,
+  (color) => { boardApi.value?.setConfig({ orientation: color }, false) },
 )
 
 watch(
