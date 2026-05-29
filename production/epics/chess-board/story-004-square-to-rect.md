@@ -1,7 +1,7 @@
 # Story 004: squareToRect() Geometry Contract
 
 > **Epic**: Chess Board & Move System
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — chess board substrate)
 > **Type**: Logic
 > **Estimate**: S (2 hours)
@@ -30,10 +30,10 @@
 
 *From GDD `design/gdd/chess-board-and-move-system.md` — squareToRect ACs:*
 
-- [ ] **GIVEN** a valid algebraic square (e.g., `'e4'`), **WHEN** `squareToRect('e4')` is called, **THEN** it returns `{ x, y, width, height }` relative to `boardRef`'s top-left AND `width === height` (square cells are equal-sided).
-- [ ] **GIVEN** a valid square with `playerColor='black'`, **WHEN** `squareToRect('a1')` is called vs. `playerColor='white'`, **THEN** the returned `x` position differs (orientation-aware: a1 is at top-right for Black).
-- [ ] **GIVEN** an invalid square identifier (e.g., `'z9'`), **WHEN** `squareToRect('z9')` is called, **THEN** it returns `null`.
-- [ ] **GIVEN** the board is in any state (IDLE, DISABLED, MOVING, etc.), **WHEN** `squareToRect` is called, **THEN** it returns the **current** pixel rect — values are live (not cached from a previous render).
+- [x] **GIVEN** a valid algebraic square (e.g., `'e4'`), **WHEN** `squareToRect('e4')` is called, **THEN** it returns `{ x, y, width, height }` relative to `boardRef`'s top-left AND `width === height` (square cells are equal-sided).
+- [x] **GIVEN** a valid square with `playerColor='black'`, **WHEN** `squareToRect('a1')` is called vs. `playerColor='white'`, **THEN** the returned `x` position differs (orientation-aware: a1 is at top-right for Black).
+- [x] **GIVEN** an invalid square identifier (e.g., `'z9'`), **WHEN** `squareToRect('z9')` is called, **THEN** it returns `null`.
+- [x] **GIVEN** the board is in any state (IDLE, DISABLED, MOVING, etc.), **WHEN** `squareToRect` is called, **THEN** it returns the **current** pixel rect — values are live (not cached from a previous render).
 
 ---
 
@@ -95,7 +95,18 @@
 **Required evidence**:
 - `tests/unit/chess-board/square-to-rect.test.ts` — must exist and all tests pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (19 tests)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 4/4 passing
+**Deviations**:
+- ADVISORY: `boardWidth=0` guard added during code-review (fix applied before close)
+- ADVISORY: `Rect` not re-exported from chess-board.vue — future consumers import from board-geometry.ts directly
+**Test Evidence**: `tests/unit/chess-board/square-to-rect.test.ts` — 19 tests, all passing
+**Code Review**: Complete — APPROVE with 2 advisory findings (both addressed)
 
 ---
 

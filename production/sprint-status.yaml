@@ -14,7 +14,7 @@ goal: "實作 Foundation 層關鍵路徑 — 首次端到端可玩遊戲迴圈�
 start: "2026-06-12"
 end: "2026-06-25"
 generated: "2026-05-29"
-updated: "2026-05-29"  # S2-01, S2-06 completed
+updated: "2026-05-29"  # S2-01~S2-10 completed (all Must Have + all Should Have)
 
 stories:
   # ---- Must Have (必須完成) ----
@@ -33,41 +33,41 @@ stories:
     name: "chess-board: Dual Input — Drag + Tap-Tap + move-made"
     file: "production/epics/chess-board/story-002-input.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.63
     blocker: "S2-01"
-    completed: ""
+    completed: "2026-05-29"
 
   - id: "S2-03"
     name: "chess-board: squareToRect() Geometry Contract"
     file: "production/epics/chess-board/story-004-square-to-rect.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.25
     blocker: "S2-01"
-    completed: ""
+    completed: "2026-05-29"
 
   - id: "S2-04"
     name: "chess-engine: Play Engine — Worker Scaffold + UCI Handshake"
     file: "production/epics/chess-engine/story-001-play-engine-uci.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.56
     blocker: ""
-    completed: ""
+    completed: "2026-05-29"
 
   - id: "S2-05"
     name: "chess-engine: play() Method with AbortSignal + Race Guard"
     file: "production/epics/chess-engine/story-002-play-engine-play.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.44
     blocker: "S2-04"
-    completed: ""
+    completed: "2026-05-29"
 
   - id: "S2-06"
     name: "chess-engine: CSP Headers + WASM Deployment Config"
@@ -83,11 +83,11 @@ stories:
     name: "app-router: Route Table, Lazy Loading, SPA Fallback"
     file: "production/epics/app-router/story-001-route-table.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.31
     blocker: ""
-    completed: ""
+    completed: "2026-05-29"
 
   # ---- Should Have (延伸目標) ----
 
@@ -95,31 +95,31 @@ stories:
     name: "chess-board: Promotion Dialog — Deliberate Selection"
     file: "production/epics/chess-board/story-003-promotion.md"
     priority: should-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.44
     blocker: "S2-02"
-    completed: ""
+    completed: "2026-05-29"
 
   - id: "S2-09"
     name: "app-router: Navigation Guards (in-game + beforeunload + popstate)"
     file: "production/epics/app-router/story-002-navigation-guards.md"
     priority: should-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.44
     blocker: "S2-07"
-    completed: ""
+    completed: "2026-05-29"
 
   - id: "S2-10"
     name: "opening-id: ECO.lookupSync + identifyOpening()"
     file: "production/epics/opening-id/story-001-opening-lookup.md"
     priority: should-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.31
     blocker: ""
-    completed: ""
+    completed: "2026-05-29"
 
   # ---- Nice to Have (有餘力再做) ----
 

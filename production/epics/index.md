@@ -17,14 +17,16 @@
 | [post-game-review](post-game-review/EPIC.md) | Feature | PostGameReview | post-game-review.md | 7 | 7/7 ✅ | 5 stories | Ready |
 | [game-export](game-export/EPIC.md) | Feature | GameExport | game-export-share.md | 4 | 4/4 ✅ | 2 stories | Ready |
 | [opening-knowledge-cards](opening-knowledge-cards/EPIC.md) | Feature | (PostGameReview panel) | opening-knowledge-cards.md | 0 | 0/0 — GDD incomplete | Blocked | **Blocked** |
+| [visual-identity](visual-identity/EPIC.md) | Presentation | BoardTheme | visual-identity.md *(pending)* | 2 | 0/2 — no ADR yet | 1 story | **Backlog** |
 
 ## Summary
 
-- **Total epics**: 9
+- **Total epics**: 10
 - **Ready**: 8
 - **Blocked**: 1 (opening-knowledge-cards — GDD sections 3/5/7/8 TO AUTHOR)
-- **Total TR-IDs**: 47 (44 v0 registered + 3 in opening-knowledge-cards TBD)
-- **ADR Coverage**: 44/44 registered TR-IDs fully covered
+- **Backlog**: 1 (visual-identity — GDD + ADR pending; Sprint 3 target)
+- **Total TR-IDs**: 49 (44 v0 + 2 visual-identity + 3 in opening-knowledge-cards TBD)
+- **ADR Coverage**: 44/44 registered v0 TR-IDs fully covered
 
 ## Layer Order (implementation sequence)
 
@@ -37,6 +39,9 @@ Core (Sprint 3 target):
 
 Feature (Sprint 4 target):
   post-game-review → game-export → opening-knowledge-cards (after GDD complete)
+
+Presentation (Sprint 3–4):
+  visual-identity (board theme + custom pieces)
 ```
 
 ## Story Count Summary

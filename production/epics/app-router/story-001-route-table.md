@@ -1,12 +1,12 @@
 # Story 001: Route Table, Lazy Loading, and GitHub Pages SPA Fallback
 
 > **Epic**: Navigation & Routing
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: S (2–3 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -62,10 +62,11 @@
   - When: run `vite build` and inspect `dist/assets/`
   - Then: a separate chunk file exists for `/play` and `/review` routes; `index.js` does NOT contain `PlayView` or `ReviewView` code
 
-- **AC-3**: 404.html deep-link (Playwright)
-  - Given: app deployed or served locally with the 404.html at root
-  - When: browser navigates directly to `/play`
-  - Then: PlayView renders (not a 404 error page)
+- **AC-3**: 404.html deep-link (Playwright) — full redirect chain
+  - Given: local dev server running with 404.html at root
+  - When: Playwright navigates directly to `http://localhost:[port]/play` (simulating GitHub Pages deep-link — server returns 404.html)
+  - Then: (1) 404.html captures `window.location.pathname === '/play'`; (2) redirect to `/index.html?redirect=%2Fplay`; (3) app mounts; (4) router reads `?redirect=/play` and calls `router.replace('/play')`; (5) `page.url()` ends with `/play`; (6) PlayView `<h1>` or `data-testid` is visible in DOM
+  - Note: verify the full chain — not just that "page loads", but that `PlayView` component is actually mounted (not HomeView or NotFoundView)
 
 - **AC-4**: Catch-all route is last
   - When: inspect `router.options.routes` array
@@ -88,3 +89,15 @@
 
 - Depends on: None (Foundation — first router story)
 - Unlocks: Story 002 (guards need router to exist)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 7/8 passing (AC-8 DEFERRED — requires live GitHub Pages deploy)
+**Deviations**:
+- ADVISORY: `scrollBehavior` uses `savedPosition ?? { top: 0 }` (manifest prescribes `() => ({ top: 0 })`; better back/forward behavior)
+- ADVISORY: `redirect` param validated with `startsWith('/')` guard (defensive improvement from code review)
+- OUT OF SCOPE: `playwright.config.ts` updated with `baseURL` (code review fix, test infrastructure)
+**Test Evidence**: `tests/unit/app-router/route-table.test.ts` (9/9 pass), `tests/e2e/spa-deep-link.spec.ts` (2 tests)
+**Code Review**: Complete — 7 findings surfaced and applied (nav bar /play link, h1 tabindex, savedPosition, redirect validation, hash in 404.html, Playwright baseURL)

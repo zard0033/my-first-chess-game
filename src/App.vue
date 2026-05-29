@@ -9,6 +9,13 @@
         class="text-sm font-medium text-gray-700 hover:text-gray-900"
         active-class="text-blue-600 font-semibold"
       >
+        Home
+      </RouterLink>
+      <RouterLink
+        to="/play"
+        class="text-sm font-medium text-gray-700 hover:text-gray-900"
+        active-class="text-blue-600 font-semibold"
+      >
         Play
       </RouterLink>
       <RouterLink
@@ -17,13 +24,6 @@
         active-class="text-blue-600 font-semibold"
       >
         Review
-      </RouterLink>
-      <RouterLink
-        to="/history"
-        class="text-sm font-medium text-gray-700 hover:text-gray-900"
-        active-class="text-blue-600 font-semibold"
-      >
-        History
       </RouterLink>
     </nav>
     <main class="flex-1">

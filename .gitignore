@@ -35,6 +35,10 @@ obj/
 out/
 dist/
 *.exe
+
+# === Test & Coverage Output ===
+test-results/
+playwright-report/
 *.dll
 *.so
 *.dylib

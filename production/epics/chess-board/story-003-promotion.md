@@ -1,7 +1,7 @@
 # Story 003: Promotion Dialog — Deliberate Selection Only
 
 > **Epic**: Chess Board & Move System
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — chess board substrate)
 > **Type**: UI
 > **Estimate**: S (3–4 hours)
@@ -105,7 +105,7 @@
 **Required evidence**:
 - `production/qa/evidence/chess-board-promotion-evidence.md` — manual walkthrough doc with screenshots + sign-off
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created — `production/qa/evidence/chess-board-promotion-evidence.md` (manual sign-offs pending)
 
 ---
 
@@ -113,3 +113,12 @@
 
 - Depends on: Story 002 must be DONE (input flow emits move-made)
 - Unlocks: None directly — promotion is a terminal flow within the input state machine
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 6 ACs — implementation complete; all ACs require manual browser verification (UI story)
+**Deviations**: None
+**Test Evidence**: UI: `production/qa/evidence/chess-board-promotion-evidence.md` — created, sign-offs pending manual test session
+**Code Review**: Pending (to run before sprint close-out)

@@ -370,3 +370,19 @@ requirements:
     created: 2026-05-28
     revised: ""
     status: active
+
+  # ---- Visual Identity ----
+  - id: TR-visual-identity-001
+    system: visual-identity
+    gdd: design/gdd/visual-identity.md
+    requirement: "Custom piece SVG set (12 files) replacing default cburnett via chessground CSS"
+    created: 2026-05-29
+    revised: ""
+    status: active
+  - id: TR-visual-identity-002
+    system: visual-identity
+    gdd: design/gdd/visual-identity.md
+    requirement: "Board square colors sourced from Nippon Colors 和茶系 palette; ≥3:1 non-text contrast between light and dark squares"
+    created: 2026-05-29
+    revised: ""
+    status: active

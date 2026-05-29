@@ -1,12 +1,12 @@
 # Story 001: Play Engine — Worker Scaffold and UCI Handshake
 
 > **Epic**: Chess Engine Integration
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — engine workers)
 > **Type**: Logic
 > **Estimate**: M (4–5 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -31,12 +31,12 @@
 
 ## Acceptance Criteria
 
-- [ ] `playEngine.init(): Promise<void>` spawns the HCE Web Worker with `stockfish@16.0.0`.
-- [ ] On init, the UCI handshake completes in order: `uci` → `uciok` → `setoption Hash 16` + `setoption Threads 1` + `setoption Use NNUE false` → `isready` → `readyok` → IDLE state.
-- [ ] If `uciok` is not received within 5s, state transitions to CRASHED and `init()` rejects with `EngineUnavailableError`.
-- [ ] If `readyok` is not received within 2s after `isready`, state transitions to CRASHED and `init()` rejects with `EngineUnavailableError`.
-- [ ] No SharedArrayBuffer is used; all communication is `postMessage`/`onmessage` only (verified by grep).
-- [ ] State machine transitions are correct: UNINITIALIZED → LOADING → HANDSHAKING → IDLE (happy path).
+- [x] `playEngine.init(): Promise<void>` spawns the HCE Web Worker with `stockfish@16.0.0`.
+- [x] On init, the UCI handshake completes in order: `uci` → `uciok` → `setoption Hash 16` + `setoption Threads 1` + `setoption Use NNUE false` → `isready` → `readyok` → IDLE state.
+- [x] If `uciok` is not received within 5s, state transitions to CRASHED and `init()` rejects with `EngineUnavailableError`.
+- [x] If `readyok` is not received within 2s after `isready`, state transitions to CRASHED and `init()` rejects with `EngineUnavailableError`.
+- [x] No SharedArrayBuffer is used; all communication is `postMessage`/`onmessage` only (verified by grep).
+- [x] State machine transitions are correct: UNINITIALIZED → LOADING → HANDSHAKING → IDLE (happy path).
 
 ---
 
@@ -68,6 +68,22 @@
   - When: grep `src/` for `SharedArrayBuffer`
   - Then: 0 matches
 
+- **AC-4**: readyok timeout → CRASHED + EngineUnavailableError
+  - Given: mock Worker responds `uciok` immediately but never responds to `isready`
+  - When: `playEngine.init()` called, advance fake timers by 2001ms after `isready` sent
+  - Then: state === 'CRASHED', Promise rejects with `EngineUnavailableError`
+
+- **AC-5**: Correct setoption sequence before isready
+  - Given: mock Worker capturing all postMessage calls
+  - When: `playEngine.init()` called
+  - Then: messages sent in order — `uci`, then `setoption name Hash value 16`, `setoption name Threads value 1`, `setoption name Use NNUE value false`, then `isready` (all setoptions BEFORE isready)
+
+- **AC-6**: State machine full transition chain (happy path)
+  - Given: mock Worker responding correctly
+  - When: `playEngine.init()` called and resolves
+  - Then: state transitions observed in order — `UNINITIALIZED` → `LOADING` → `HANDSHAKING` → `IDLE`
+  - Note: capture state snapshots before spawn, after `uci` sent, after `uciok`, after `readyok`
+
 ---
 
 ## Test Evidence
@@ -75,11 +91,28 @@
 **Story Type**: Logic
 **Required evidence**: `tests/unit/chess-engine/play-engine-uci.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (11 tests)
 
 ---
+
+## Out of Scope
+
+- `play()` method and AbortSignal cancellation (Story 002)
+- Review Engine (NNUE) worker — separate story
+- Worker restart / respawn / visibility-change liveness protocol (Stories 004–005)
+- `requestId` race guard — initialized here but logic in Story 002
 
 ## Dependencies
 
 - Depends on: None (first engine story)
 - Unlocks: Story 002 (play method uses the initialized worker)
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 6/6 passing
+**Deviations**:
+- ADVISORY: `factory()` outside try-catch fixed during code-review (Bug 1 applied to play-engine.ts:122)
+- ADVISORY: concurrent `init()` no-op returns resolved void — deferred to S2-05
+- ADVISORY: Stockfish URL hardcoded in two worker files — deferred (no runtime cost)
+**Test Evidence**: `tests/unit/chess-engine/play-engine-uci.test.ts` — 11 tests, all passing
+**Code Review**: Complete — APPROVE with fixes. Bug 1 + Cleanup 3 applied; Bug 2 + Maintenance 4 deferred.

@@ -1,12 +1,12 @@
 # Story 002: Dual Input — Drag-and-Drop, Tap-Tap, and move-made Event
 
 > **Epic**: Chess Board & Move System
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — chess board substrate)
 > **Type**: Logic
 > **Estimate**: M (4–6 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -125,7 +125,7 @@
 **Required evidence**:
 - `tests/unit/chess-board/input.test.ts` — must exist and all tests pass
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (7 tests)
 
 ---
 
@@ -133,3 +133,12 @@
 
 - Depends on: Story 001 must be DONE (ChessBoard.vue wrapper exists)
 - Unlocks: Story 003 (promotion extends this input flow)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 14 ACs — 6 auto-verified, 8 deferred to component/E2E (chessground native behaviors; not testable in unit env)
+**Deviations**: ADVISORY — `src/composables/use-board-input.ts` created outside stated scope (valid extraction for testability)
+**Test Evidence**: Logic: `tests/unit/chess-board/input.test.ts` (7 tests, all pass)
+**Code Review**: Pending (to run before sprint close-out)

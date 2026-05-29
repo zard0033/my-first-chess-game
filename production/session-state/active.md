@@ -1,6 +1,35 @@
 # Active Session State
 
-**Last updated**: 2026-05-29 (S2-06 COMPLETE — /story-done chess-engine/story-006-csp-wasm-deployment.md)
+**Last updated**: 2026-05-29 (S2-08/09/10 story-done — all Sprint 2 Should Have complete)
+
+## Session Extract — /story-done S2-08/09/10 2026-05-29
+- S2-08 Verdict: COMPLETE WITH NOTES — PromotionDialog.vue created; manual evidence doc created; sign-offs pending
+- S2-09 Verdict: COMPLETE WITH NOTES — createLeaveGuard + createPopstateHandler + useNavigationGuards; 8 tests pass; AC-5 deferred to game-lifecycle
+- S2-10 Verdict: COMPLETE WITH NOTES — identifyOpening + identifyPosition in src/modules/opening-id/; 8 tests pass; isUnknown deviation documented
+- Sprint 2 Status: ALL 10 stories (7 Must Have + 3 Should Have) complete — ready for sprint close-out
+- Next: /smoke-check sprint → /team-qa sprint → /retrospective → /sprint-plan Sprint 3
+
+## Session Extract — /story-done S2-02 2026-05-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/chess-board/story-002-input.md — Dual Input (Drag + Tap-Tap + move-made)
+- Tech debt logged: None (1 advisory: use-board-input.ts scope expansion)
+- Code review: Pending (to run before sprint close-out)
+- Next recommended: S2-08 (Promotion Dialog, blocker S2-02 ✓) — all Must Have complete
+
+## Session Extract — /story-done S2-04 (re-run) 2026-05-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/chess-engine/story-001-play-engine-uci.md — Play Engine Worker Scaffold + UCI Handshake
+- Tech debt logged: None (3 advisory deviations in Completion Notes)
+- Code review: /code-review run in this session — Bug 1 + Cleanup 3 fixed; Bug 2 + Maintenance 4 deferred
+- Next recommended: S2-05 (play() + AbortSignal, blocker S2-04 ✓), S2-02 (chess-board input, blocker S2-01 ✓), S2-03 (squareToRect, blocker S2-01 ✓)
+
+## Session Extract — /dev-story 2026-05-29
+- Story: production/epics/chess-engine/story-001-play-engine-uci.md — Play Engine Worker Scaffold + UCI Handshake
+- Files changed: src/workers/stockfish-play.worker.ts (NEW), src/modules/chess-engine/play-engine.ts (NEW)
+- Test written: tests/unit/chess-engine/play-engine-uci.test.ts — 10 tests, all pass
+- Deviations: None — Out of Scope gap filled before implementation
+- Blockers: None
+- Next: /code-review src/workers/stockfish-play.worker.ts src/modules/chess-engine/play-engine.ts then /story-done production/epics/chess-engine/story-001-play-engine-uci.md
 
 <!-- QA-PLAN: 2026-05-29 | System: Sprint 2 | Plan written: production/qa/qa-plan-sprint-2-2026-05-29.md -->
 
@@ -35,6 +64,12 @@ S2-07 app-router 路由表 (2.5h) [可獨立執行]
 - 人類可以在瀏覽器對 Stockfish HCE 下棋
 - 所有 Logic story 有通過的 unit tests
 - CSP 在 Chrome DevTools 無錯誤
+
+## Session Extract — /story-done S2-04 2026-05-29
+- Verdict: COMPLETE
+- Story: production/epics/chess-engine/story-001-play-engine-uci.md — Play Engine Worker Scaffold + UCI Handshake
+- Tech debt logged: None
+- Next recommended: S2-05 (play() + AbortSignal, blocker S2-04 ✓), S2-02 (chess-board input, blocker S2-01 ✓), S2-03 (squareToRect, blocker S2-01 ✓)
 
 ## Session Extract — /story-done S2-06 2026-05-29
 - Verdict: COMPLETE WITH NOTES
@@ -257,3 +292,9 @@ Suggested order from TD/PR (highest-uncertainty trio first):
 - Report: `production/gate-checks/2026-05-28-technical-setup-to-pre-production.md`
 - Stage NOT advanced — `production/stage.txt` remains `Technical Setup`
 - Recommended re-gate after punch-list items 1-5 resolved
+
+## Session Extract — /story-done S2-07 2026-05-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/app-router/story-001-route-table.md — Route Table, Lazy Loading, SPA Fallback
+- Tech debt logged: None (advisory deviations in Completion Notes)
+- Next recommended: S2-04 (chess-engine UCI, 4.5h, no blockers), S2-02 (chess-board input, 5h, S2-01 done)

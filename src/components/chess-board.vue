@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { Chess } from 'chess.js'
 import { TheChessboard } from 'vue3-chessboard'
 import type { BoardApi, BoardConfig } from 'vue3-chessboard'
-import type { DrawShape, DrawBrushes } from 'chessground/draw'
 import type { Key, Elements } from 'chessground/types'
 import type { Move } from 'chess.js'
 import type { MoveMadePayload } from '../composables/use-chess-board'
 import { validateFen, useBoardRenderer, PIECE_MOVE_ANIM_MS } from '../composables/use-board-renderer'
+import { BOARD_BRUSHES, buildLegalMoveShapes, buildAnimationDoneAt } from '../composables/use-board-input'
+import { squareToRect as computeSquareRect } from '../utils/board-geometry'
+import type { Rect } from '../utils/board-geometry'
+import PromotionDialog from './promotion-dialog.vue'
 
 const props = defineProps<{
   fen: string
@@ -18,41 +22,29 @@ const emit = defineEmits<{
   'move-made': [payload: MoveMadePayload]
 }>()
 
-// ADR-0009 Decision §3: custom brushes registered once; must include chessground defaults
-const BRUSHES: DrawBrushes = {
-  green:       { key: 'green',       color: '#15781B', opacity: 1,   lineWidth: 10 },
-  red:         { key: 'red',         color: '#882020', opacity: 1,   lineWidth: 10 },
-  blue:        { key: 'blue',        color: '#003088', opacity: 1,   lineWidth: 10 },
-  yellow:      { key: 'yellow',      color: '#e68f00', opacity: 1,   lineWidth: 10 },
-  legalDot:    { key: 'legalDot',    color: '#3e9c35', opacity: 0.5, lineWidth: 10 },
-  captureRing: { key: 'captureRing', color: '#ee6644', opacity: 0.6, lineWidth: 10 },
-}
-
 const boardApi = ref<BoardApi | null>(null)
 // ADR-0009 Decision §1: boardRef captured via boardConfig.events.insert, not template ref
 const boardRef = ref<HTMLElement | null>(null)
 
 const { syncFen, onMoveMade } = useBoardRenderer(() => boardApi.value)
 
+// Promotion dialog state
+const pendingPromotion = ref<{ from: string; to: string } | null>(null)
+const promotionSquareRect = ref<Rect | null>(null)
+
 function showLegalMoves(fromSquare: Key): void {
   const api = boardApi.value
   if (!api) return
-  const destinations = api.getPossibleMoves()?.get(fromSquare)
-  if (!destinations?.length) {
+  const shapes = buildLegalMoveShapes(fromSquare, props.fen)
+  if (!shapes.length) {
     clearSelectionShapes()
     return
   }
-  // TODO Sprint 2: use 'captureRing' brush for captures (needs chess.js isCapture() check)
-  const shapes: DrawShape[] = destinations.map((dest) => ({
-    orig: fromSquare,
-    dest,
-    brush: 'legalDot',
-  }))
-  api.setConfig({ drawable: { shapes, brushes: BRUSHES } }, false)
+  api.setConfig({ drawable: { shapes, brushes: BOARD_BRUSHES } }, false)
 }
 
 function clearSelectionShapes(): void {
-  boardApi.value?.setConfig({ drawable: { shapes: [], brushes: BRUSHES } }, false)
+  boardApi.value?.setConfig({ drawable: { shapes: [], brushes: BOARD_BRUSHES } }, false)
 }
 
 // Non-reactive; subsequent changes handled imperatively via boardApi
@@ -62,7 +54,7 @@ const boardConfig: BoardConfig = {
   viewOnly: props.disabled,
   animation: { duration: PIECE_MOVE_ANIM_MS },
   movable: { free: false, color: props.playerColor, showDests: false },
-  drawable: { enabled: true, eraseOnClick: false, brushes: BRUSHES },
+  drawable: { enabled: true, eraseOnClick: false, brushes: BOARD_BRUSHES },
   highlight: { lastMove: true, check: true },
   events: {
     insert: (elements: Elements) => { boardRef.value = elements.wrap },
@@ -74,18 +66,65 @@ function onBoardCreated(api: BoardApi): void {
   boardApi.value = api
 }
 
+function isPromotionMove(move: Move): boolean {
+  return move.flags.includes('p')
+}
+
 function onMove(move: Move): void {
   clearSelectionShapes()
+  if (isPromotionMove(move)) {
+    // Freeze board and show dialog — don't emit yet
+    boardApi.value?.setConfig({ viewOnly: true }, false)
+    pendingPromotion.value = { from: move.from, to: move.to }
+    promotionSquareRect.value = computeSquareRect(move.to, boardRef.value?.offsetWidth ?? 0, props.playerColor)
+    return
+  }
   onMoveMade()
   const fen = boardApi.value?.getFen() ?? ''
-  const animationDoneAt = new Promise<void>((resolve) => setTimeout(resolve, PIECE_MOVE_ANIM_MS))
   emit('move-made', {
     from: move.from,
     to: move.to,
     promotion: move.promotion,
     fen,
+    animationDoneAt: buildAnimationDoneAt(boardRef.value),
+  })
+}
+
+function handlePromotionSelect(piece: 'q' | 'r' | 'b' | 'n'): void {
+  const pending = pendingPromotion.value
+  if (!pending) return
+
+  // Compute correct FEN with user-chosen promotion piece
+  const chess = new Chess(props.fen)
+  chess.move({ from: pending.from, to: pending.to, promotion: piece })
+  const fen = chess.fen()
+
+  // Sync chessground with the corrected position
+  boardApi.value?.setPosition(fen)
+
+  const animationDoneAt = buildAnimationDoneAt(boardRef.value)
+
+  closePendingPromotion()
+  onMoveMade()
+  emit('move-made', {
+    from: pending.from,
+    to: pending.to,
+    promotion: piece,
+    fen,
     animationDoneAt,
   })
+}
+
+function handlePromotionCancel(): void {
+  // Snap pawn back by restoring pre-move position
+  boardApi.value?.setPosition(props.fen)
+  closePendingPromotion()
+}
+
+function closePendingPromotion(): void {
+  pendingPromotion.value = null
+  promotionSquareRect.value = null
+  boardApi.value?.setConfig({ viewOnly: props.disabled }, false)
 }
 
 watch(
@@ -101,21 +140,17 @@ watch(
 watch(
   () => props.disabled,
   (disabled) => {
-    boardApi.value?.setConfig({ viewOnly: disabled }, false)
+    if (!pendingPromotion.value) {
+      boardApi.value?.setConfig({ viewOnly: disabled }, false)
+    }
   },
 )
 
 /** ADR-0009 Decision §4: board-local coordinates, orientation-corrected. */
-function squareToRect(square: string): { x: number; y: number; width: number; height: number } | null {
-  if (!/^[a-h][1-8]$/.test(square)) return null
+function squareToRect(square: string): Rect | null {
   const el = boardRef.value
   if (!el) return null
-  const squarePx = el.offsetWidth / 8
-  const file = square.charCodeAt(0) - 97
-  const rank = parseInt(square[1]) - 1
-  const col = props.playerColor === 'white' ? file : 7 - file
-  const row = props.playerColor === 'white' ? 7 - rank : rank
-  return { x: col * squarePx, y: row * squarePx, width: squarePx, height: squarePx }
+  return computeSquareRect(square, el.offsetWidth, props.playerColor)
 }
 
 defineExpose({ boardRef, squareToRect })
@@ -134,6 +169,16 @@ defineExpose({ boardRef, squareToRect })
       @boardCreated="onBoardCreated"
       @move="onMove"
     />
+
+    <!-- Promotion dialog — shown only when a pawn reaches the back rank -->
+    <PromotionDialog
+      v-if="pendingPromotion && promotionSquareRect"
+      :playerColor="playerColor"
+      :squareRect="promotionSquareRect"
+      @select="handlePromotionSelect"
+      @cancel="handlePromotionCancel"
+    />
+
     <!-- focus-cell: roving-tabindex keyboard model — Sprint 2 full implementation -->
     <div
       class="absolute opacity-0 pointer-events-none"

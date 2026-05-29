@@ -1,7 +1,7 @@
 # Story 002: Navigation Guards — In-Game Guard, beforeunload, and Popstate
 
 > **Epic**: Navigation & Routing
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation
 > **Type**: Logic
 > **Estimate**: M (3–4 hours)
@@ -80,7 +80,16 @@
 **Story Type**: Logic
 **Required evidence**: `tests/unit/app-router/navigation-guards.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (8 tests)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: AC-1~AC-4 covered by unit tests; AC-5 (disarm-before-navigate ordering) DEFERRED to game-lifecycle story
+**Deviations**: ADVISORY — AC-5 depends on GameLifecycle endGame() which is not yet implemented
+**Test Evidence**: Logic: `tests/unit/app-router/navigation-guards.test.ts` (8 tests, all pass)
+**Code Review**: Pending (to run before sprint close-out)
 
 ---
 

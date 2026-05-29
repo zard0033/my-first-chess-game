@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <script>
+      // GitHub Pages SPA fallback: redirect /play → /?redirect=%2Fplay → index.html
+      window.location.replace(
+        '/?redirect=' +
+        encodeURIComponent(window.location.pathname + window.location.search + window.location.hash)
+      );
+    </script>
+  </head>
+  <body></body>
+</html>
