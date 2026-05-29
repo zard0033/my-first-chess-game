@@ -11,7 +11,7 @@ export const routes = [
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ]
 
-export const scrollBehavior: RouterScrollBehavior = (to, from, savedPosition) => savedPosition ?? { top: 0 }
+export const scrollBehavior: RouterScrollBehavior = (_to, _from, savedPosition) => savedPosition ?? { top: 0 }
 
 // Factory function: must be called AFTER any history.replaceState() call so that
 // createWebHistory() reads the correct URL (replaceState does not fire popstate).

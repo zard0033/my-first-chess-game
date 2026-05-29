@@ -67,7 +67,10 @@ function onBoardCreated(api: BoardApi): void {
 }
 
 function isPromotionMove(move: Move): boolean {
-  return move.flags.includes('p')
+  // vue3-chessboard handles promotions internally before emitting @move;
+  // by the time onMove fires, move.promotion is already set.
+  // Only show our dialog if promotion wasn't already handled.
+  return move.flags.includes('p') && !move.promotion
 }
 
 function onMove(move: Move): void {

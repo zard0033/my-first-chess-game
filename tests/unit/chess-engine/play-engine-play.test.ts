@@ -3,7 +3,6 @@ import {
   usePlayEngine,
   CanceledError,
   EngineUnavailableError,
-  EngineTimeoutError,
 } from '../../../src/modules/chess-engine/play-engine'
 import type { IStockfishWorker } from '../../../src/modules/chess-engine/play-engine'
 

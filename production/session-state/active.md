@@ -1,6 +1,33 @@
 # Active Session State
 
-**Last updated**: 2026-05-29 (S2-08/09/10 story-done — all Sprint 2 Should Have complete)
+**Last updated**: 2026-05-29 (smoke-check FAIL → bug fixes in progress; Stockfish WASM loading still blocked)
+
+## Session Extract — smoke-check + bug-fix 2026-05-29
+
+### Smoke Check Result: FAIL (2 blockers found)
+- ❌ 項目 4：拖曳棋子後 Stockfish 不回應（根因：`use-chess-board.ts` handleMoveMade 是 stub；WASM 載入失敗）
+- ❌ 項目 8：瀏覽器上一頁不攔截（根因：`gameStore.setGameInProgress(true)` 從未呼叫）
+- ⚠️ 項目 6 advisory：升變對話框出現兩次；Queen 未聚焦（已修）
+
+### Bugs Fixed This Session
+1. `use-chess-board.ts` — 加入 PlayEngine 整合 + setGameInProgress(true)（`handleMoveMade` 不再是 stub）
+2. `promotion-dialog.vue` — 修正 function ref bug（`queenBtn = el` → `dialogEl.querySelector`）；修正 `Rect.w/h` → `width/height`；加入文字標籤
+3. `chess-board.vue` — 修正 `isPromotionMove`：`move.promotion` 已設定時不再顯示第二個對話框
+4. `use-board-input.ts`, `router/index.ts`, `play-engine-play.test.ts` — 修正 pre-existing TypeScript 錯誤
+
+### Still Failing: Stockfish WASM Loading
+- **症狀**：`Stockfish unavailable — playing without AI`（`engine.init()` 在 UCI handshake 前就 throw）
+- **已嘗試**：把 WASM URL 用 hash 傳給 Worker（`stockfishSingleUrl#encodedWasmUrl`）—— 仍失敗
+- **下一步診斷方向**：
+  1. `catch (err)` 改成 `catch (err) { console.error('Stockfish init error:', err) }` 看真實 error message
+  2. 確認 Worker 是否能載入（DevTools → Network tab 看是否有 Worker 請求）
+  3. 考慮把 `stockfish-nnue-16-single.js` + `.wasm` 複製到 `public/stockfish/` 並改用絕對路徑
+  4. 或在 `vite.config.ts` 加 `optimizeDeps.exclude: ['stockfish']` + `assetsInclude: ['**/*.wasm']`
+
+### Next Session Steps
+1. 繼續 debug Stockfish WASM loading（見上方診斷方向）
+2. 修好後跑 `/smoke-check sprint --quick` 重新驗證
+3. 通過後繼續 `/team-qa sprint` → `/retrospective` → `/sprint-plan Sprint 3`
 
 ## Session Extract — /story-done S2-08/09/10 2026-05-29
 - S2-08 Verdict: COMPLETE WITH NOTES — PromotionDialog.vue created; manual evidence doc created; sign-offs pending

@@ -12,14 +12,13 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
-const PIECES: Array<{ value: 'q' | 'r' | 'b' | 'n'; label: string; symbol: string }> = [
-  { value: 'q', label: 'Promote to queen',  symbol: props.playerColor === 'white' ? '♕' : '♛' },
-  { value: 'r', label: 'Promote to rook',   symbol: props.playerColor === 'white' ? '♖' : '♜' },
-  { value: 'b', label: 'Promote to bishop', symbol: props.playerColor === 'white' ? '♗' : '♝' },
-  { value: 'n', label: 'Promote to knight', symbol: props.playerColor === 'white' ? '♘' : '♞' },
+const PIECES: Array<{ value: 'q' | 'r' | 'b' | 'n'; label: string; symbol: string; name: string }> = [
+  { value: 'q', label: 'Promote to queen',  symbol: props.playerColor === 'white' ? '♕' : '♛', name: 'Queen' },
+  { value: 'r', label: 'Promote to rook',   symbol: props.playerColor === 'white' ? '♖' : '♜', name: 'Rook' },
+  { value: 'b', label: 'Promote to bishop', symbol: props.playerColor === 'white' ? '♗' : '♝', name: 'Bishop' },
+  { value: 'n', label: 'Promote to knight', symbol: props.playerColor === 'white' ? '♘' : '♞', name: 'Knight' },
 ]
 
-const queenBtn = ref<HTMLButtonElement | null>(null)
 const dialogEl = ref<HTMLElement | null>(null)
 
 // Assertive live region text (triggers screen reader announcement)
@@ -27,7 +26,7 @@ const announcement = ref('')
 
 onMounted(() => {
   announcement.value = 'Promote pawn — choose Queen, Rook, Bishop, or Knight'
-  queenBtn.value?.focus()
+  dialogEl.value?.querySelector<HTMLButtonElement>('[data-piece="q"]')?.focus()
 })
 
 function handleKeydown(event: KeyboardEvent): void {
@@ -85,23 +84,23 @@ onUnmounted(() => document.removeEventListener('keydown', handleDocumentKeydown)
     class="absolute z-20 flex flex-col shadow-lg rounded bg-white border border-gray-300"
     :style="{
       left: `${squareRect.x}px`,
-      top: playerColor === 'white' ? `${squareRect.y}px` : `${squareRect.y - squareRect.h * 3}px`,
-      width: `${squareRect.w}px`,
+      top: playerColor === 'white' ? `${squareRect.y}px` : `${squareRect.y - squareRect.height * 3}px`,
+      width: `${squareRect.width}px`,
     }"
     @keydown.stop
   >
     <button
       v-for="piece in PIECES"
       :key="piece.value"
-      :ref="piece.value === 'q' ? (el) => { queenBtn = el as HTMLButtonElement } : undefined"
       :data-piece="piece.value"
       :aria-label="piece.label"
-      class="flex items-center justify-center text-4xl font-chess select-none"
-      style="min-width: 56px; min-height: 56px;"
+      class="flex flex-col items-center justify-center gap-0.5 select-none py-2"
+      style="min-width: 56px; min-height: 64px;"
       type="button"
       @click="emit('select', piece.value)"
     >
-      {{ piece.symbol }}
+      <span class="text-3xl font-chess">{{ piece.symbol }}</span>
+      <span class="text-xs font-sans leading-none">{{ piece.name }}</span>
     </button>
   </div>
 

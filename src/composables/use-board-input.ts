@@ -36,14 +36,14 @@ export function buildLegalMoveShapes(fromSquare: Key, fen: string): DrawShape[] 
  */
 export function buildAnimationDoneAt(boardRef: HTMLElement | null): Promise<void> {
   return new Promise<void>((resolve) => {
-    const fallback = setTimeout(() => requestAnimationFrame(resolve), PIECE_MOVE_ANIM_MS + 16)
+    const fallback = setTimeout(() => requestAnimationFrame(() => resolve()), PIECE_MOVE_ANIM_MS + 16)
     if (!boardRef) return
     const piece = boardRef.querySelector<HTMLElement>('.cg-board piece')
     if (!piece) return
     piece.addEventListener('transitionend', function handler() {
       clearTimeout(fallback)
       piece.removeEventListener('transitionend', handler)
-      requestAnimationFrame(resolve)
+      requestAnimationFrame(() => resolve())
     })
   })
 }
