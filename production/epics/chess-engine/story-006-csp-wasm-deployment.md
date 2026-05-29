@@ -1,12 +1,12 @@
 # Story 006: CSP Headers and WASM Deployment Configuration
 
 > **Epic**: Chess Engine Integration
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — engine workers)
 > **Type**: Config/Data
 > **Estimate**: S (1–2 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-28
+> **Last Updated**: 2026-05-29
 
 ## Context
 
@@ -70,7 +70,7 @@
 **Story Type**: Config/Data
 **Required evidence**: `production/qa/smoke-csp-wasm.md`
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created — `production/qa/smoke-csp-wasm.md` (2026-05-29)
 
 ---
 
@@ -78,3 +78,14 @@
 
 - Depends on: Story 001 (Worker exists to test against)
 - Unlocks: Nothing — deployment prerequisite
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-29
+**Criteria**: 4/5 passing (AC-4 DEFERRED — requires S2-04 Play Engine UCI before WASM browser smoke can run)
+**Deviations**:
+- ADVISORY: Added `style-src 'self' 'unsafe-inline'` to CSP directive (not in ADR-0008 exact spec). Vite 5 dev mode injects inline `<style>` tags; without this directive all component CSS breaks in dev. Does not violate ADR forbidden rules (ADR forbids `'unsafe-inline'` only for `script-src`). LP-CODE-REVIEW approved.
+- ADVISORY: Story implementation note had inverted awk exit code bug. Corrected from `if(csp&&NR>csp) exit 1` to `if(!csp || csp>NR) exit 1`. Also narrowed `<link` to `<link rel="stylesheet"` to prevent false CI failures on favicon tags.
+**Test Evidence**: Smoke check at `production/qa/smoke-csp-wasm.md`
+**Code Review**: Complete — /code-review (multi-agent) + LP-CODE-REVIEW gate: APPROVE

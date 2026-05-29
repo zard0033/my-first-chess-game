@@ -1,16 +1,20 @@
 # Active Session State
 
-**Last updated**: 2026-05-29 (Sprint 2 READY — /create-epics + /create-stories + /sprint-plan 全部完成)
+**Last updated**: 2026-05-29 (S2-06 COMPLETE — /story-done chess-engine/story-006-csp-wasm-deployment.md)
+
+<!-- QA-PLAN: 2026-05-29 | System: Sprint 2 | Plan written: production/qa/qa-plan-sprint-2-2026-05-29.md -->
 
 ## Current Task
 
-**Sprint 2 READY for implementation.**
+**Sprint 2 實作中 — QA Plan 已完成，開始 dev-story。**
 
-### 立即下一步（明天到公司繼續）
+### 立即下一步
 
-1. **執行 `/qa-plan sprint`** — 在開始任何實作之前必做，定義每個 story 的測試規格
-2. **執行 `/story-readiness production/epics/chess-board/story-001-fen-rendering.md`** — 確認第一個 story 準備好
-3. **執行 `/dev-story production/epics/chess-board/story-001-fen-rendering.md`** — 開始實作
+1. ~~**執行 `/qa-plan sprint`**~~ — ✅ DONE 2026-05-29 (`production/qa/qa-plan-sprint-2-2026-05-29.md`)
+2. ~~**執行 `/story-readiness production/epics/chess-board/story-001-fen-rendering.md`**~~ — ✅ DONE 2026-05-29 (READY)
+3. ~~**執行 `/dev-story production/epics/chess-board/story-001-fen-rendering.md`**~~ — ✅ DONE 2026-05-29 (14 tests pass)
+4. ~~**執行 `/code-review src/composables/use-board-renderer.ts src/components/chess-board.vue`**~~ — ✅ DONE 2026-05-29 (APPROVE — 歷史清除 bug 已修復)
+5. ~~**執行 `/story-done production/epics/chess-board/story-001-fen-rendering.md`**~~ — ✅ DONE 2026-05-29 (COMPLETE WITH NOTES)
 
 ### Sprint 2 Must Have 順序（依賴鏈）
 
@@ -31,6 +35,33 @@ S2-07 app-router 路由表 (2.5h) [可獨立執行]
 - 人類可以在瀏覽器對 Stockfish HCE 下棋
 - 所有 Logic story 有通過的 unit tests
 - CSP 在 Chrome DevTools 無錯誤
+
+## Session Extract — /story-done S2-06 2026-05-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/chess-engine/story-006-csp-wasm-deployment.md — CSP Headers and WASM Deployment Configuration
+- Tech debt logged: None (advisory deviations noted in Completion Notes)
+- Next recommended: S2-04 (chess-engine UCI handshake), S2-07 (app-router route table), S2-02 (chess-board input)
+
+## Session Extract — /dev-story S2-06 2026-05-29
+- Story: production/epics/chess-engine/story-006-csp-wasm-deployment.md — CSP Headers and WASM Deployment Configuration
+- Files changed: index.html (MODIFIED — CSP meta tag added), .github/workflows/tests.yml (MODIFIED — CSP ordering lint step), production/qa/smoke-csp-wasm.md (NEW — smoke evidence)
+- Test written: None — Config/Data story; smoke evidence at production/qa/smoke-csp-wasm.md
+- Deviations: (1) Story awk has inverted exit code bug — corrected to `if(!csp || csp>NR) exit 1`; (2) AC-4 DEFERRED pending S2-04 (chess-engine UCI); (3) Dependency story-001 is Ready (not Complete) — proceeded with user approval
+- Blockers: None (AC-4 advisory, not blocking)
+- Next: /code-review index.html .github/workflows/tests.yml then /story-done production/epics/chess-engine/story-006-csp-wasm-deployment.md
+
+## Session Extract — /story-done S2-01 2026-05-29
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/chess-board/story-001-fen-rendering.md — FEN Rendering and Position Sync
+- Tech debt logged: None (advisory gaps noted in story Completion Notes)
+- Next recommended: S2-02 (chess-board input, blocker S2-01 ✓), S2-04 (chess-engine UCI), S2-06 (CSP), S2-07 (app-router) — last three have no blockers
+
+## Session Extract — /dev-story S2-01 2026-05-29
+- Story: production/epics/chess-board/story-001-fen-rendering.md — FEN Rendering and Position Sync
+- Files changed: src/composables/use-board-renderer.ts (NEW), src/components/chess-board.vue (MODIFIED)
+- Test written: tests/unit/chess-board/fen-rendering.test.ts — 16 tests (6 validateFen, 10 useBoardRenderer), all pass
+- Blockers: None
+- Next: /code-review src/composables/use-board-renderer.ts src/components/chess-board.vue then /story-done production/epics/chess-board/story-001-fen-rendering.md
 
 ## Session Extract — /create-epics + /create-stories + /sprint-plan 2026-05-29
 
