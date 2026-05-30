@@ -66,7 +66,7 @@
 **Story Type**: Logic
 **Required evidence**: `tests/unit/chess-engine/error-surface.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `tests/unit/chess-engine/error-surface.test.ts` — 9 tests, all pass (2026-05-30)
 
 ---
 

@@ -1,7 +1,7 @@
 # Story 003: biggestSwingCursor — Computed Once at COMPLETE
 
 > **Epic**: Post-Game Review
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: S (1–2 hours)
@@ -25,13 +25,13 @@
 
 ## Acceptance Criteria
 
-- [ ] `biggestSwingCursor` is computed exactly once, on state transition to COMPLETE — not during Pass 1 or Pass 2.
-- [ ] Only positions where `isPlayerMove[i] === true` are eligible candidates.
-- [ ] Only positions where both `analysisResults[i]` and `analysisResults[i+1]` have `pass: 'deep'` are eligible.
-- [ ] Only positions where `analysisResults[i+1].bestMove !== null` are eligible (not a terminal position).
-- [ ] Among eligible positions, the one with the highest cpLoss value is selected. Tie-break: lowest index.
-- [ ] If no eligible position exists, `biggestSwingCursor` is `null`.
-- [ ] After COMPLETE, navigating through the review does NOT change `biggestSwingCursor` (it is frozen at computation time).
+- [x] `biggestSwingCursor` is computed exactly once, on state transition to COMPLETE — not during Pass 1 or Pass 2.
+- [x] Only positions where `isPlayerMove[i] === true` are eligible candidates.
+- [x] Only positions where both `analysisResults[i]` and `analysisResults[i+1]` have `pass: 'deep'` are eligible.
+- [x] Only positions where `analysisResults[i+1].bestMove !== null` are eligible (not a terminal position).
+- [x] Among eligible positions, the one with the highest cpLoss value is selected. Tie-break: lowest index.
+- [x] If no eligible position exists, `biggestSwingCursor` is `null`.
+- [x] After COMPLETE, navigating through the review does NOT change `biggestSwingCursor` (it is frozen at computation time).
 
 ---
 
@@ -111,7 +111,7 @@ function computeBiggestSwingCursor(
 **Story Type**: Logic
 **Required evidence**: `tests/unit/post-game-review/biggest-swing.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `tests/unit/post-game-review/biggest-swing.test.ts` — 11 tests, all pass (2026-05-30)
 
 ---
 

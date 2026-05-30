@@ -1,388 +1,91 @@
+<!-- QA-PLAN: 2026-05-30 | System: Sprint 4 | Plan written: production/qa/qa-plan-sprint-4-2026-05-30.md -->
+
 # Active Session State
 
-**Last updated**: 2026-05-29 (Sprint 3 APPROVED WITH CONDITIONS ✅ — 182 tests pass)
-
-## Session Extract — Sprint 3 完整交付 2026-05-29
-
-### Sprint 3 完成 — APPROVED WITH CONDITIONS
-**所有 Must Have + Should Have stories 完成；182/182 自動化測試通過**
-
-#### 完成清單
-- ✅ S3-01 Housekeeping: FEN dev tool (`/play` DEV panel) + CSS `min-w-[352px]` + `public/favicon.svg` + UCI CI smoke test (4 tests)
-- ✅ S3-02 GameLifecycle: State Machine & Terminal Detection — `src/modules/game-lifecycle/use-game-lifecycle.ts` (25 tests)
-- ✅ S3-03 CompletedGame Assembly & Pinia Transport — extended `use-game-lifecycle.ts` + `game-store.ts` updated (12 tests)
-- ✅ S3-04 MoveAnnotationDisplay: SVG Overlay + Eval Bar — `src/components/move-annotation-display.vue` + `src/modules/move-annotation/` (20 tests)
-- ✅ S3-05 rAF Resize Throttle — extended `move-annotation-display.vue` (6 tests)
-- ✅ S3-06 Review Engine: lazy-load + 30s auto-terminate — `src/modules/chess-engine/review-engine.ts` (11 tests)
-- ✅ S3-07 Visual Feedback: check ring + reduced-motion — extended `chess-board.vue` + `use-reduced-motion.ts` (AC-1 + AC-2 browser-verified)
-- ⬜ S3-08 Keyboard Navigation (Nice-to-Have, backlog)
-
-#### QA 結果
-- Smoke check: PASS WITH WARNINGS (`production/qa/smoke-sprint3-2026-05-29.md`)
-- Team QA: **APPROVED WITH CONDITIONS** (`production/qa/qa-signoff-sprint3-2026-05-29.md`)
-- S3-07 evidence: AC-1 + AC-2 browser-verified by Eason
-
-#### 殘餘條件（不阻塞）
-1. S3-07 AC-3/AC-4 (reduced-motion, forced-colors) — advisory, 有空再測
-2. S3-04 E2E pointer-events Playwright test — Sprint 4
-3. **⭐ Sprint 4 Must Have #1: `useGameLifecycle` 整合進 PlayView.vue** — GAME_OVER overlay + "New Game" + Review 導航目前不在 UI 上
-
-### 明天繼續從這裡
-執行順序：
-1. 確認 Sprint 3 conditions 已足夠（或接受現狀）
-2. 執行 `/sprint-plan Sprint 4` — Sprint 4 首個 Must Have 應是 PlayView.vue ← useGameLifecycle 整合
-3. 執行 `/qa-plan sprint` 再開始實作
+**Last updated**: 2026-05-30
+**Tests**: 314/314 pass
+**Sprint**: 4 (`production/sprints/sprint-4.md`)
 
 ---
 
-## Session Extract — smoke-check + bug-fix 2026-05-29
+## 當前進度
 
-### Smoke Check Result: FAIL (2 blockers found)
-- ❌ 項目 4：拖曳棋子後 Stockfish 不回應（根因：`use-chess-board.ts` handleMoveMade 是 stub；WASM 載入失敗）
-- ❌ 項目 8：瀏覽器上一頁不攔截（根因：`gameStore.setGameInProgress(true)` 從未呼叫）
-- ⚠️ 項目 6 advisory：升變對話框出現兩次；Queen 未聚焦（已修）
+### S4-01 ✅ COMPLETE WITH NOTES（2026-05-30）
+- `src/views/PlayView.vue` — 移除 useChessBoard，接入 useGameLifecycle + usePlayEngine；GAME_OVER overlay + New Game + Review 按鈕
+- `src/modules/game-lifecycle/use-game-lifecycle.ts` — 新增 setDevFen()（同時重置 _moves/_playerMoveTimes）
+- Code review 修了 2 bugs：engine error 永久 disable + setDevFen stale _moves
+- 7 張 Playwright 截圖於 `production/qa/evidence/s4-01-*.png`
 
-### Bugs Fixed This Session
-1. `use-chess-board.ts` — 加入 PlayEngine 整合 + setGameInProgress(true)（`handleMoveMade` 不再是 stub）
-2. `promotion-dialog.vue` — 修正 function ref bug（`queenBtn = el` → `dialogEl.querySelector`）；修正 `Rect.w/h` → `width/height`；加入文字標籤
-3. `chess-board.vue` — 修正 `isPromotionMove`：`move.promotion` 已設定時不再顯示第二個對話框
-4. `use-board-input.ts`, `router/index.ts`, `play-engine-play.test.ts` — 修正 pre-existing TypeScript 錯誤
+### S4-02 ✅ COMPLETE WITH NOTES（2026-05-30）
+- `src/config/engine-tuning.ts` — 新增 7 個 tuning constants（REVIEW_PREVIEW_DEPTH、REVIEW_TARGET_DEPTH 等）
+- `src/modules/post-game-review/use-post-game-review.ts` — two-pass analysis loop composable
+- `src/views/ReviewView.vue` — 接入 usePostGameReview、opening header、cpLoss display、navigation、biggest swing
+- `tests/unit/post-game-review/two-pass-analysis.test.ts` — 30 tests，全通過
+- **注意偏差**：state 型別用 `ANALYZING | CANCELLED` 而非 story spec 的 `ANALYZING_PASS1 | ANALYZING_PASS2 | ABORTED`
 
-### Stockfish WASM Loading — FIXED ✅ (2026-05-29)
-- **根因**：`READYOK_TIMEOUT_MS=2000` 太短；WASM 初始化需 3-8s，`readyok` 超時
-- **修法**：
-  1. `public/stockfish/` 新建目錄，複製 `.js` + `.wasm`（Vite 靜態服務，無 transform）
-  2. `stockfish-play.worker.ts` — 改用 `/stockfish/stockfish-nnue-16-single.js` 絕對路徑
-  3. `play-engine.ts` — `READYOK_TIMEOUT_MS` 2000 → 10000
-  4. `vite.config.ts` — `optimizeDeps.exclude: ['stockfish']` + `assetsInclude: ['**/*.wasm']`
-- **驗證**：Stockfish 回應 AI 走棋 ✅
+### S4-03 ✅ COMPLETE（2026-05-30）
+- `src/modules/post-game-review/cploss.ts` — `computeCpLoss(evalI, evalNext)` + `isCpLossPreliminary(depthI, depthNext)` 純函式
+- `tests/unit/post-game-review/cploss-formula.test.ts` — 15 tests，全通過
 
-### Next Session Steps
-1. ~~跑 `/smoke-check sprint --quick`~~ ✅ DONE — PASS WITH WARNINGS
-2. ~~`/team-qa sprint`~~ ✅ DONE — APPROVED WITH CONDITIONS (S2-08 BLOCKED)
-3. ~~`/retrospective` → `/sprint-plan Sprint 3`~~ ✅ DONE 2026-05-29
+### S4-04 ✅ COMPLETE（2026-05-30）
+- `src/modules/post-game-review/use-post-game-review.ts` — 提取 `computeBiggestSwingCursor` 為 export 純函式
+- `tests/unit/post-game-review/biggest-swing.test.ts` — 11 tests，全通過
 
-### Sprint 3 狀態
-- Retro: `production/retrospectives/retro-sprint-2-2026-05-29.md` ✅
-- Sprint Plan: `production/sprints/sprint-3.md` ✅
-- Sprint Status: `production/sprint-status.yaml` 更新為 Sprint 3 ✅
-- QA Plan: `production/qa/qa-plan-sprint-3-2026-05-29.md` ✅
-- **Sprint 3 實作進度（2026-05-29）**：
-  - ✅ S3-01 Housekeeping (FEN tool + CSS + favicon + UCI CI smoke)
-  - ✅ S3-02 GameLifecycle State Machine (25 tests)
-  - ✅ S3-03 CompletedGame Assembly & Pinia Transport (37 tests)
-  - ✅ S3-04 SVG Overlay Arrows + Eval Bar (20 tests)
-  - ✅ S3-05 rAF Resize Throttle (6 tests)
-  - ✅ S3-06 Review Engine (11 tests)
-  - ✅ S3-07 Visual Feedback (advisory evidence pending manual QA)
-  - ⬜ S3-08 Keyboard Navigation (Nice-to-Have, backlog)
-  - 全套測試：182/182 通過
-  - ✅ `/story-done` S3-01~S3-07 all closed
-- ✅ `/smoke-check sprint` PASS WITH WARNINGS (`production/qa/smoke-sprint3-2026-05-29.md`)
-- ✅ `/team-qa sprint` APPROVED WITH CONDITIONS (`production/qa/qa-signoff-sprint3-2026-05-29.md`)
-- **Sprint 3 close-out conditions**:
-  1. S3-07 manual browser QA sign-off (use FEN dev tool to test check indicator)
-  2. `useGameLifecycle` wired into PlayView.vue → Sprint 4 Must Have story
-  3. S3-04 E2E pointer-events test → Sprint 4
+### S4-07 ✅ COMPLETE（2026-05-30）
+- `src/modules/game-export/types.ts` — `ExportConfig` interface（readonly fields）
+- `src/modules/game-export/assembler.ts` — `assembleExportPayload` 純同步函式 + Seven Tag Roster
+- `tests/unit/game-export/pgn-prompt-assembly.test.ts` — 14 tests，全通過
 
-### team-qa 結果摘要
-- 9/10 stories PASS；S2-08 Promotion Dialog BLOCKED（Stockfish 讓升變難以測試）
-- 建議 Sprint 3 加入 FEN setter dev tool 讓 S2-08 可補測
-- sign-off: `production/qa/qa-signoff-sprint2-2026-05-29.md`
+### S4-05 ✅ COMPLETE（2026-05-30）
+- `src/modules/post-game-review/use-post-game-review.ts` — sessionStorage 持久化（debounce 500ms、pv stripped、QuotaExceeded 靜默處理、remount restore）
+- `tests/unit/post-game-review/sessionstorage.test.ts` — 8 tests，全通過
 
-## Session Extract — /story-done S2-08/09/10 2026-05-29
-- S2-08 Verdict: COMPLETE WITH NOTES — PromotionDialog.vue created; manual evidence doc created; sign-offs pending
-- S2-09 Verdict: COMPLETE WITH NOTES — createLeaveGuard + createPopstateHandler + useNavigationGuards; 8 tests pass; AC-5 deferred to game-lifecycle
-- S2-10 Verdict: COMPLETE WITH NOTES — identifyOpening + identifyPosition in src/modules/opening-id/; 8 tests pass; isUnknown deviation documented
-- Sprint 2 Status: ALL 10 stories (7 Must Have + 3 Should Have) complete — ready for sprint close-out
-- Next: /smoke-check sprint → /team-qa sprint → /retrospective → /sprint-plan Sprint 3
+### S4-06 ✅ COMPLETE（2026-05-30）
+- `src/views/ReviewView.vue` — isMobile matchMedia + displayAnnotations（bestMove only on mobile）+ displayEvaluation（null on mobile）+ MoveAnnotationDisplay 接入
+- `production/qa/evidence/s4-06-mobile-calm.md` — advisory evidence（screenshot pending 手動驗證）
 
-## Session Extract — /story-done S2-02 2026-05-29
-- Verdict: COMPLETE WITH NOTES
-- Story: production/epics/chess-board/story-002-input.md — Dual Input (Drag + Tap-Tap + move-made)
-- Tech debt logged: None (1 advisory: use-board-input.ts scope expansion)
-- Code review: Pending (to run before sprint close-out)
-- Next recommended: S2-08 (Promotion Dialog, blocker S2-02 ✓) — all Must Have complete
+### S4-08 ✅ COMPLETE（2026-05-30）
+- `src/modules/game-export/use-game-export.ts` — Tier-1/2/3 state machine（SHARING/COPYING/SUCCESS/FALLBACK）
+- `tests/unit/game-export/tier-delivery.test.ts` — 11 tests，全通過
 
-## Session Extract — /story-done S2-04 (re-run) 2026-05-29
-- Verdict: COMPLETE WITH NOTES
-- Story: production/epics/chess-engine/story-001-play-engine-uci.md — Play Engine Worker Scaffold + UCI Handshake
-- Tech debt logged: None (3 advisory deviations in Completion Notes)
-- Code review: /code-review run in this session — Bug 1 + Cleanup 3 fixed; Bug 2 + Maintenance 4 deferred
-- Next recommended: S2-05 (play() + AbortSignal, blocker S2-04 ✓), S2-02 (chess-board input, blocker S2-01 ✓), S2-03 (squareToRect, blocker S2-01 ✓)
+### S4-09 ✅ COMPLETE（2026-05-30）
+- `src/composables/use-board-keyboard.ts` — useBoardKeyboard composable（IDLE/PIECE_SELECTED、Arrow/Enter/Escape/Home/End/PgUp/PgDn、100ms merge、squareAriaLabel）
+- `src/components/chess-board.vue` — 整合 keyboard nav（focus cell、tabindex="-1" wrapper、assertive live region）
+- `tests/unit/chess-board/keyboard-nav.test.ts` — 37 tests，全通過
+- `tests/e2e/chess-board-a11y.spec.ts` — Playwright axe-core spec（pending CI run）
 
-## Session Extract — /dev-story 2026-05-29
-- Story: production/epics/chess-engine/story-001-play-engine-uci.md — Play Engine Worker Scaffold + UCI Handshake
-- Files changed: src/workers/stockfish-play.worker.ts (NEW), src/modules/chess-engine/play-engine.ts (NEW)
-- Test written: tests/unit/chess-engine/play-engine-uci.test.ts — 10 tests, all pass
-- Deviations: None — Out of Scope gap filled before implementation
-- Blockers: None
-- Next: /code-review src/workers/stockfish-play.worker.ts src/modules/chess-engine/play-engine.ts then /story-done production/epics/chess-engine/story-001-play-engine-uci.md
+### 🎉 Sprint 4 COMPLETE
+所有 S4-01 ~ S4-09 已完成。305/305 tests pass。
 
-<!-- QA-PLAN: 2026-05-29 | System: Sprint 2 | Plan written: production/qa/qa-plan-sprint-2-2026-05-29.md -->
+---
 
-## Current Task
+## Sprint 4 Story 狀態
 
-**Sprint 2 實作中 — QA Plan 已完成，開始 dev-story。**
+| ID    | Story                           | 狀態                        |
+| ----- | ------------------------------- | --------------------------- |
+| S4-01 | PlayView ← useGameLifecycle     | done                        |
+| S4-02 | Two-Pass Analysis Loop          | done                        |
+| S4-03 | cpLoss Formula                  | done                        |
+| S4-04 | biggestSwingCursor              | done                        |
+| S4-05 | sessionStorage Persistence      | done                        |
+| S4-06 | Mobile Calm Default             | done                        |
+| S4-07 | PGN Assembly                    | done                        |
+| S4-08 | Tier Delivery State Machine     | done                        |
+| S4-09 | Keyboard Nav（S3-08 carryover） | done                        |
 
-### 立即下一步
+---
 
-1. ~~**執行 `/qa-plan sprint`**~~ — ✅ DONE 2026-05-29 (`production/qa/qa-plan-sprint-2-2026-05-29.md`)
-2. ~~**執行 `/story-readiness production/epics/chess-board/story-001-fen-rendering.md`**~~ — ✅ DONE 2026-05-29 (READY)
-3. ~~**執行 `/dev-story production/epics/chess-board/story-001-fen-rendering.md`**~~ — ✅ DONE 2026-05-29 (14 tests pass)
-4. ~~**執行 `/code-review src/composables/use-board-renderer.ts src/components/chess-board.vue`**~~ — ✅ DONE 2026-05-29 (APPROVE — 歷史清除 bug 已修復)
-5. ~~**執行 `/story-done production/epics/chess-board/story-001-fen-rendering.md`**~~ — ✅ DONE 2026-05-29 (COMPLETE WITH NOTES)
+## ⚠️ 重要注意事項
 
-### Sprint 2 Must Have 順序（依賴鏈）
+- **ADR-0007 `REVIEW_TARGET_DEPTH = 22` 是 provisional** — iPhone Safari depth-22 spike 尚未執行。S4-02 實作時標記為 provisional，Sprint 5 前完成 spike。
+- **Sprint 3 殘餘 conditions（不阻塞）**：S3-07 AC-3/AC-4（reduced-motion，forced-colors）advisory；S3-04 E2E pointer-events Playwright test（Sprint 4 QA）。
+- **QA Plan**：`production/qa/qa-plan-sprint-4-2026-05-30.md`
 
-```
-S2-01 chess-board FEN (2.5h)
-  → S2-02 chess-board 雙輸入 (5h)
-    → S2-03 squareToRect (2h)
-    → S2-08 Promotion Dialog [Should Have]
+---
 
-S2-04 chess-engine UCI (4.5h)
-  → S2-05 play() + AbortSignal (3.5h)
+## 歷史里程碑（參考）
 
-S2-06 CSP 配置 (1.5h) [可獨立執行]
-S2-07 app-router 路由表 (2.5h) [可獨立執行]
-```
-
-### Sprint 2 完成條件
-- 人類可以在瀏覽器對 Stockfish HCE 下棋
-- 所有 Logic story 有通過的 unit tests
-- CSP 在 Chrome DevTools 無錯誤
-
-## Session Extract — /story-done S2-04 2026-05-29
-- Verdict: COMPLETE
-- Story: production/epics/chess-engine/story-001-play-engine-uci.md — Play Engine Worker Scaffold + UCI Handshake
-- Tech debt logged: None
-- Next recommended: S2-05 (play() + AbortSignal, blocker S2-04 ✓), S2-02 (chess-board input, blocker S2-01 ✓), S2-03 (squareToRect, blocker S2-01 ✓)
-
-## Session Extract — /story-done S2-06 2026-05-29
-- Verdict: COMPLETE WITH NOTES
-- Story: production/epics/chess-engine/story-006-csp-wasm-deployment.md — CSP Headers and WASM Deployment Configuration
-- Tech debt logged: None (advisory deviations noted in Completion Notes)
-- Next recommended: S2-04 (chess-engine UCI handshake), S2-07 (app-router route table), S2-02 (chess-board input)
-
-## Session Extract — /dev-story S2-06 2026-05-29
-- Story: production/epics/chess-engine/story-006-csp-wasm-deployment.md — CSP Headers and WASM Deployment Configuration
-- Files changed: index.html (MODIFIED — CSP meta tag added), .github/workflows/tests.yml (MODIFIED — CSP ordering lint step), production/qa/smoke-csp-wasm.md (NEW — smoke evidence)
-- Test written: None — Config/Data story; smoke evidence at production/qa/smoke-csp-wasm.md
-- Deviations: (1) Story awk has inverted exit code bug — corrected to `if(!csp || csp>NR) exit 1`; (2) AC-4 DEFERRED pending S2-04 (chess-engine UCI); (3) Dependency story-001 is Ready (not Complete) — proceeded with user approval
-- Blockers: None (AC-4 advisory, not blocking)
-- Next: /code-review index.html .github/workflows/tests.yml then /story-done production/epics/chess-engine/story-006-csp-wasm-deployment.md
-
-## Session Extract — /story-done S2-01 2026-05-29
-- Verdict: COMPLETE WITH NOTES
-- Story: production/epics/chess-board/story-001-fen-rendering.md — FEN Rendering and Position Sync
-- Tech debt logged: None (advisory gaps noted in story Completion Notes)
-- Next recommended: S2-02 (chess-board input, blocker S2-01 ✓), S2-04 (chess-engine UCI), S2-06 (CSP), S2-07 (app-router) — last three have no blockers
-
-## Session Extract — /dev-story S2-01 2026-05-29
-- Story: production/epics/chess-board/story-001-fen-rendering.md — FEN Rendering and Position Sync
-- Files changed: src/composables/use-board-renderer.ts (NEW), src/components/chess-board.vue (MODIFIED)
-- Test written: tests/unit/chess-board/fen-rendering.test.ts — 16 tests (6 validateFen, 10 useBoardRenderer), all pass
-- Blockers: None
-- Next: /code-review src/composables/use-board-renderer.ts src/components/chess-board.vue then /story-done production/epics/chess-board/story-001-fen-rendering.md
-
-## Session Extract — /create-epics + /create-stories + /sprint-plan 2026-05-29
-
-### /create-epics
-- 建立 **9 個 epic 檔案** + `production/epics/index.md`
-- Foundation: chess-board (7 TRs), chess-engine (9 TRs), opening-id (4 TRs), app-router (6 TRs)
-- Core: game-lifecycle (5 TRs), move-annotation (5 TRs)
-- Feature: post-game-review (7 TRs), game-export (4 TRs), opening-knowledge-cards (Blocked — GDD 未完成)
-- 全部 44 個 TR-ID 均有 ADR 覆蓋
-- Producer 自評（full mode）：REALISTIC
-
-### /create-stories（全部 8 個 ready epic）
-- 建立 **28 個 story 檔案**，每個 story 包含 TR-ID、ADR 指引、AC、QA 測試案例
-- chess-board: 7 stories (001-007)
-- chess-engine: 7 stories (001-007)
-- opening-id: 1 story
-- app-router: 2 stories
-- game-lifecycle: 2 stories
-- move-annotation: 2 stories
-- post-game-review: 5 stories (包含兩次分析迴圈、cpLoss 公式、biggestSwingCursor、sessionStorage、手機靜默模式)
-- game-export: 2 stories (PGN/Prompt assembly、Tier-1/2/3 state machine)
-- QA Lead 自評（full mode）：全部 28 stories ADEQUATE
-
-### /sprint-plan Sprint 2
-- 期間：2026-06-12 to 2026-06-25（14 天，~24h available）
-- Must Have: S2-01 ~ S2-07（7 stories，~21.5h）
-- Should Have: S2-08 ~ S2-10（3 stories，~9.5h，延伸目標）
-- Nice to Have: S2-11 ~ S2-13（鍵盤導覽、Review Engine、視覺回饋）
-- **⚠️ 無 QA Plan — 開始實作前必須執行 `/qa-plan sprint`**
-
-## Files Modified This Session (2026-05-29)
-
-- `production/epics/index.md` — NEW（Epic 索引，28 stories 全部計入）
-- `production/epics/chess-board/EPIC.md` + 7 story files — NEW
-- `production/epics/chess-engine/EPIC.md` + 7 story files — NEW
-- `production/epics/opening-id/EPIC.md` + 1 story file — NEW
-- `production/epics/app-router/EPIC.md` + 2 story files — NEW
-- `production/epics/game-lifecycle/EPIC.md` + 2 story files — NEW
-- `production/epics/move-annotation/EPIC.md` + 2 story files — NEW
-- `production/epics/post-game-review/EPIC.md` + 5 story files — NEW
-- `production/epics/game-export/EPIC.md` + 2 story files — NEW
-- `production/epics/opening-knowledge-cards/EPIC.md` — NEW（Blocked）
-- `production/sprints/sprint-2.md` — NEW（Sprint 2 計畫）
-- `production/sprint-status.yaml` — UPDATED（Sprint 1 → Sprint 2）
-- `production/session-state/active.md` — UPDATED（本檔）
-
-### Sprint 1 Task Status
-
-| ID | Task | Status |
-| --- | --- | --- |
-| S1-01 | npm install → package-lock.json | ✅ DONE (already existed) |
-| S1-02 | Vite project scaffold | ✅ DONE 2026-05-28 |
-| S1-03 | ADR-0003 spike → Accepted | ✅ DONE 2026-05-28 |
-| S1-04 | ADR-0006 spike + C1 patch → Accepted | ✅ DONE 2026-05-28 |
-| S1-05 | ADR-0009 spikes ×3 → Accepted | ✅ DONE 2026-05-28 |
-| S1-06 | ADR-0010 spikes ×2 → Accepted | ✅ DONE 2026-05-28 |
-| S1-07 | ADR-0002 + ADR-0004 + ADR-0005 → Accepted | ✅ DONE 2026-05-28 |
-| S1-08 | Opening Knowledge Cards GDD (Should Have) | ✅ DONE 2026-05-28 |
-| S1-09 | Chess Board component skeleton | ✅ DONE 2026-05-28 |
-| S1-10 | Navigation / Routing skeleton | ✅ DONE 2026-05-28 |
-| S1-11 | Pinia store shells | ✅ DONE 2026-05-28 |
-| S1-12 | Chess Engine Worker wrapper (Nice to Have) | ✅ DONE 2026-05-28 |
-
-### Key findings this session
-- `chess-openings@0.1.1` (not 3.x) — version corrected in package.json
-- chess.js **strict** ep convention confirmed (ep=`-` when no capture possible)
-- chess-openings `ECO.lookupSync(fen)` aligns exactly — **no normalization needed**
-- API simpler than ADR assumed: no build-time Map needed; runtime `lookupSync` is the interface
-- ADR-0003 updated + marked **Accepted**
-- chessground@9.2.1 has deprecation warning (npm) — relevant for S1-05 spike
-- Spike script S1-03: `scripts/spike-adr0003-ep-convention.mjs`
-- **ADR-0006 spike complete**: chessground `drawable` FAILS (arrowhead tip 0.34px from center on 352px board; `cg-shapes` SVG has no `aria-hidden`). Custom SVG overlay confirmed. Per-shape brushes ✅ PASS (acceptable).
-- ADR-0006 status → **Accepted**; C1 doc-drift patch already applied in prior session
-- Spike script S1-04: `scripts/spike-adr0006-drawable-audit.mjs`
-- **ADR-0009 spikes ×3 complete**: (1) custom brush via `setConfig()` path confirmed (not `setShapes()`); `animation.duration` = 300ms, no built-in hook → timed Promise fallback. (2) focus-cell keydown: PASS — chessground has zero keyboard listeners, `pointer-events:none` div receives keyboard events normally. (3) boardRef: PASS via `boardConfig.events.insert(elements)` → `elements.wrap` is `.cg-wrap`. ADR-0009 status → **Accepted**; Decision §1/§3 patched.
-- Spike script S1-05: `scripts/spike-adr0009-chessboard-api-audit.mjs`
-- **ADR-0010 spikes ×2 complete**: Desktop delivery pattern fully verified (4 scenarios pass); canShare `{text}`-only shape correct; CSP compatibility confirmed. iOS user-activation + canShare reachability: DEFERRED (real iPhone session before Sprint 3 — `active.md` open questions updated). ADR-0010 → **Accepted** with iPhone caveat.
-- Spike script S1-06: `scripts/spike-adr0010-export-gesture-audit.mjs`
-- **S1-07 complete**: ADR-0002 (Worker isolation), ADR-0004 (Vue Router/GH Pages), ADR-0005 (Pinia stores) — all reviewed, no blocking gaps, all Knowledge Risk LOW, no Post-Cutoff APIs. All three → **Accepted**.
-
-### Session history (older)
-`/create-control-manifest` complete (2026-05-29): `docs/architecture/control-manifest.md` written.
-`/gate-check pre-production` complete (2026-05-28): **PASS (with advisories)**.
-**ADR-0001 spike complete (2026-05-28)**: HCE confirmed. `stockfish@16.0.0` installed. ADR-0001 → **Accepted**.
-**Stage**: `Pre-Production` (advanced 2026-05-28).
-**Sprint 1 created (2026-05-28)**: `production/sprints/sprint-1.md` + `production/sprint-status.yaml`.
-
-## Stage
-
-**Pre-Production** (advanced 2026-05-28 after gate PASS with advisories). Re-gate to Production requires: vertical slice exists + ≥5 of 7 spikes flipped to Accepted (per first-run PR guidance).
-
-## Recent Milestones
-
-- [x] Game concept written
-- [x] Technology stack pinned (Web App: Vue 3 + TypeScript + chessground)
-- [x] Systems decomposition (17 systems, v0/MVP/Polish tiers)
-- [x] 8 MVP-tier GDDs written + cross-reviewed (PASS-eligible)
-- [x] 10 ADRs written (ADR-0001..0010, all Proposed)
-- [x] `/architecture-review` 2026-05-28 + 2026-05-29 re-run (CONCERNS, C1 resolved)
-- [x] `/test-setup` 2026-05-29 — `tests/` structure + `.github/workflows/tests.yml`
-- [x] `/ux-design` 2026-05-28 — `design/ux/accessibility-requirements.md` + `interaction-patterns.md`
-- [x] `/create-control-manifest` 2026-05-29 — `docs/architecture/control-manifest.md`
-- [x] `/gate-check pre-production` 2026-05-28 — CONCERNS verdict, 4-director panel
-- [x] `package.json` + smoke tests scaffolded — CI will pass once `package-lock.json` is committed
-- [x] `/sprint-plan` 2026-05-28 — Sprint 1 created (`production/sprints/sprint-1.md`); PR-SPRINT gate REALISTIC after scope revision
-
-## Pre-Pre-Production Punch List (from gate-check 2026-05-28)
-
-| # | Item | Owner | Status |
-| --- | --- | --- | --- |
-| 1 | Add `## Visual Identity Anchor` to `game-concept.md` (lichess-clean + Nippon Colors palette + cburnett piece set + dark-mode → Phase 2 deferral) | AD | **DONE 2026-05-28** — palette + cburnett used per Eason's Nippon Colors preference |
-| 2 | Add eval bar visual spec to `interaction-patterns.md` (P-21) | AD | **DONE 2026-05-28** |
-| 3 | Add ADR re-attestation TODO list to `control-manifest.md` header (10 ADRs + spike triggers) | TD | **DONE 2026-05-28** |
-| 4 | Revise memory guardrail in `control-manifest.md`: 120 MB working / 150 MB hard ceiling | TD | **DONE 2026-05-28** |
-| 5 | Resolve Pillar 2 question: re-scope v0 with min-viable knowledge link OR explicitly accept v0 = Stockfish-review MVP (hook in Phase 2) | CD | **DONE 2026-05-28** — Eason chose A (micro hook). `game-concept.md` updated: MVP item 3 = static opening knowledge cards (~20 entries, hand-authored); Pillar 2 §v0 note added explaining it as the knowledge→game half. **Follow-ups below.** |
-| 5a | Propagate Pillar 2 decision: update `design/gdd/systems-index.md` to add knowledge-cards entry; update `design/gdd/opening-identification.md` to add AC for surfacing the card; consider new GDD `design/gdd/opening-knowledge-cards.md` or fold into post-game-review | CD | **PENDING** — recommend `/propagate-design-change` then `/quick-design "opening knowledge cards"` |
-| 5b | Author the ~20 opening knowledge cards (hand content task; markdown blurbs per ECO code) | content | **PENDING** — Sprint 1 deliverable |
-| 6 | Land `package.json` + smoke test that passes CI | TD | DONE 2026-05-28 — pending `npm install` to generate lockfile |
-| 7 | Spike queue | TD/PR | IN PROGRESS — ADR-0001 ✅ Accepted 2026-05-28; ADR-0008 + ADR-0007 need real iPhone |
-
-## Open Questions (cross-cutting)
-
-- ~~**Pillar 2 / unique hook v0 scope**~~ — **RESOLVED 2026-05-28**: Option A (micro hook via static opening knowledge cards). Triggers items 5a + 5b in punch list.
-- ~~**Nippon Colors palette confirmation**~~ — **RESOLVED 2026-05-28**: Option A (和茶系) confirmed.
-- ~~**Default piece SVG set**~~ — **RESOLVED 2026-05-28**: cburnett confirmed.
-- iPhone Safari Stockfish performance — prototype before Chess Engine GDD finalized (still pending; ADR-0007 spike)
-- Premove future-proofing — flag for future ADR
-- Keyboard navigation feasibility in chessground 9.x — verify before v0 implementation (Chess Board OQ #7)
-- Drag-vs-tap threshold tuning on real iPhone (Chess Board OQ #8)
-
-## Spike Queue (6 remaining)
-
-Suggested order from TD/PR (highest-uncertainty trio first):
-
-1. ~~ADR-0001 HCE build availability~~ — **DONE 2026-05-28** (`stockfish@16.0.0`, single-threaded, HCE via `Use NNUE false`)
-2. ADR-0008 iOS Safari meta-CSP `worker-src 'self' blob:` + `'wasm-unsafe-eval'` verification — real iPhone device
-3. ADR-0007 iPhone Safari depth-22 reachability + peak RSS measurement — real iPhone device
-4. ~~ADR-0003 en passant EPD convention check~~ — **DONE 2026-05-28**
-5. ~~ADR-0006 chessground 9.x `drawable.shapes` audit~~ — **DONE 2026-05-28** (custom SVG confirmed)
-6. ~~ADR-0009 (×3): drawable.shapes schema, focus-cell keydown, vue3-chessboard boardRef~~ — **DONE 2026-05-28**
-7. ~~ADR-0010 (×2): iOS user-activation + `canShare({text})`~~ — **DONE 2026-05-28** (iPhone items deferred)
-
-## ADR Summary (ADR-0001..0010 all Proposed)
-
-- ADR-0001: Stockfish build versioning (HCE/NNUE split)
-- ADR-0002: Web Worker isolation and UCI protocol
-- ADR-0003: chess-openings dataset pin and EPD index
-- ADR-0004: Vue Router history mode and GitHub Pages SPA fallback
-- ADR-0005: Pinia store boundaries and CompletedGame transport
-- ADR-0006: Move Annotation rendering substrate (custom SVG overlay)
-- ADR-0007: Post-Game Review analysis loop and sessionStorage schema
-- ADR-0008: CSP headers and WASM deployment configuration
-- ADR-0009: Chess Board substrate, vue3-chessboard integration, roving-tabindex keyboard model
-- ADR-0010: Game Export Tier-1/2/3 delivery and sync-gesture clipboard contract
-
-## Files Modified This Session (2026-05-28)
-
-- `docs/architecture/control-manifest.md` — NEW + UPDATED (Control Manifest with 10 ADRs, all layers, TD-MANIFEST fixes; ADR re-attestation TODO added; memory budget split into 120 MB working / 150 MB hard)
-- `production/gate-checks/2026-05-28-technical-setup-to-pre-production.md` — NEW (Gate check report, CONCERNS verdict, 4-director panel)
-- `package.json` — NEW (minimum: vitest + playwright + typescript)
-- `tsconfig.json` — NEW (strict TypeScript, ES2022, bundler resolution)
-- `vitest.config.ts` — NEW (unit + integration + smoke include globs)
-- `playwright.config.ts` — NEW (chromium + webkit projects)
-- `tests/smoke/toolchain.test.ts` — NEW (3 trivial assertions to validate Vitest)
-- `tests/e2e/toolchain.spec.ts` — NEW (Playwright launch test + skipped app placeholder)
-- `design/gdd/game-concept.md` — UPDATED (added `## Visual Identity Anchor` section: lichess-clean + Nippon Colors palette 和茶系 + cburnett + explicit dark-mode/custom-art deferrals; updated Technical Considerations Art Style row; Pillar 2 §v0 note + MVP item 3 = static opening knowledge cards per Eason's Option A decision)
-- `design/ux/interaction-patterns.md` — UPDATED (added P-21 Evaluation Bar; catalog count 20 → 21)
-- `design/gdd/systems-index.md` — UPDATED (added #8b Opening Knowledge Cards v0 Feature; Progress Tracker 17 → 18 systems, 8 → 9 GDDs started; Recommended Design Order updated)
-- `design/gdd/opening-identification.md` — UPDATED (downstream dependents table now lists Opening Knowledge Cards as a reverse dependency consuming `OpeningResult.eco`)
-- `design/gdd/opening-knowledge-cards.md` — NEW (8-section skeleton, sections 1/2/4/6 complete, 3/5/7/8 marked TO AUTHOR with candidate content)
-- `production/gate-checks/2026-05-28-technical-setup-to-pre-production-rerun.md` — NEW (PASS-with-advisories self-assessment + chain-of-verification)
-- `C:\Users\Administrator\.claude\projects\d--Personal\memory\project_chess_training.md` — REWRITTEN (full v0 lock-in, palette, ADR list, critical-path notes, propagation pointers)
-- `production/session-state/active.md` — UPDATED (this file)
-
-## Session Extract — /create-control-manifest 2026-05-29
-
-- Verdict: COMPLETE — manifest written to `docs/architecture/control-manifest.md`
-- ADRs sourced: 10 (treated as Accepted per Eason's decision; all currently Proposed; provenance noted in manifest header)
-- TD-MANIFEST gate (full mode): CONCERNS — 5 genuine rule gaps + 3 attribution refinements identified; all incorporated into final manifest
-- Rule counts: Foundation 21r/13f/4g, Core 23r/12f/7g, Feature 22r/12f/7g, Presentation 12r/8f/3g, Global (8 naming, 6 perf budgets, 12 approved libs, 8 forbidden APIs, 5 cross-cutting)
-- Notable manifest content: TypeScript-enforced `assembleExportPayload` sync contract; AbortController `markRaw` requirement; `squareToRect()` board-local convention with ADR-0006 doc-drift correction; selection overlay vs annotation SVG coexistence rule; mobile calm default declared BINDING
-
-## Session Extract — /gate-check pre-production 2026-05-28
-
-- Verdict: CONCERNS (advisory)
-- Artifacts: 10/13 present (path-drift on 2, genuinely missing: art bible, example test files)
-- Director Panel (full mode, all 4 returned CONCERNS, 0 NOT READY):
-  - Creative: Pillar 2 deferred to Phase 2 — needs explicit v0 scope decision; otherwise pillar fidelity is exemplary
-  - Technical: Proposed-status ADRs OK for prototype; spikes block sprint inclusion not scaffold; package.json + smoke test needed; tighten 145→120 MB memory budget
-  - Producer: critical-path bottleneck is the correct shape of next 2-4 weeks; skip epic/sprint ceremony for solo dev; vertical slice is output not prereq
-  - Art: full art bible overkill; needs Visual Identity Anchor (~30min) + piece set decision + dark-mode deferral statement (~1hr total)
-- Chain-of-Verification: 5 questions checked, verdict unchanged
-- Report: `production/gate-checks/2026-05-28-technical-setup-to-pre-production.md`
-- Stage NOT advanced — `production/stage.txt` remains `Technical Setup`
-- Recommended re-gate after punch-list items 1-5 resolved
-
-## Session Extract — /story-done S2-07 2026-05-29
-- Verdict: COMPLETE WITH NOTES
-- Story: production/epics/app-router/story-001-route-table.md — Route Table, Lazy Loading, SPA Fallback
-- Tech debt logged: None (advisory deviations in Completion Notes)
-- Next recommended: S2-04 (chess-engine UCI, 4.5h, no blockers), S2-02 (chess-board input, 5h, S2-01 done)
+- Sprint 1: 環境設定 + ADR spikes ✅
+- Sprint 2: Foundation layer（chess-board + chess-engine + opening-id + app-router），全部 10 stories ✅；Stockfish WASM timeout bug fixed
+- Sprint 3: Core layer（game-lifecycle + move-annotation），182/182 tests，APPROVED WITH CONDITIONS
+- Sprint 4: Feature layer（post-game-review + game-export），進行中

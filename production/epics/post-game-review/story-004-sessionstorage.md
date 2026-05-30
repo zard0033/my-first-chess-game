@@ -1,7 +1,7 @@
 # Story 004: sessionStorage Persistence — Throttled Writes, pv Stripped
 
 > **Epic**: Post-Game Review
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: S (2 hours)
@@ -28,11 +28,11 @@
 
 ## Acceptance Criteria
 
-- [ ] sessionStorage key is `pgr:analysis:<completedGame.completedAt.toString()>`.
-- [ ] Persisted records strip the `pv` field: `{ bestMove, evalCp?, evalMate?, depthReached, pass }` only.
-- [ ] Writes are debounced/throttled — multiple `analysisResults` updates within 500ms result in at most one `setItem` call.
-- [ ] Every `sessionStorage.setItem` call is inside a `try/catch`; on `QuotaExceededError` or any other error, `persistenceAvailable` is set to `false` and no error is shown to the player.
-- [ ] On PostGameReview mount, if `sessionStorage.getItem(key)` contains a prior analysis for the same `gameId`, the results are restored and the review resumes (no re-analysis needed).
+- [x] sessionStorage key is `pgr:analysis:<completedGame.completedAt.toString()>`.
+- [x] Persisted records strip the `pv` field: `{ bestMove, evalCp?, evalMate?, depthReached, pass }` only.
+- [x] Writes are debounced/throttled — multiple `analysisResults` updates within 500ms result in at most one `setItem` call.
+- [x] Every `sessionStorage.setItem` call is inside a `try/catch`; on `QuotaExceededError` or any other error, `persistenceAvailable` is set to `false` and no error is shown to the player.
+- [x] On PostGameReview mount, if `sessionStorage.getItem(key)` contains a prior analysis for the same `gameId`, the results are restored and the review resumes (no re-analysis needed).
 
 ---
 
@@ -111,7 +111,7 @@ function tryRestoreFromSessionStorage() {
 **Story Type**: Logic
 **Required evidence**: `tests/unit/post-game-review/sessionstorage.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `tests/unit/post-game-review/sessionstorage.test.ts` — 8 tests, all pass (2026-05-30)
 
 ---
 

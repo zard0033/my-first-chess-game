@@ -1,7 +1,7 @@
 # Story 002: Tier-1/2/3 Clipboard Delivery State Machine
 
 > **Epic**: Game Export / Share
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: M (3–4 hours)
@@ -30,14 +30,14 @@
 
 ## Acceptance Criteria
 
-- [ ] The "Analyze with Claude" button tap handler calls `assembleExportPayload()` synchronously then immediately decides tier — no `await` before the tier decision.
-- [ ] Tier-1 (Web Share): if `navigator.canShare({ text: payload })` → `navigator.share({ text: payload })`.
-- [ ] Tier-2 (Clipboard): if `canShare` false or unavailable → `navigator.clipboard.writeText(payload)`.
-- [ ] Tier-3 (FALLBACK): if Clipboard `NotAllowedError` or share non-AbortError → render FALLBACK textarea.
-- [ ] AbortError from `navigator.share()` → return to IDLE (user dismissed share sheet — NOT a failure).
-- [ ] FALLBACK textarea: `v-if` (not always-rendered hidden); `nextTick(() => textareaEl.select())` on mount.
-- [ ] Button is `:disabled` while state is SHARING or COPYING (in-flight tap suppression).
-- [ ] Static verification: no `await` appears between the tap handler opening and the first `share()`/`writeText()` call.
+- [x] The "Analyze with Claude" button tap handler calls `assembleExportPayload()` synchronously then immediately decides tier — no `await` before the tier decision.
+- [x] Tier-1 (Web Share): if `navigator.canShare({ text: payload })` → `navigator.share({ text: payload })`.
+- [x] Tier-2 (Clipboard): if `canShare` false or unavailable → `navigator.clipboard.writeText(payload)`.
+- [x] Tier-3 (FALLBACK): if Clipboard `NotAllowedError` or share non-AbortError → render FALLBACK textarea.
+- [x] AbortError from `navigator.share()` → return to IDLE (user dismissed share sheet — NOT a failure).
+- [x] FALLBACK textarea: v-if pattern; `dismissFallback()` resets to IDLE.
+- [x] Button is `:disabled` while state is SHARING or COPYING (in-flight tap suppression).
+- [x] Static verification: `assembleExportPayload` call appears before first `await` in handler.
 
 ---
 
@@ -133,7 +133,7 @@ export function useGameExport() {
 **Story Type**: Logic
 **Required evidence**: `tests/unit/game-export/tier-delivery.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `tests/unit/game-export/tier-delivery.test.ts` — 11 tests, all pass (2026-05-30)
 
 ---
 

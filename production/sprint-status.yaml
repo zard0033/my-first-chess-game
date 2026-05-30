@@ -9,92 +9,102 @@
 #   done           ↔  Complete
 #   blocked        ↔  Blocked
 
-sprint: 3
-goal: "實作 Core 層（GameLifecycle + MoveAnnotationDisplay）— 首個完整遊戲迴圈閉環：終局偵測 → CompletedGame → Review 導航"
-start: "2026-06-26"
-end: "2026-07-09"
-generated: "2026-05-29"
-updated: "2026-05-29"
+sprint: 4
+goal: "完成 PlayView.vue ← useGameLifecycle 整合並實作 Post-Game Review 旗艦功能：兩輪分析 → cpLoss → biggestSwingCursor"
+start: "2026-07-10"
+end: "2026-07-23"
+generated: "2026-05-30"
+updated: "2026-05-30"  # S4-01 done
 
 stories:
   # ---- Must Have (必須完成) ----
 
-  - id: "S3-01"
-    name: "Sprint 3 Housekeeping — FEN dev tool + CSS min-width + favicon + UCI CI smoke"
-    file: ""
+  - id: "S4-01"
+    name: "PlayView.vue ← useGameLifecycle 整合：GAME_OVER overlay + New Game + Review 導航"
+    file: "production/epics/game-lifecycle/story-003-play-view-integration.md"
     priority: must-have
     status: done
     owner: ""
     estimate_days: 0.50
     blocker: ""
-    completed: "2026-05-29"
+    completed: "2026-05-30"
 
-  - id: "S3-02"
-    name: "game-lifecycle: State Machine & Terminal Detection"
-    file: "production/epics/game-lifecycle/story-001-state-machine.md"
+  - id: "S4-02"
+    name: "post-game-review: Two-Pass Analysis Loop"
+    file: "production/epics/post-game-review/story-001-two-pass-analysis.md"
     priority: must-have
-    status: done
+    status: ready-for-dev
     owner: ""
-    estimate_days: 0.50
-    blocker: ""
-    completed: "2026-05-29"
+    estimate_days: 1.00
+    blocker: "S4-01"
+    completed: ""
 
-  - id: "S3-03"
-    name: "game-lifecycle: CompletedGame Assembly & Pinia Transport"
-    file: "production/epics/game-lifecycle/story-002-completed-game.md"
+  - id: "S4-03"
+    name: "post-game-review: cpLoss Formula + Depth-Comparability Guard"
+    file: "production/epics/post-game-review/story-002-cploss-formula.md"
     priority: must-have
-    status: done
+    status: backlog
     owner: ""
     estimate_days: 0.31
-    blocker: "S3-02"
-    completed: "2026-05-29"
+    blocker: "S4-02"
+    completed: ""
 
-  - id: "S3-04"
-    name: "move-annotation: Custom SVG Overlay — Arrows, Highlights, Eval Bar"
-    file: "production/epics/move-annotation/story-001-svg-overlay.md"
+  - id: "S4-04"
+    name: "post-game-review: biggestSwingCursor — Computed Once at COMPLETE"
+    file: "production/epics/post-game-review/story-003-biggest-swing.md"
     priority: must-have
-    status: done
+    status: backlog
     owner: ""
-    estimate_days: 0.50
-    blocker: ""
-    completed: "2026-05-29"
-
-  - id: "S3-05"
-    name: "move-annotation: rAF-Coalesced Resize Throttle"
-    file: "production/epics/move-annotation/story-002-resize-throttle.md"
-    priority: must-have
-    status: done
-    owner: ""
-    estimate_days: 0.25
-    blocker: "S3-04"
-    completed: "2026-05-29"
+    estimate_days: 0.19
+    blocker: "S4-02, S4-03"
+    completed: ""
 
   # ---- Should Have (延伸目標) ----
 
-  - id: "S3-06"
-    name: "chess-engine: Review Engine — Lazy Load + analyze() + 30s Auto-Terminate"
-    file: "production/epics/chess-engine/story-003-review-engine.md"
+  - id: "S4-05"
+    name: "post-game-review: sessionStorage Persistence — Throttled Writes, pv Stripped"
+    file: "production/epics/post-game-review/story-004-sessionstorage.md"
     priority: should-have
-    status: done
+    status: backlog
     owner: ""
-    estimate_days: 0.50
-    blocker: ""
-    completed: "2026-05-29"
+    estimate_days: 0.25
+    blocker: "S4-02"
+    completed: ""
 
-  - id: "S3-07"
-    name: "chess-board: Visual Feedback — Check Indicator + Reduced Motion"
-    file: "production/epics/chess-board/story-006-visual-feedback.md"
+  - id: "S4-06"
+    name: "post-game-review: Mobile Calm Default — Viewport-Responsive Annotation"
+    file: "production/epics/post-game-review/story-005-mobile-calm.md"
     priority: should-have
-    status: done
+    status: backlog
     owner: ""
-    estimate_days: 0.50
+    estimate_days: 0.25
+    blocker: "S4-02, S4-01"
+    completed: ""
+
+  - id: "S4-07"
+    name: "game-export: PGN Serialization + Claude.ai Prompt Assembly"
+    file: "production/epics/game-export/story-001-pgn-prompt-assembly.md"
+    priority: should-have
+    status: ready-for-dev
+    owner: ""
+    estimate_days: 0.31
     blocker: ""
-    completed: "2026-05-29"
+    completed: ""
 
   # ---- Nice to Have (有餘力再做) ----
 
-  - id: "S3-08"
-    name: "chess-board: Keyboard Navigation — useBoardKeyboard"
+  - id: "S4-08"
+    name: "game-export: Tier-1/2/3 Clipboard Delivery State Machine"
+    file: "production/epics/game-export/story-002-tier-delivery.md"
+    priority: nice-to-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.44
+    blocker: "S4-07"
+    completed: ""
+
+  - id: "S4-09"
+    name: "chess-board: Keyboard Navigation — useBoardKeyboard (S3-08 carryover)"
     file: "production/epics/chess-board/story-005-keyboard-nav.md"
     priority: nice-to-have
     status: backlog

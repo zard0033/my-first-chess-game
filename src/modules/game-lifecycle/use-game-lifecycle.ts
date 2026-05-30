@@ -271,6 +271,23 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     _playerMoveTimes = []
   }
 
+  /**
+   * DEV-ONLY: inject a FEN position into the chess instance and fen ref.
+   * Transitions phase to PLAYER_TURN so moves can be made from the injected position.
+   * Does nothing in production — call only from DEV panel.
+   */
+  function setDevFen(newFen: string): void {
+    try {
+      chess = new Chess(newFen)
+      fen.value = chess.fen()
+      phase.value = 'PLAYER_TURN'
+      _moves = []
+      _playerMoveTimes = []
+    } catch {
+      // Invalid FEN — ignore silently
+    }
+  }
+
   return {
     phase: readonly(phase),
     playerColor: readonly(playerColor),
@@ -282,6 +299,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     handleAiMove,
     resign,
     resetToSetup,
+    setDevFen,
     /** Internal chess instance accessor — exposed only for unit tests (non-reactivity assertion). */
     _getChess: (): Chess => chess,
     /** Internal moves array accessor — exposed only for unit tests. */

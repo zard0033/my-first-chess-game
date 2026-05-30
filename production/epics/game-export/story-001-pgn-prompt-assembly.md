@@ -1,7 +1,7 @@
 # Story 001: PGN Serialization and Claude.ai Prompt Assembly
 
 > **Epic**: Game Export / Share
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: Logic
 > **Estimate**: S (2–3 hours)
@@ -26,13 +26,13 @@
 
 ## Acceptance Criteria
 
-- [ ] `assembleExportPayload(game: CompletedGame, config: ExportConfig): string` is a pure synchronous function — no `async` keyword, return type `string`.
-- [ ] PGN output includes the Seven Tag Roster: Event, Site, Date, Round, White, Black, Result.
-- [ ] PGN round-trips correctly: the output string can be loaded back into `chess.js` without error.
-- [ ] Claude.ai prompt template is deterministic: same `CompletedGame` + same `ExportConfig` always produces the same output.
-- [ ] `ExportConfig` uses `readonly` on all fields.
-- [ ] TypeScript: assigning the return value to a `Promise<string>` variable is a compile error (type safety).
-- [ ] Static grep confirms no `fetch`, `supabase`, or `sessionStorage` in `src/modules/game-export/`.
+- [x] `assembleExportPayload(game: CompletedGame, config: ExportConfig): string` is a pure synchronous function — no `async` keyword, return type `string`.
+- [x] PGN output includes the Seven Tag Roster: Event, Site, Date, Round, White, Black, Result.
+- [x] PGN round-trips correctly: the output string can be loaded back into `chess.js` without error.
+- [x] Claude.ai prompt template is deterministic: same `CompletedGame` + same `ExportConfig` always produces the same output.
+- [x] `ExportConfig` uses `readonly` on all fields.
+- [x] TypeScript: assigning the return value to a `Promise<string>` variable is a compile error (type safety).
+- [x] Static grep confirms no `fetch`, `supabase`, or `sessionStorage` in `src/modules/game-export/`.
 
 ---
 
@@ -114,7 +114,7 @@ export function assembleExportPayload(game: CompletedGame, config: ExportConfig)
 **Story Type**: Logic
 **Required evidence**: `tests/unit/game-export/pgn-prompt-assembly.test.ts`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `tests/unit/game-export/pgn-prompt-assembly.test.ts` — 14 tests, all pass (2026-05-30)
 
 ---
 

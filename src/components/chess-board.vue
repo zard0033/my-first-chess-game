@@ -12,6 +12,7 @@ import { squareToRect as computeSquareRect } from '../utils/board-geometry'
 import type { Rect } from '../utils/board-geometry'
 import PromotionDialog from './promotion-dialog.vue'
 import { useReducedMotion } from '../composables/use-reduced-motion'
+import { useBoardKeyboard } from '../composables/use-board-keyboard'
 
 const props = defineProps<{
   fen: string
@@ -205,6 +206,31 @@ function squareToRect(square: string): Rect | null {
   return computeSquareRect(square, el.offsetWidth, props.playerColor)
 }
 
+// ---- Keyboard navigation (ADR-0009, S4-09) ----
+
+const keyboardAnnouncement = ref('')
+
+const keyboard = useBoardKeyboard({
+  getFen: () => props.fen,
+  getOrientation: () => props.playerColor,
+  getPlayerColor: () => props.playerColor,
+  onMoveAttempt: (from, to) => {
+    if (props.disabled) return
+    boardApi.value?.move({ from: from as Key, to: to as Key })
+  },
+  onPieceSelected: (square, legalDests) => {
+    boardApi.value?.setConfig({
+      drawable: { shapes: buildLegalMoveShapes(square as Key, props.fen), brushes: BOARD_BRUSHES },
+    }, false)
+  },
+  onSelectionCleared: () => {
+    clearSelectionShapes()
+  },
+  announce: (text) => { keyboardAnnouncement.value = text },
+})
+
+const focusCellRect = computed(() => squareToRect(keyboard.currentSquare.value))
+
 defineExpose({ boardRef, squareToRect })
 </script>
 
@@ -215,6 +241,7 @@ defineExpose({ boardRef, squareToRect })
     aria-label="Chess board"
     aria-rowcount="8"
     aria-colcount="8"
+    tabindex="-1"
   >
     <TheChessboard
       :boardConfig="boardConfig"
@@ -251,12 +278,12 @@ defineExpose({ boardRef, squareToRect })
       />
     </svg>
 
-    <!-- Screen reader check announcement — always in DOM, content updated on check -->
+    <!-- Assertive live region: check + keyboard move announcements -->
     <span
       class="sr-only"
       aria-live="assertive"
       aria-atomic="true"
-    >{{ kingInCheckSquare ? 'Check' : '' }}</span>
+    >{{ kingInCheckSquare ? 'Check' : keyboardAnnouncement }}</span>
 
     <!-- Promotion dialog — shown only when a pawn reaches the back rank -->
     <PromotionDialog
@@ -267,11 +294,16 @@ defineExpose({ boardRef, squareToRect })
       @cancel="handlePromotionCancel"
     />
 
-    <!-- focus-cell: roving-tabindex keyboard model — Sprint 2 full implementation -->
+    <!-- focus-cell: single roving tabindex cell (ADR-0009, S4-09) -->
     <div
-      class="absolute opacity-0 pointer-events-none"
+      class="absolute opacity-0 pointer-events-none focus:outline-2 focus:outline-blue-500"
       role="gridcell"
-      tabindex="-1"
+      tabindex="0"
+      :aria-label="keyboard.currentSquareLabel.value"
+      :style="focusCellRect
+        ? { left: `${focusCellRect.x}px`, top: `${focusCellRect.y}px`, width: `${focusCellRect.width}px`, height: `${focusCellRect.height}px` }
+        : { display: 'none' }"
+      @keydown="keyboard.handleKeydown($event)"
     />
   </div>
 </template>

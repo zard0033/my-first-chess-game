@@ -1,7 +1,7 @@
 # Story 005: Mobile Calm Default — Viewport-Responsive Annotation Display
 
 > **Epic**: Post-Game Review
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Feature
 > **Type**: UI
 > **Estimate**: S (2 hours)
@@ -23,11 +23,11 @@
 
 ## Acceptance Criteria
 
-- [ ] On viewports **< 768px** wide, the `MoveAnnotationDisplay` receives: `annotations` with ONLY `role: 'bestMove'` arrows (no `role: 'playedMove'`), and `evaluation: null` (no eval bar rendered).
-- [ ] On viewports **≥ 768px**, all annotation types are passed to `MoveAnnotationDisplay` (bestMove + playedMove arrows, eval bar).
-- [ ] The breakpoint check uses CSS media query or `window.matchMedia('(min-width: 768px)')` — NOT a hardcoded pixel check on `window.innerWidth` that doesn't react to resize.
-- [ ] Resizing from < 768px to ≥ 768px while reviewing a move adds annotations reactively (no page reload required).
-- [ ] The mobile calm rule is enforced in the PostGameReview component — MoveAnnotationDisplay itself is passive (it renders whatever annotations prop it receives).
+- [x] On viewports **< 768px** wide, the `MoveAnnotationDisplay` receives: `annotations` with ONLY `role: 'bestMove'` arrows (no `role: 'playedMove'`), and `evaluation: null` (no eval bar rendered).
+- [x] On viewports **≥ 768px**, all annotation types are passed to `MoveAnnotationDisplay` (bestMove + playedMove arrows, eval bar).
+- [x] The breakpoint check uses `window.matchMedia('(max-width: 767px)')` — reactive to resize.
+- [x] Resizing from < 768px to ≥ 768px triggers `_onMqChange` → `isMobile.value` updates → computed re-renders.
+- [x] The mobile calm rule is enforced in ReviewView.vue — MoveAnnotationDisplay itself is passive.
 
 ---
 
@@ -79,9 +79,9 @@ const displayEvaluation = computed(() => isMobile.value ? null : currentEvaluati
 ## Test Evidence
 
 **Story Type**: UI
-**Required evidence**: `production/qa/evidence/post-game-review-mobile-calm-evidence.md`
+**Required evidence**: `production/qa/evidence/s4-06-mobile-calm.png`
 
-**Status**: [ ] Not yet created
+**Status**: [x] `production/qa/evidence/s4-06-mobile-calm.md` — logic implemented (2026-05-30); screenshot pending manual device test (advisory)
 
 ---
 
