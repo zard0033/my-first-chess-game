@@ -1,7 +1,7 @@
 # Story 001: Board Theme — Custom Piece Set & Board Colors
 
 > **Epic**: Visual Identity & Board Theme
-> **Status**: Backlog
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: Visual/Feel
 > **Estimate**: M (4–6 hours)

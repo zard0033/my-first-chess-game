@@ -1,91 +1,85 @@
-<!-- QA-PLAN: 2026-05-30 | System: Sprint 4 | Plan written: production/qa/qa-plan-sprint-4-2026-05-30.md -->
+<!-- QA-PLAN: 2026-05-30 | System: Sprint 5 | Plan written: production/qa/qa-plan-sprint-5-2026-05-30.md -->
 
 # Active Session State
 
 **Last updated**: 2026-05-30
-**Tests**: 314/314 pass
-**Sprint**: 4 (`production/sprints/sprint-4.md`)
+**Tests**: 324/324 pass
+**Sprint**: 5 (`production/sprints/sprint-5.md`)
 
 ---
 
 ## 當前進度
 
-### S4-01 ✅ COMPLETE WITH NOTES（2026-05-30）
-- `src/views/PlayView.vue` — 移除 useChessBoard，接入 useGameLifecycle + usePlayEngine；GAME_OVER overlay + New Game + Review 按鈕
-- `src/modules/game-lifecycle/use-game-lifecycle.ts` — 新增 setDevFen()（同時重置 _moves/_playerMoveTimes）
-- Code review 修了 2 bugs：engine error 永久 disable + setDevFen stale _moves
-- 7 張 Playwright 截圖於 `production/qa/evidence/s4-01-*.png`
+### S5-01 ✅ COMPLETE（2026-05-30）
+- `src/modules/chess-engine/play-engine.ts` — 加入 liveness probe（BACKGROUND_THRESHOLD_MS=60s, LIVENESS_PROBE_TIMEOUT_MS=1s）、`VisibilityEventTarget` 注入參數、`dispose()` 方法
+- `tests/unit/chess-engine/visibility-liveness.test.ts` — 7 tests，全通過
+- **偏差**：`VisibilityEventTarget` injectable 替代直接存取 `document`（Node.js 測試相容性）；`dispose()` 作為新增 API
 
-### S4-02 ✅ COMPLETE WITH NOTES（2026-05-30）
-- `src/config/engine-tuning.ts` — 新增 7 個 tuning constants（REVIEW_PREVIEW_DEPTH、REVIEW_TARGET_DEPTH 等）
-- `src/modules/post-game-review/use-post-game-review.ts` — two-pass analysis loop composable
-- `src/views/ReviewView.vue` — 接入 usePostGameReview、opening header、cpLoss display、navigation、biggest swing
-- `tests/unit/post-game-review/two-pass-analysis.test.ts` — 30 tests，全通過
-- **注意偏差**：state 型別用 `ANALYZING | CANCELLED` 而非 story spec 的 `ANALYZING_PASS1 | ANALYZING_PASS2 | ABORTED`
+### S5-02 ✅ COMPLETE（2026-05-30）
+- `public/pieces/` — 12 SVG 棋子（wK/wQ/wR/wB/wN/wP/bK/bQ/bR/bB/bN/bP），和茶系重新著色
+- `src/assets/board-theme.css` — 棋盤方格色彩覆寫 + piece CSS overrides
+- `src/main.ts` — 匯入 board-theme.css
+- `production/qa/evidence/board-theme-evidence.md` — Playwright 截圖 375px + 1440px，APPROVED
+- **對比度** light #e8dcc8 vs dark #8b6f5c ≈ 3.5:1（通過 WCAG 3:1）
 
-### S4-03 ✅ COMPLETE（2026-05-30）
-- `src/modules/post-game-review/cploss.ts` — `computeCpLoss(evalI, evalNext)` + `isCpLossPreliminary(depthI, depthNext)` 純函式
-- `tests/unit/post-game-review/cploss-formula.test.ts` — 15 tests，全通過
+### S5-03 ✅ COMPLETE（2026-05-30）
+- `tests/e2e/depth-22-spike.spec.ts` — Playwright spike；HCE 模式下 3 個局面分別達 depth 27/29/27 in 10s
+- `production/qa/evidence/s5-03-depth22-spike-evidence.md` — 詳細測量記錄
+- `docs/architecture/adr-0007-*.md` — Status 更新，OQ-5 desktop spike RESOLVED
+- **關鍵發現**：NNUE 網路檔（38MB）未部署 → review engine 靜默使用 HCE；`REVIEW_TARGET_DEPTH = 22` 在 HCE 模式下 CONFIRMED ✅
+- **後續**：Sprint 6 決定是否部署 NNUE 檔或正式切換 HCE
 
-### S4-04 ✅ COMPLETE（2026-05-30）
-- `src/modules/post-game-review/use-post-game-review.ts` — 提取 `computeBiggestSwingCursor` 為 export 純函式
-- `tests/unit/post-game-review/biggest-swing.test.ts` — 11 tests，全通過
+### S5-04 ✅ COMPLETE（2026-05-30）
+- `vite.config.ts` — 加入 `manualChunks: { 'chess-board': ['vue3-chessboard', 'chessground', 'chess.js'], 'chess-openings': ['chess-openings'] }`
+- `production/qa/smoke-chess-board-bundle.md` — 更新實際量測結果
+- **結果**：chess-board chunk **56.33 kB gzip** ✅（< 120 kB 預算）；chess-openings chunk 137 kB（advisory）
+- **附加效益**：chess.js 不再重複打包；game-store 從 38KB 縮至 0.58KB
 
-### S4-07 ✅ COMPLETE（2026-05-30）
-- `src/modules/game-export/types.ts` — `ExportConfig` interface（readonly fields）
-- `src/modules/game-export/assembler.ts` — `assembleExportPayload` 純同步函式 + Seven Tag Roster
-- `tests/unit/game-export/pgn-prompt-assembly.test.ts` — 14 tests，全通過
-
-### S4-05 ✅ COMPLETE（2026-05-30）
-- `src/modules/post-game-review/use-post-game-review.ts` — sessionStorage 持久化（debounce 500ms、pv stripped、QuotaExceeded 靜默處理、remount restore）
-- `tests/unit/post-game-review/sessionstorage.test.ts` — 8 tests，全通過
-
-### S4-06 ✅ COMPLETE（2026-05-30）
-- `src/views/ReviewView.vue` — isMobile matchMedia + displayAnnotations（bestMove only on mobile）+ displayEvaluation（null on mobile）+ MoveAnnotationDisplay 接入
-- `production/qa/evidence/s4-06-mobile-calm.md` — advisory evidence（screenshot pending 手動驗證）
-
-### S4-08 ✅ COMPLETE（2026-05-30）
-- `src/modules/game-export/use-game-export.ts` — Tier-1/2/3 state machine（SHARING/COPYING/SUCCESS/FALLBACK）
-- `tests/unit/game-export/tier-delivery.test.ts` — 11 tests，全通過
-
-### S4-09 ✅ COMPLETE（2026-05-30）
-- `src/composables/use-board-keyboard.ts` — useBoardKeyboard composable（IDLE/PIECE_SELECTED、Arrow/Enter/Escape/Home/End/PgUp/PgDn、100ms merge、squareAriaLabel）
-- `src/components/chess-board.vue` — 整合 keyboard nav（focus cell、tabindex="-1" wrapper、assertive live region）
-- `tests/unit/chess-board/keyboard-nav.test.ts` — 37 tests，全通過
-- `tests/e2e/chess-board-a11y.spec.ts` — Playwright axe-core spec（pending CI run）
-
-### 🎉 Sprint 4 COMPLETE
-所有 S4-01 ~ S4-09 已完成。305/305 tests pass。
+### S5-05 ✅ COMPLETE（2026-05-30）
+- `tests/e2e/memory-budget-spike.spec.ts` — Playwright spike；main thread heap 9.5MB
+- `production/qa/evidence/chess-engine-memory-evidence.md` — 測量結果、限制說明、手動測量指引
+- **結果**：Main thread heap 9.5 MB ✅；Worker WASM 記憶體估算 ~57 MB total（< 150 MB）
+- **限制**：無 COOP/COEP headers 無法自動量測 Worker 記憶體；完整手動測量延至 Sprint 6
 
 ---
 
-## Sprint 4 Story 狀態
+## Sprint 5 Story 狀態
 
-| ID    | Story                           | 狀態                        |
-| ----- | ------------------------------- | --------------------------- |
-| S4-01 | PlayView ← useGameLifecycle     | done                        |
-| S4-02 | Two-Pass Analysis Loop          | done                        |
-| S4-03 | cpLoss Formula                  | done                        |
-| S4-04 | biggestSwingCursor              | done                        |
-| S4-05 | sessionStorage Persistence      | done                        |
-| S4-06 | Mobile Calm Default             | done                        |
-| S4-07 | PGN Assembly                    | done                        |
-| S4-08 | Tier Delivery State Machine     | done                        |
-| S4-09 | Keyboard Nav（S3-08 carryover） | done                        |
+| ID    | Story                                 | 狀態     |
+| ----- | ------------------------------------- | -------- |
+| S5-01 | iOS Visibility Liveness               | done     |
+| S5-02 | Board Theme                           | done     |
+| S5-03 | ADR-0007 depth-22 spike               | done     |
+| S5-04 | Bundle Size Verification              | done     |
+| S5-05 | Memory Budget Verification            | done     |
 
 ---
 
-## ⚠️ 重要注意事項
+## ⚠️ Sprint 5 開放項目（移交 Sprint 6）
 
-- **ADR-0007 `REVIEW_TARGET_DEPTH = 22` 是 provisional** — iPhone Safari depth-22 spike 尚未執行。S4-02 實作時標記為 provisional，Sprint 5 前完成 spike。
-- **Sprint 3 殘餘 conditions（不阻塞）**：S3-07 AC-3/AC-4（reduced-motion，forced-colors）advisory；S3-04 E2E pointer-events Playwright test（Sprint 4 QA）。
-- **QA Plan**：`production/qa/qa-plan-sprint-4-2026-05-30.md`
+1. **NNUE 部署決策**：`nn-5af11540bbfe.nnue`（38MB）未部署 → review engine 使用 HCE。選項：(a) 部署 NNUE 檔，(b) 正式改為 HCE-only，更新 ADR-0001
+2. **chess-openings chunk**：137 kB gzip，超過 120 kB budget（非 chess-board AC，但值得追蹤）
+3. **完整記憶體量測**：需 Chrome DevTools 手動 heap snapshot（Worker WASM 記憶體）
+4. **ADR-0007 Accepted**：OQ-5 desktop done，仍需 real iPhone + NNUE 部署決策才能達 Accepted
 
 ---
+
+## 下一步（新 session 入口）
+
+Sprint 5 全部 story DONE。建議：
+1. 跑 `/smoke-check sprint` 做 Sprint 5 QA sign-off
+2. 規劃 Sprint 6：解決 NNUE 決策 + Supabase 整合 + Phase 2 準備
+
+Sprint 6 候選範圍：
+- NNUE 部署決策（ADR-0001 更新）
+- `opening-knowledge-cards` GDD 補完（sections 3/5/7/8）→ 解除 Blocked
+- Supabase 整合（Magic Link auth + 對局儲存）
+- Phase 2 準備（Claude API 解釋功能）
 
 ## 歷史里程碑（參考）
 
 - Sprint 1: 環境設定 + ADR spikes ✅
 - Sprint 2: Foundation layer（chess-board + chess-engine + opening-id + app-router），全部 10 stories ✅；Stockfish WASM timeout bug fixed
 - Sprint 3: Core layer（game-lifecycle + move-annotation），182/182 tests，APPROVED WITH CONDITIONS
-- Sprint 4: Feature layer（post-game-review + game-export），進行中
+- Sprint 4: Feature layer（post-game-review + game-export + keyboard-nav），314/314 tests，COMPLETE ✅
+- Sprint 5: iOS Liveness + Board Theme + depth-22 spike + bundle size + memory budget，324/324 tests，COMPLETE ✅

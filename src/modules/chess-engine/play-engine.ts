@@ -5,6 +5,16 @@ import { createPlayEngineWorker } from '../../workers/stockfish-play.worker'
 export type { IStockfishWorker }
 export type WorkerFactory = () => IStockfishWorker
 
+/** Injectable visibility event target (document-like). Injectable for unit testability. */
+export type VisibilityEventTarget = Pick<EventTarget, 'addEventListener' | 'removeEventListener'> & {
+  readonly hidden: boolean
+}
+
+/** TR-chess-engine-009: app background ≥ this threshold → liveness probe fires. */
+const BACKGROUND_THRESHOLD_MS = 60_000
+/** TR-chess-engine-009: wait this long for readyok after probe before declaring Worker dead. */
+const LIVENESS_PROBE_TIMEOUT_MS = 1_000
+
 /** Nine engine states per ADR-0002 §5. */
 export type EngineState =
   | 'UNINITIALIZED'
@@ -136,19 +146,97 @@ function runHandshake(worker: IStockfishWorker): Promise<void> {
 }
 
 const defaultFactory: WorkerFactory = createPlayEngineWorker
+const defaultEventTarget: VisibilityEventTarget | undefined =
+  typeof document !== 'undefined' ? document : undefined
 
 /**
  * HCE Play Engine composable.
  * ADR-0001: stockfish@16.0.0 single-threaded build, HCE via `Use NNUE false`.
  * ADR-0002: postMessage-only IPC; nine-state machine.
- * This story implements: UNINITIALIZED / LOADING / HANDSHAKING / IDLE / CRASHED.
- * Remaining states (THINKING, STOPPING, DISPOSED, IDLE_TERMINATED) are added in Story 002+.
+ * TR-chess-engine-009: iOS visibility liveness probe (60s threshold, 1s readyok timeout).
  *
  * @param factory - Worker constructor, injectable for unit testing.
+ * @param eventTarget - EventTarget for visibilitychange, injectable for unit testing.
  */
-export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
+export function usePlayEngine(
+  factory: WorkerFactory = defaultFactory,
+  eventTarget: VisibilityEventTarget | undefined = defaultEventTarget,
+) {
   const state = ref<EngineState>('UNINITIALIZED')
   let _worker: IStockfishWorker | null = null
+
+  // ---- iOS liveness probe state (TR-chess-engine-009) ----
+  let _lastHeartbeatTs = 0
+  let _probePending = false
+  let _probeTimer: ReturnType<typeof setTimeout> | null = null
+  let _checkpoint: { fen: string; skillLevel: number; movetimeMs: number } | null = null
+  let _livenessRegistered = false
+
+  function _recordHeartbeat(): void {
+    _lastHeartbeatTs = Date.now()
+  }
+
+  function _onVisibilityChange(): void {
+    if (eventTarget?.hidden !== false) return
+    if (!_worker) return
+    if (_probeTimer !== null) return // probe already in flight — debounce
+    if (
+      state.value === 'DISPOSED' ||
+      state.value === 'UNINITIALIZED' ||
+      state.value === 'LOADING' ||
+      state.value === 'HANDSHAKING'
+    )
+      return
+    if (Date.now() - _lastHeartbeatTs < BACKGROUND_THRESHOLD_MS) return
+
+    // Install a wrapper handler so readyok can be intercepted regardless of engine state
+    const worker = _worker
+    const existingHandler = worker.onmessage
+
+    _probePending = true
+
+    worker.onmessage = (ev: MessageEvent<string>) => {
+      _recordHeartbeat()
+      if (_probePending && ev.data.trim() === 'readyok') {
+        _probePending = false
+        if (_probeTimer !== null) {
+          clearTimeout(_probeTimer)
+          _probeTimer = null
+        }
+        // Restore the original handler
+        if (_worker === worker) _worker.onmessage = existingHandler
+        return
+      }
+      existingHandler?.(ev)
+    }
+
+    worker.postMessage('isready')
+
+    _probeTimer = setTimeout(() => {
+      _probeTimer = null
+      _probePending = false
+      // Worker unresponsive — terminate and respawn
+      const checkpoint = _checkpoint
+      _checkpoint = null
+      if (_worker) {
+        _worker.onmessage = null
+        _worker.terminate()
+        _worker = null
+      }
+      state.value = 'UNINITIALIZED'
+      // Best-effort respawn; original play() Promise is orphaned but engine stays operational
+      ;(async () => {
+        try {
+          await init()
+          if (checkpoint && state.value === 'IDLE') {
+            play(checkpoint).catch(() => {})
+          }
+        } catch {
+          // init sets CRASHED; nothing more to do
+        }
+      })()
+    }, LIVENESS_PROBE_TIMEOUT_MS)
+  }
 
   /**
    * Spawns the HCE worker and completes the UCI handshake.
@@ -156,9 +244,15 @@ export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
    * HANDSHAKING are no-ops; callers should observe state to know when ready.
    * State transitions: UNINITIALIZED → LOADING → HANDSHAKING → IDLE (happy path)
    *                    HANDSHAKING → CRASHED (timeout, either phase)
+   * Also registers the iOS visibilitychange liveness probe on first call.
    */
   async function init(): Promise<void> {
     if (state.value !== 'UNINITIALIZED' && state.value !== 'CRASHED') return
+
+    if (!_livenessRegistered && eventTarget) {
+      eventTarget.addEventListener('visibilitychange', _onVisibilityChange)
+      _livenessRegistered = true
+    }
 
     state.value = 'LOADING'
     try {
@@ -178,6 +272,24 @@ export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
       _worker = null
       throw err
     }
+  }
+
+  /**
+   * Remove the visibilitychange listener and terminate the Worker.
+   * Call this when the engine is no longer needed (e.g., component unmount).
+   */
+  function dispose(): void {
+    eventTarget?.removeEventListener('visibilitychange', _onVisibilityChange)
+    _livenessRegistered = false
+    if (_probeTimer !== null) {
+      clearTimeout(_probeTimer)
+      _probeTimer = null
+    }
+    if (_worker) {
+      _worker.terminate()
+      _worker = null
+    }
+    state.value = 'DISPOSED'
   }
 
   let _requestId = 0
@@ -233,10 +345,12 @@ export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
         }, STOP_DRAIN_TIMEOUT_MS)
 
         worker.onmessage = (ev: MessageEvent<string>) => {
+          _recordHeartbeat()
           if (ev.data.startsWith('bestmove ')) {
             clearTimeout(drainTimer!)
             drainTimer = null
             worker.onmessage = null
+            _checkpoint = null
             state.value = 'IDLE'
             // cancelSearch completed — but we still reject with CanceledError (already set)
             // resolve/reject already called above; the drain is a side-effect only.
@@ -268,11 +382,14 @@ export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
       }
 
       state.value = 'THINKING'
+      // Store checkpoint for liveness probe respawn (TR-chess-engine-009)
+      _checkpoint = { fen: input.fen, skillLevel: input.skillLevel, movetimeMs: input.movetimeMs }
       worker.postMessage(`setoption name Skill Level value ${input.skillLevel}`)
       worker.postMessage(`position fen ${input.fen}`)
       worker.postMessage(`go movetime ${input.movetimeMs}`)
 
       worker.onmessage = (ev: MessageEvent<string>) => {
+        _recordHeartbeat()
         const line = ev.data
 
         if (line.startsWith('info ') && !line.includes('lowerbound') && !line.includes('upperbound')) {
@@ -296,6 +413,7 @@ export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
 
           const bestMoveToken = line.split(/\s+/)[1]
           const kind = bestMoveToken === '0000' ? 'resign' : 'move'
+          _checkpoint = null
           state.value = 'IDLE'
           cleanup()
           resolve({
@@ -317,5 +435,7 @@ export function usePlayEngine(factory: WorkerFactory = defaultFactory) {
     state: readonly(state),
     init,
     play,
+    /** Remove liveness listener and terminate Worker. Call on component unmount. */
+    dispose,
   }
 }

@@ -9,106 +9,76 @@
 #   done           ↔  Complete
 #   blocked        ↔  Blocked
 
-sprint: 4
-goal: "完成 PlayView.vue ← useGameLifecycle 整合並實作 Post-Game Review 旗艦功能：兩輪分析 → cpLoss → biggestSwingCursor"
-start: "2026-07-10"
-end: "2026-07-23"
+sprint: 5
+goal: "完成 iOS 可見性探測 + 棋盤視覺主題，確認效能/記憶體達標，v0 MVP 達到可發布品質"
+start: "2026-07-24"
+end: "2026-08-06"
 generated: "2026-05-30"
-updated: "2026-05-30"  # S4-01 done
+updated: "2026-05-30"
 
 stories:
   # ---- Must Have (必須完成) ----
 
-  - id: "S4-01"
-    name: "PlayView.vue ← useGameLifecycle 整合：GAME_OVER overlay + New Game + Review 導航"
-    file: "production/epics/game-lifecycle/story-003-play-view-integration.md"
+  - id: "S5-01"
+    name: "chess-engine: iOS Visibility-Change Liveness Probe + Worker Respawn"
+    file: "production/epics/chess-engine/story-005-ios-visibility.md"
     priority: must-have
     status: done
     owner: ""
-    estimate_days: 0.50
+    estimate_days: 0.38
     blocker: ""
     completed: "2026-05-30"
 
-  - id: "S4-02"
-    name: "post-game-review: Two-Pass Analysis Loop"
-    file: "production/epics/post-game-review/story-001-two-pass-analysis.md"
+  - id: "S5-02"
+    name: "visual-identity: Board Theme — Custom Piece Set & Board Colors"
+    file: "production/epics/visual-identity/story-001-board-theme.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
-    estimate_days: 1.00
-    blocker: "S4-01"
-    completed: ""
-
-  - id: "S4-03"
-    name: "post-game-review: cpLoss Formula + Depth-Comparability Guard"
-    file: "production/epics/post-game-review/story-002-cploss-formula.md"
-    priority: must-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.31
-    blocker: "S4-02"
-    completed: ""
-
-  - id: "S4-04"
-    name: "post-game-review: biggestSwingCursor — Computed Once at COMPLETE"
-    file: "production/epics/post-game-review/story-003-biggest-swing.md"
-    priority: must-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.19
-    blocker: "S4-02, S4-03"
-    completed: ""
+    estimate_days: 0.63
+    blocker: ""
+    completed: "2026-05-30"
 
   # ---- Should Have (延伸目標) ----
 
-  - id: "S4-05"
-    name: "post-game-review: sessionStorage Persistence — Throttled Writes, pv Stripped"
-    file: "production/epics/post-game-review/story-004-sessionstorage.md"
+  - id: "S5-03"
+    name: "ADR-0007 spike: iPhone Safari depth-22 可達性驗證"
+    file: ""
     priority: should-have
     status: backlog
     owner: ""
     estimate_days: 0.25
-    blocker: "S4-02"
+    blocker: ""
     completed: ""
 
-  - id: "S4-06"
-    name: "post-game-review: Mobile Calm Default — Viewport-Responsive Annotation"
-    file: "production/epics/post-game-review/story-005-mobile-calm.md"
+  - id: "S5-04"
+    name: "chess-board: Bundle Size Verification (≤ 120KB gzip)"
+    file: "production/epics/chess-board/story-007-bundle-size.md"
     priority: should-have
     status: backlog
     owner: ""
     estimate_days: 0.25
-    blocker: "S4-02, S4-01"
-    completed: ""
-
-  - id: "S4-07"
-    name: "game-export: PGN Serialization + Claude.ai Prompt Assembly"
-    file: "production/epics/game-export/story-001-pgn-prompt-assembly.md"
-    priority: should-have
-    status: ready-for-dev
-    owner: ""
-    estimate_days: 0.31
     blocker: ""
     completed: ""
 
   # ---- Nice to Have (有餘力再做) ----
 
-  - id: "S4-08"
-    name: "game-export: Tier-1/2/3 Clipboard Delivery State Machine"
-    file: "production/epics/game-export/story-002-tier-delivery.md"
+  - id: "S5-05"
+    name: "chess-engine: Memory Budget Verification (≤ 150MB)"
+    file: "production/epics/chess-engine/story-007-memory-budget.md"
     priority: nice-to-have
     status: backlog
     owner: ""
-    estimate_days: 0.44
-    blocker: "S4-07"
+    estimate_days: 0.25
+    blocker: ""
     completed: ""
 
-  - id: "S4-09"
-    name: "chess-board: Keyboard Navigation — useBoardKeyboard (S3-08 carryover)"
-    file: "production/epics/chess-board/story-005-keyboard-nav.md"
+  - id: "S5-06"
+    name: "opening-knowledge-cards: GDD 完成（sections 3/5/7/8）"
+    file: ""
     priority: nice-to-have
     status: backlog
     owner: ""
-    estimate_days: 0.81
+    estimate_days: 0.50
     blocker: ""
     completed: ""

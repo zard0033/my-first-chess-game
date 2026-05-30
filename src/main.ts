@@ -4,6 +4,7 @@ import { createAppRouter } from './router'
 import App from './App.vue'
 import './assets/main.css'
 import 'vue3-chessboard/style.css'
+import './assets/board-theme.css'
 
 // Handle GitHub Pages SPA fallback redirect
 const redirect = new URLSearchParams(window.location.search).get('redirect')

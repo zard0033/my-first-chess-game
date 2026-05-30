@@ -13,4 +13,14 @@ export default defineConfig({
     exclude: ['stockfish'],
   },
   assetsInclude: ['**/*.wasm'],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'chess-board': ['vue3-chessboard', 'chessground', 'chess.js'],
+          'chess-openings': ['chess-openings'],
+        },
+      },
+    },
+  },
 })

@@ -1,9 +1,16 @@
 # ADR-0007: Post-Game Review Analysis Loop and sessionStorage Schema
 
 ## Status
-Proposed
+Proposed — OQ-5 desktop spike RESOLVED (2026-05-30); real-iPhone measurement deferred to Sprint 6.
 
-> **Next action to reach Accepted**: Complete the OQ-5 iPhone Safari depth-reachability spike to confirm or lower `REVIEW_TARGET_DEPTH = 22`. Spike must also measure peak resident memory with the stockfish.wasm NNUE worker active during an 80-ply two-pass review on an iPhone SE 2nd gen.
+> **OQ-5 spike result** (S5-03, 2026-05-30): Desktop Chromium HCE baseline reaches depth 27–29 per
+> position in 10s — `REVIEW_TARGET_DEPTH = 22` CONFIRMED. Full evidence in
+> `production/qa/evidence/s5-03-depth22-spike-evidence.md`.
+>
+> **Open items blocking Accepted status**:
+> 1. NNUE network file (`nn-5af11540bbfe.nnue`, 38 MB) not deployed — review engine silently uses HCE.
+>    Decision needed: deploy NNUE file vs. explicitly switch to HCE for all workers. See Sprint 6.
+> 2. Real iPhone Safari depth + memory measurement still required to fully close OQ-5.
 
 ## Date
 2026-05-28

@@ -1,7 +1,7 @@
 # Story 005: iOS Visibility-Change Liveness Probe and Worker Respawn
 
 > **Epic**: Chess Engine Integration
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Foundation (Core — engine workers)
 > **Type**: Integration
 > **Estimate**: S (2–3 hours)
@@ -72,7 +72,7 @@
 - `tests/unit/chess-engine/visibility-liveness.test.ts` — unit test with fake timers (BLOCKING)
 - `production/qa/evidence/ios-visibility-liveness-evidence.md` — manual test on real iPhone Safari (ADVISORY)
 
-**Status**: [ ] Not yet created
+**Status**: [x] Created and passing (7 tests)
 
 ---
 
@@ -80,3 +80,13 @@
 
 - Depends on: Stories 001–002 must be DONE (UCI handshake + play search exist)
 - Unlocks: Nothing — terminal reliability feature
+
+## Completion Notes
+**Completed**: 2026-05-30
+**Criteria**: 5/5 ACs passing + 2 edge case tests
+**Deviations**:
+- `VisibilityEventTarget` injectable parameter added to `usePlayEngine` (second arg) for testability — avoids `document` direct access which fails in Node.js test environment
+- `dispose()` added to `usePlayEngine` return value (was not in original play-engine; needed for listener cleanup)
+- Real-device iOS Safari verification is advisory (no physical device available)
+**Test Evidence**: Integration — `tests/unit/chess-engine/visibility-liveness.test.ts` — 7 tests pass
+**Code Review**: Skipped (Lean mode)
