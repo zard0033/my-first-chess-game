@@ -265,6 +265,12 @@ type GamePhase = 'SETUP' | 'PLAYER_TURN' | 'AI_THINKING' | 'GAME_OVER'
 - gameStore is a shared global — any system can technically read both fields. Convention (and TypeScript types) must discourage PostGameReview from writing to `isGameInProgress`.
 - `shallowRef` + `Object.freeze` are non-obvious to a programmer unfamiliar with the pattern — requires code comment and ADR reference in the store implementation
 
+### Post-Implementation Note (S4-01, 2026-05-30)
+
+`useGameLifecycle()` in `PlayView.vue` is intentionally called **without a router dependency** (`_router === null`). This means `onGameTerminal()` only calls `setCompletedGame()` + `setGameInProgress(false)` and does NOT auto-navigate to `/review`. The GAME_OVER overlay in `PlayView.vue` lets the player choose between **New Game** and **Review**; the Review button calls `router.push('/review')` directly.
+
+*To change to auto-navigate on game end:* pass `router` into `useGameLifecycle(deps)`, remove the Review button from the GAME_OVER overlay, and ensure `isGameInProgress = false` is set before `router.push` fires (disarm-before-navigate invariant above).
+
 ### Risks
 
 | Risk | Probability | Impact | Mitigation |

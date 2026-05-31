@@ -71,6 +71,10 @@ In v0 the card uses the **headline opening only** — the ECO of the first match
 - Keyboard: the header element receives `role="button"` and `tabindex="0"`, responding to `Space` and `Enter`.
 - Toggle state is **session-ephemeral** — resets to default on each new review session.
 
+### Card language
+
+All card `body` content is written in **Traditional Chinese（繁體中文）**. Move notation within the body (e.g. **d5**, **Bb4**) remains in standard algebraic notation regardless of language.
+
 ### Markdown rendering
 
 Card `body` supports only inline formatting:
@@ -120,6 +124,7 @@ No HTML passthrough, no links, no images. The renderer must escape all other mar
 | Initial card count | ~20 ECO codes | 10–50 | Cover the most common openings beginners encounter (Italian, Spanish, Sicilian Najdorf/Dragon, French, Caro-Kann, English, Queen's Gambit Declined/Accepted, King's Indian, etc.) |
 | Card max length | 4 sentences | 2–6 | Beginners must finish reading in < 20s. Longer cards push to Phase 2 expandable view. |
 | Card source format | markdown string | — | Allows bold/italic emphasis, no images in v0 |
+| Card body language | 繁體中文 | — | All body text in Traditional Chinese; move notation in standard algebraic (e.g. **d5**) |
 | Mobile default state | collapsed | collapsed / expanded | Binding per ADR-0007 §5 calm default |
 | Desktop default state | expanded | collapsed / expanded | Information density acceptable on larger viewport |
 

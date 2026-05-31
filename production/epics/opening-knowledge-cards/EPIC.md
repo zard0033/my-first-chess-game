@@ -1,10 +1,10 @@
 # Epic: Opening Knowledge Cards
 
 > **Layer**: Feature
-> **GDD**: design/gdd/opening-knowledge-cards.md (skeleton — sections 3/5/7/8 TO AUTHOR)
+> **GDD**: design/gdd/opening-knowledge-cards.md (complete — all 8 sections authored)
 > **Architecture Module**: (no standalone module — surfaced as a panel inside PostGameReview)
-> **Status**: Blocked — GDD incomplete
-> **Stories**: Cannot create until GDD sections 3/5/7/8 are authored
+> **Status**: Ready — GDD complete, stories created (Sprint 6)
+> **Stories**: story-001-component.md, story-002-content-cards.md
 
 ## Overview
 
@@ -27,14 +27,13 @@ decisions needed beyond the ECO key contract already established in ADR-0003).
 ## GDD Requirements
 
 | TR-ID | Requirement | ADR Coverage |
-|-------|-------------|--------------|
-| (none registered) | GDD skeleton only — TR-IDs will be registered once sections 3/5/7/8 are authored | — |
-
-**Untraced Requirements**: All — GDD sections 3 (Detailed Design), 5 (Edge Cases), 7 (Tuning Knobs), 8 (Acceptance Criteria) are marked TO AUTHOR.
-
-> ⚠️ **BLOCKED**: This epic cannot have stories created until the GDD is completed.
-> Run `/design-system opening-knowledge-cards` to author the missing sections, then
-> run `/architecture-review` to register TR-IDs, then run `/create-stories opening-knowledge-cards`.
+| ----- | ----------- | ------------ |
+| OKC-01 | OpeningKnowledgeCard.vue renders beneath opening header when eco matches | ADR-0003 (ECO key contract) |
+| OKC-02 | No DOM element when eco is null or unmatched | ADR-0003 |
+| OKC-03 | Mobile collapsed / desktop expanded by default; header toggle | — |
+| OKC-04 | Markdown inline-only rendering; no HTML injection | — |
+| OKC-05 | ≥ 20 ECO codes with hand-authored content cards | — |
+| OKC-06 | AC-08 tone: no judgment language | — |
 
 ## Definition of Done
 

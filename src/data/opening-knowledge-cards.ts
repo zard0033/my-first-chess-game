@@ -7,103 +7,209 @@ export interface KnowledgeCard {
 // ECO codes are matched against chess-openings@0.1.1 return values.
 // Confirm exact codes during integration (lookupSync may return sub-variants).
 export const OPENING_CARDS: Readonly<Record<string, KnowledgeCard>> = {
+
+  // ---- Sprint 1: 10 cards ----
+
   C50: {
     eco: 'C50',
     name: 'Italian Game',
     body:
-      'White develops the bishop to c4, pointing it at f7 — a square defended only by the king at the start. ' +
-      'The plan is to control the center and use the bishop\'s pressure to build kingside attacking chances. ' +
-      'Black\'s main task is finding active counterplay, often by challenging the center with **d5** or rerouting to c5. ' +
-      'The key pattern to recognize: watch for **Ng5** ideas targeting f7 once development is complete.',
+      '白方將象走到 c4，瞄準只有王防守的 f7 格——這是佈局中最脆弱的弱點之一。' +
+      '白方的計劃是控制中心，利用象的壓力積累王翼攻勢。' +
+      '黑方的主要任務是找到主動的反擊手段，常見方案包括挺進 **d5** 或將象移至 c5。' +
+      '關鍵棋型：當局面發展完畢後，注意 **Ng5** 主動攻擊 f7 的可能性。',
   },
 
   C65: {
     eco: 'C65',
     name: 'Ruy Lopez',
     body:
-      'White plays **Bb5**, pinning the knight that defends e5 and indirectly pressuring Black\'s central pawn. ' +
-      'The long-term plan is to build a strong pawn center and keep Black slightly cramped — this is a slow, positional squeeze. ' +
-      'Black typically responds with **a6** to push the bishop away, then seeks counterplay on the queenside with b5 and c5. ' +
-      'Knowing that White aims for positional pressure rather than quick tactics helps make sense of White\'s quiet-looking moves.',
+      '白方走 **Bb5**，牽制住防守 e5 兵的馬，間接對黑方的中心兵施加壓力。' +
+      '長期計劃是建立強大的兵形中心，讓黑方始終處於略微受限的狀態——這是一種緩慢的位置擠壓。' +
+      '黑方通常以 **a6** 將象逼走，再謀求 b5 和 c5 的後翼反擊。' +
+      '白方追求的是位置壓力而非速攻，這解釋了白方那些看似平靜的每步棋背後的深意。',
   },
 
   B20: {
     eco: 'B20',
     name: 'Sicilian Defense',
     body:
-      'Black answers 1.e4 with **c5**, challenging White\'s control of d4 without mirroring the central pawn setup. ' +
-      'This creates an unbalanced position: White often gets a space advantage in the center while Black gets a half-open c-file for queenside counterplay. ' +
-      'Many Sicilian games become sharp battles where White attacks on the kingside and Black simultaneously counterattacks on the queenside. ' +
-      'The key idea: Black is fighting for a win, not just equality — the Sicilian is a fighting defense from move one.',
+      '黑方以 **c5** 回應 1.e4，不對稱地爭奪 d4 格的控制權，而非鏡像白方的中心兵形。' +
+      '局面由此形成不均衡態勢：白方往往在中心獲得空間優勢，黑方則在後翼以半開放的 c 線發動反擊。' +
+      '許多西西里局面會演變為白方王翼攻勢與黑方後翼反擊的雙翼作戰。' +
+      '關鍵理念：黑方從第一步起就在爭勝，而不只是尋求均勢——西西里是一種積極進取的防禦。',
   },
 
   C00: {
     eco: 'C00',
     name: 'French Defense',
     body:
-      'Black plays **e6**, planning to follow with d5 to challenge White\'s center on move two — a solid but slightly passive setup. ' +
-      'The trade-off is that the c8 bishop can be hard to activate because e6 blocks its diagonal. ' +
-      'White often builds a large pawn center and attacks; Black\'s plan is to undermine that center with **c5** and create counterplay. ' +
-      'The tension between White\'s space advantage and Black\'s solid structure is what gives the French its distinctive character.',
+      '黑方走 **e6**，準備下一步以 d5 挑戰白方的中心——這是穩固但略顯被動的佈局。' +
+      '代價是 c8 象難以活躍，因為 e6 封閉了它的斜線。' +
+      '白方通常建立龐大的中心兵群並展開攻勢；黑方的計劃則是以 **c5** 瓦解中心，製造反擊機會。' +
+      '白方的空間優勢與黑方穩固陣型之間的張力，正是法國防禦獨特風格的核心。',
   },
 
   B10: {
     eco: 'B10',
     name: 'Caro-Kann Defense',
     body:
-      'Black plays **c6**, preparing to advance d5 and challenge e4 with solid piece support from the very start. ' +
-      'Unlike the French, Black\'s c8 bishop stays active because c6 doesn\'t block it — a key structural advantage. ' +
-      'The Caro-Kann typically leads to solid, slightly quieter positions where Black builds a healthy pawn structure and looks for endgame counterplay. ' +
-      'Recognizing that Black\'s goal is sound, methodical development — not early tactics — helps explain its careful piece placement.',
+      '黑方走 **c6**，為下一步以兵的支援推進 d5 做準備，從一開始就建立穩固的中心支撐。' +
+      '與法國防禦不同，c6 不封閉 c8 象的斜線——這是卡羅-卡恩的重要結構優勢。' +
+      '這個佈局通常帶來穩健、節奏略緩的局面，黑方建立健康的兵形，在殘局中尋求平等機會。' +
+      '認識到黑方的目標是穩健有序的發展而非早期戰術，有助於理解其每步棋背後的邏輯。',
   },
 
   D02: {
     eco: 'D02',
     name: 'London System',
     body:
-      'White builds a reliable setup with **Nf3** and **Bf4**, forming a solid foundation before committing central pawns. ' +
-      'The London is a system White can use against almost any Black response — the plan is consistent: control e5, castle kingside, coordinate pieces. ' +
-      'Black has many ways to play, often setting up with Nf6, e6, and d5 to create a solid pawn chain of their own. ' +
-      'The London\'s strength is flexibility and fewer sharp tactical lines to memorize; piece coordination and pawn structure matter most here.',
+      '白方以 **Nf3** 和 **Bf4** 建立穩固的開局體系，在確定中心兵形之前先完善棋子配置。' +
+      '倫敦體系幾乎可以對抗黑方的任何應對，計劃始終一致：控制 e5、王翼易位、協調棋子。' +
+      '黑方常見的應對是 Nf6、e6、d5，建立自己穩固的兵鏈。' +
+      '倫敦體系的優勢在於靈活性強、需要記憶的銳利變化少，棋子協調和兵形結構是制勝關鍵。',
   },
 
   B01: {
     eco: 'B01',
     name: 'Scandinavian Defense',
     body:
-      'Black immediately challenges White\'s e4 pawn with **d5** on move one — an aggressive and direct approach. ' +
-      'After 2.exd5, Black usually recaptures with the queen, which must move again after Nc3 — a tempo spent, but Black gets quick piece activity in return. ' +
-      'The Scandinavian leads to open, active positions where Black\'s pieces find good squares early. ' +
-      'The key plan for Black: develop all pieces rapidly and use the active queen as a coordination anchor, not just an attacker.',
+      '黑方第一步就以 **d5** 直接挑戰白方的 e4 兵——這是一種積極、直接的開局思路。' +
+      '2.exd5 之後，黑方通常以后重新奪回，后須在 Nc3 後再次移動，損失了一個先手，但換來了早期棋子的活躍性。' +
+      '斯堪地納維亞防禦帶來開放、主動的局面，黑方棋子能較早找到好格位。' +
+      '黑方的關鍵計劃：快速完成發展，以活躍的后作為協調中樞，而非單純的攻擊子。',
   },
 
   D30: {
     eco: 'D30',
     name: 'Queen\'s Gambit Declined',
     body:
-      'White offers the c4 pawn; Black declines with **e6**, choosing a solid central setup over accepting the pawn and stepping away from the center. ' +
-      'The game revolves around who controls the d4 and e5 squares — White builds central dominance while Black aims for a solid, reliable structure. ' +
-      'Black\'s main challenge is activating the c8 bishop, which e6 temporarily blocks; plans involving **b6**, **Ba6**, or **dxc4** plus **b5** are common solutions. ' +
-      'The Queen\'s Gambit rewards understanding pawn structure over memorizing long lines.',
+      '白方讓出 c4 兵；黑方以 **e6** 拒絕，選擇穩固的中心佈局，而非為了接受棋子而偏離中心。' +
+      '局面圍繞誰能控制 d4 和 e5 格展開——白方建立中心優勢，黑方追求穩固可靠的陣型。' +
+      '黑方的主要挑戰是激活 c8 象，常見的解決方案包括 **b6**、**Ba6** 或 **dxc4** 配合 **b5**。' +
+      '后翼棋局獎勵對兵形結構的理解，而非對長序列變化的記憶。',
   },
 
   A10: {
     eco: 'A10',
     name: 'English Opening',
     body:
-      'White begins with **c4**, controlling d5 and keeping central pawn placement flexible — a quiet but purposeful start. ' +
-      'The English often transposes into other openings, making it a versatile system that can be used against many Black setups. ' +
-      'White\'s typical plan involves Nc3, g3, Bg2, and Nf3 — building a fianchettoed bishop that controls the long diagonal. ' +
-      'Piece coordination and long-term pawn structure matter more here than forcing early piece exchanges.',
+      '白方以 **c4** 開局，控制 d5 並保持中心兵形的靈活性——這是一個靜謐但富有目的性的開局。' +
+      '英國開局常常可以轉置為其他佈局，使其成為可對抗多種黑方應對的通用體系。' +
+      '白方的典型計劃是 Nc3、g3、Bg2、Nf3——建立斜角象形成長斜線控制。' +
+      '棋子協調和長期兵形結構比早期的棋子交換更為重要。',
   },
 
   C42: {
     eco: 'C42',
     name: 'Petrov Defense',
     body:
-      'Black mirrors White\'s knight development with **Nf6**, immediately counterattacking e4 rather than defending e5. ' +
-      'The Petrov often leads to symmetrical, balanced positions — Black\'s aim is solid equality and safe development from the very start. ' +
-      'White must choose between accepting symmetry or trying to unbalance with more aggressive tries; both sides need to be precise to maintain their plans. ' +
-      'Knowing that Black is aiming for a rock-solid, drawish structure explains the careful, methodical style of this defense.',
+      '黑方以 **Nf6** 呼應白方的馬，立即反攻 e4 而非防守 e5——這是一種積極的對稱思路。' +
+      '彼得羅夫防禦通常帶來對稱的均衡局面，黑方的目標是從第一步起就尋求穩固的均勢。' +
+      '白方必須在接受對稱或嘗試更積極的變化之間做出選擇；雙方都需要精確才能維持各自的計劃。' +
+      '知道黑方的目標是極度穩固、平局傾向強的局面，有助於理解這一防禦沉穩、周密的棋風。',
   },
+
+  // ---- Sprint 2: 10 additional cards ----
+
+  C30: {
+    eco: 'C30',
+    name: 'King\'s Gambit',
+    body:
+      '白方第二步讓出 f 兵，以棄子換取快速發展和直接的王翼攻勢。' +
+      '核心思路是開通 f 線並以 **d4** 奪取中心，在黑方完成易位前製造對其王的壓力。' +
+      '黑方可以接受棋子（**exf4**）進入鋒利的戰術局面，或拒絕棋子以獲得穩固局面。' +
+      '無論黑方如何應對，認識到白方追求動態棋子活躍性而非材料均勢，是理解後續著法的關鍵。',
+  },
+
+  D10: {
+    eco: 'D10',
+    name: 'Slav Defense',
+    body:
+      '黑方以 **c6** 回應 **c4**，用兵支援 d5，讓 c8 象保持自由發展的空間——這是與法國防禦相比的重要結構優勢。' +
+      '斯拉夫防禦追求穩固的中心控制：白方以 c4 換取空間優勢，黑方則建立可靠的兵形基礎。' +
+      '黑方的反擊通常在后翼展開，以 **b5** 和 **a5** 逐步挑戰白方的空間優勢。' +
+      '穩固性與積極的后翼反擊之間的平衡，賦予斯拉夫防禦其獨特的沉穩風格。',
+  },
+
+  E61: {
+    eco: 'E61',
+    name: 'King\'s Indian Defense',
+    body:
+      '黑方讓白方以 d4 和 c4 建立強大的中心，計劃在棋子就位後以 **e5** 或 **c5** 反攻。' +
+      'g7 的斜角象和 f6 的馬是黑方陣型的基石，它們從側翼而非正面向中心施壓。' +
+      '白方通常在中心和后翼擁有空間優勢；黑方在準備好 **e5** 突破後，在王翼製造鋒利的反擊。' +
+      '理解黑方主動讓出中心空間是為了日後攻擊它，是國王印度防禦的哲學核心。',
+  },
+
+  E20: {
+    eco: 'E20',
+    name: 'Nimzo-Indian Defense',
+    body:
+      '黑方以 **Bb4** 牽制 c3 的馬，阻止其支撐 d4–e4 中心，並以雙兵換取長期的結構壓力。' +
+      '尼姆佐-印度是對抗 1.d4 最具原則性的應對之一——黑方從第三步起就以棋子而非兵來爭奪中心。' +
+      '白方通常以 **a3** 解除牽制並建立強大的中心；黑方以結構上的讓步（雙兵）換取積極的棋子活躍性。' +
+      '由此產生的局面往往帶有持久的不均衡，適合各種不同的棋風。',
+  },
+
+  D80: {
+    eco: 'D80',
+    name: 'Grünfeld Defense',
+    body:
+      '黑方先讓白方建立龐大的中心，再以 **d5** 立即反攻——不是以兵防守中心，而是以棋子攻擊它。' +
+      '兌換之後，黑方利用 g7 象的長斜線和積極的棋子活動，對白方的中心兵持續施壓。' +
+      '格倫費爾德是一個超現代開局：黑方讓白方過度延伸，再在適當時機以 **c5** 和 **Nc6** 瓦解中心。' +
+      'g7 象對 d4 兵的壓力是黑方整個中盤計劃的決定性特徵。',
+  },
+
+  B90: {
+    eco: 'B90',
+    name: 'Sicilian Defense: Najdorf Variation',
+    body:
+      '在西西里基本著法後，黑方走 **a6**——阻止白方 **Nb5**、準備 **b5**，並為後續著法保留最大的靈活性。' +
+      '納吉多夫是頂級水平最流行的開局之一，因為它盡可能地延遲承諾，同時在棋盤兩翼保留真實的反擊選項。' +
+      '白方通常在王翼發動直接攻勢，黑方則在后翼反擊；雙方推進的時機是核心的戰術競爭。' +
+      '明白 **a6** 主要是一個保留靈活性的著法而非退讓，有助於理解它為何被認為如此精確。',
+  },
+
+  B70: {
+    eco: 'B70',
+    name: 'Sicilian Defense: Dragon Variation',
+    body:
+      '在西西里基本佈局後，黑方將象斜角發展至 g7，形成「龍形」——一條橫貫整個棋盤指向白方后翼的長斜線。' +
+      '龍變體是棋類中最鋒利的局面之一：白方易位于后翼並直接進攻黑方王翼，黑方則以 c 線反攻，g7 象是最重要的遠射武器。' +
+      '雙方常常都在直接攻擊對方的王，每步棋的時機選擇至關重要——任何一方損失先手都可能決定勝負。' +
+      '**開放的 c 線**和 **g7 象的斜線**是黑方貫穿全局的兩大攻擊資源。',
+  },
+
+  A80: {
+    eco: 'A80',
+    name: 'Dutch Defense',
+    body:
+      '黑方第一步就以 **f5** 控制 e4，立即在王翼搶佔空間，展示積極進取的下棋風格。' +
+      '荷蘭防禦從第一步就形成不對稱的結構：白方通常在后翼和中心發展空間優勢，黑方則準備圍繞 f5 兵展開王翼行動。' +
+      'f5 兵可以成為優勢（支撐王翼攻勢）或弱點（暴露於中心的反擊），取決於雙方的發展方向。' +
+      '黑方以略顯不規則的兵形換取動態的棋子活躍性和真實的進攻機會。',
+  },
+
+  C25: {
+    eco: 'C25',
+    name: 'Vienna Game',
+    body:
+      '白方將馬發展至 c3，在決定 f4 或其他兵的推進之前保留靈活性，同時仍在爭奪中心。' +
+      '維也納開局保留白方的選擇空間：局面可以以 **f4**（維也納棄兵局）迅速變鋒利，也可以用 **Bc4** 走位置棋。' +
+      '黑方應自然地以 **Nf6**、**Bc5** 或 **d5** 均衡——維也納比 2.Nf3 強制性更低，無需記憶特定的關鍵變化。' +
+      '這個開局的吸引力在於避開大量死記硬背的理論，同時仍能從健全的開局中維持真實的進攻機會。',
+  },
+
+  B06: {
+    eco: 'B06',
+    name: 'Modern Defense',
+    body:
+      '黑方先走 **g6** 而非立即推進 d5，邀請白方以兵佔領中心，讓斜角象從遠距離對其施壓。' +
+      '與國王印度防禦不同，黑方暫時保留 f6 格位，在如何以 **c5**、**d5** 或 **e5** 挑戰中心方面保有更多彈性。' +
+      '白方的中心空間是真實存在的，但一旦黑方發展完畢並選準時機，就能成為攻擊的目標。' +
+      '現代防禦適合偏好複雜不均衡局面的棋手，在這類局面中理解兵形結構比記憶特定著法序列更為重要。',
+  },
+
 } as const;

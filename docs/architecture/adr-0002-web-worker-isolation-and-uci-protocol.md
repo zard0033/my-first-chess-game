@@ -145,7 +145,7 @@ Engine boot sequence (per GDD Core Rule 3):
 1. Spawn Worker, load WASM (via `import wasmUrl from '*.wasm?url'`, passed via postMessage)
 2. Send `uci` → await `uciok` (5s timeout → CRASHED)
 3. Send `setoption name X value Y` for all configured options
-4. Send `isready` → await `readyok` (2s timeout → CRASHED)
+4. Send `isready` → await `readyok` (10s timeout → CRASHED)
 5. Engine is now IDLE
 
 UCI options per engine (per GDD Core Rule 4):
@@ -282,3 +282,11 @@ All validation is covered by the GDD's Acceptance Criteria section. Key tests:
 - Future implementation story: Chess Engine State Machine (implements this ADR in TypeScript)
 - Future implementation story: Chess Engine Cancellation (AbortSignal + requestId)
 - Future implementation story: Chess Engine iOS Resilience (visibility liveness protocol)
+
+## Post-Implementation Notes
+
+**Resolved 2026-05-29 (Sprint 2 bug fix):**
+
+1. **`READYOK_TIMEOUT_MS` raised to 10 000 ms** — Original spec said 2s. Chrome's first-load WASM compile/instantiate for `stockfish-nnue-16-single.wasm` takes 3–8s, causing the handshake to time out before `readyok` arrived even though the Worker had loaded successfully. Root cause: the 2s value assumed a pre-warmed JIT cache. Set to 10s in `src/modules/chess-engine/play-engine.ts`. *If upgrading Stockfish or switching WASM engines, verify this value against measured cold-start times.*
+
+2. **WASM served from `public/stockfish/` as static assets** — The `?url` import + hash trick caused Vite to inline or transform the `.js` worker bootstrap, breaking the dynamic Worker instantiation path. Fix: copy `stockfish-nnue-16-single.js` + `.wasm` to `public/stockfish/` so Vite serves them as untransformed static files. Worker instantiated as `new Worker('/stockfish/stockfish-nnue-16-single.js')`. `vite.config.ts` adds `optimizeDeps.exclude: ['stockfish']` and `assetsInclude: ['**/*.wasm']`. *On Stockfish upgrades: re-copy files to `public/stockfish/` and confirm the filename in the Worker constructor.*

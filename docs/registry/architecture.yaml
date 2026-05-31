@@ -30,7 +30,7 @@
 #   Superseded entries:     Grep pattern="status: superseded"
 
 version: 1
-last_updated: ""
+last_updated: "2026-05-30"
 
 # ─── STATE OWNERSHIP ─────────────────────────────────────────────────────────
 # Who is the authoritative owner of each piece of shared game state.
@@ -67,6 +67,28 @@ state_ownership:
     referenced_by:
       - docs/architecture/adr-0005-pinia-store-boundaries-and-completed-game-transport.md
     added: 2026-05-28
+    revised: ""
+
+  - state: auth_state
+    status: active
+    owner_system: auth-system
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    interface: "useAuthStore.userId (string | null, reactive); useAuthStore.isAuthLoading (boolean); useAuthStore.email (string | null)"
+    write_access: auth-system-only   # only useAuthStore writes via signIn/signOut/initAuth
+    referenced_by:
+      - docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
+    revised: ""
+
+  - state: sync_status
+    status: active
+    owner_system: data-sync-system
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    interface: "useDataSyncStore.syncStatus ('idle' | 'syncing' | 'synced' | 'error', reactive)"
+    write_access: data-sync-system-only   # only useDataSyncStore writes syncStatus
+    referenced_by:
+      - docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
     revised: ""
 
 # Example:
@@ -229,6 +251,52 @@ interfaces:
     added: 2026-05-28
     revised: ""
 
+  - contract: auth_store_api
+    status: active
+    pattern: direct_call
+    producer: auth-system
+    consumers:
+      - app-router           # reads userId in beforeEach guard; null → redirect home
+      - data-sync-system     # listens to onAuthStateChange SIGNED_IN to trigger flushUnsyncedQueue
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    signal_signature: "useAuthStore.initAuth(): Promise<void>; useAuthStore.signIn(email: string): Promise<void>; useAuthStore.signOut(): Promise<void>; useAuthStore.userId: string | null (reactive); useAuthStore.isAuthLoading: boolean"
+    notes: "No other store calls supabase.auth.* directly — all auth state flows through useAuthStore. initAuth() must be called on App.vue onMounted before any guarded route resolves."
+    referenced_by:
+      - docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
+    revised: ""
+
+  - contract: data_sync_api
+    status: active
+    pattern: direct_call
+    producer: data-sync-system
+    consumers:
+      - post-game-review   # reads syncStatus for "Saved" / "Saving…" badge
+      - skill-scoring      # calls syncSkillScore() after computing deltas
+      - game-history       # calls loadGameHistory() to display past games
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    signal_signature: "useDataSyncStore.syncGame(game: CompletedGame): Promise<void>; useDataSyncStore.syncSkillScore(score: SkillScoreInsert): Promise<void>; useDataSyncStore.loadGameHistory(): Promise<GameSession[]>; useDataSyncStore.flushUnsyncedQueue(): Promise<void>; useDataSyncStore.syncStatus: 'idle' | 'syncing' | 'synced' | 'error' (reactive)"
+    notes: "Supabase is accessed exclusively through this store — no downstream system imports supabase client directly. syncGame() is called immediately on CompletedGame; PostGameReview does NOT await it before mounting."
+    referenced_by:
+      - docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
+    revised: ""
+
+  - contract: supabase_client_singleton
+    status: active
+    pattern: shared_resource
+    producer: src/lib/supabase.ts
+    consumers:
+      - src/stores/auth.ts        # only permitted importer: useAuthStore
+      - src/stores/data-sync.ts   # only permitted importer: useDataSyncStore
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    signal_signature: "supabase: SupabaseClient — createClient(VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY)"
+    notes: "One createClient() call per app lifetime. All other files that need Supabase must go through useAuthStore or useDataSyncStore interfaces — never import supabase directly."
+    referenced_by:
+      - docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
+    revised: ""
+
 # Example:
 #
 # interfaces:
@@ -375,6 +443,17 @@ api_decisions:
     added: 2026-05-28
     revised: ""
 
+  - purpose: auth_mechanism
+    status: active
+    api: Supabase Magic Link OTP (signInWithOtp({ email }))
+    not: email/password (signInWithPassword); social OAuth (signInWithOAuth); anonymous auth; SMS OTP
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    reason: "Magic Link is passwordless — no password to forget or reset, minimal login friction for a casual chess training app. GitHub Pages deployment rules out social OAuth (complex redirect URI setup). Email/password adds unnecessary password-reset support burden for v0."
+    referenced_by:
+      - docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
+    revised: ""
+
 # Example:
 #
 # api_decisions:
@@ -463,6 +542,20 @@ forbidden_patterns:
     why: "GDD Core Rule 10: 'Export is a pure client-side string operation. It does not call Supabase, does not log what was exported, and does not store the PGN anywhere.' Beyond the GDD's design intent, any network or persistence call inside the assembler path introduces an async boundary that would break the iOS user-activation invariant (see async_payload_assembler pattern). The static-grep check is a defensible compile/CI gate that prevents accidental violation."
     adr: docs/architecture/adr-0010-game-export-tier-delivery-and-sync-gesture-contract.md
     added: 2026-05-28
+
+  - pattern: direct_supabase_client_import
+    status: active
+    description: "Only `src/stores/auth.ts` and `src/stores/data-sync.ts` may import `supabase` from `src/lib/supabase.ts`. No other file may call `createClient()` or import the supabase singleton directly. Static grep: `grep -r 'createClient' src/ --include='*.ts'` must return zero matches outside of `src/lib/` and `src/stores/`."
+    why: "Multiple Supabase client instances cause auth state desync — supabase-js caches session state internally per client instance. A rogue import that creates a second client would not share the session from useAuthStore, causing silent auth failures on guarded routes. Centralizing access through the two stores makes the RLS security boundary auditable and enforceable by static grep."
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
+
+  - pattern: service_role_key_in_client
+    status: active
+    description: "The Supabase service-role key (`SUPABASE_SERVICE_ROLE_KEY`) must NEVER appear in client-side environment variables (VITE_* prefix) or be bundled into the app. Only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are permitted client-side. Static grep: `grep -r 'SERVICE_ROLE' src/` must return zero matches."
+    why: "The service-role key bypasses all RLS policies — any client possessing it can read and write any row for any user. The anon key is public-safe by Supabase design (RLS enforces user isolation). Accidentally bundling the service-role key would expose full database access to any user who inspects the JavaScript bundle."
+    adr: docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md
+    added: 2026-05-30
 
 # Example:
 #

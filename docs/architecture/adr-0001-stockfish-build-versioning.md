@@ -8,8 +8,12 @@ Accepted
 > both modes via `Use NNUE false/true`. (2) NNUE weights are a separate file
 > (`nn-5af11540bbfe.nnue`, 38.3 MB raw), not embedded in WASM. (3) UCI handshake
 > confirmed < 500 ms (HCE) and < 1 s (NNUE, local disk). All placeholder names replaced.
-> Validation Criterion 2 (iPhone RSS) still pending — requires real device; blocks
-> NNUE-dependent stories per the original constraint.
+> Validation Criterion 2 (iPhone RSS) still pending — requires real device.
+
+> **S6-04 decision (2026-05-30):** Original NNUE-for-review plan confirmed — no change to
+> this ADR's Decision section. Current deployment state: `nn-5af11540bbfe.nnue` is **not
+> yet deployed**; review engine is currently running in HCE mode as a temporary fallback.
+> Sprint 7 story will complete the deployment (see Post-Implementation Notes below).
 
 ## Date
 2026-05-28
@@ -330,6 +334,34 @@ import nnueUrl from 'stockfish/src/nn-5af11540bbfe.nnue?url';
 | chess-engine-integration.md | Open Question #6: HCE build availability must be confirmed before v0 | Defines the 1-day spike as Validation Criterion 1; specifies fallback options A and B |
 | chess-engine-integration.md | Formula 4: peakMemoryMB ≤ 150 MB | Locks `playEngineMB ≈ 25 MB` (HCE) and `reviewEngineMB ≈ 80 MB` (NNUE, pending spike) as design targets; worker co-residency invariant enforces that the formula holds |
 | chess-engine-integration.md | External Dependencies table: `stockfish` (lichess fork) + `stockfish-nnue-16.wasm` | Converts the informal "lichess fork, stockfish 16+" reference to a versioned, sourced decision with fallback documentation |
+
+## Post-Implementation Notes
+
+**Current deployment state (as of Sprint 6, 2026-05-30):**
+`nn-5af11540bbfe.nnue` has NOT been deployed. The review engine is running in HCE mode
+as a temporary fallback. The desktop HCE baseline (depth 27–29 per position) was
+confirmed sufficient in the S5-03 spike, so review functionality is intact. NNUE
+deployment is the next step to reach the originally planned evaluation quality.
+
+**Sprint 7 deployment checklist:**
+
+1. Locate `nn-5af11540bbfe.nnue` in `node_modules/stockfish/src/` (or download from
+   the nmrugg/stockfish.js GitHub release matching v16.0.0)
+2. Copy to `public/stockfish/nn-5af11540bbfe.nnue` — served as a static asset by Vite
+   and cached by the Service Worker after first load
+3. In `src/modules/chess-engine/review-engine.ts`, add to the UCI boot sequence:
+   ```
+   setoption name EvalFile value /stockfish/nn-5af11540bbfe.nnue
+   setoption name Use NNUE value true
+   ```
+   Confirm the engine responds `Load eval file success: 1` then
+   `info string NNUE evaluation enabled.`
+4. Verify desktop memory stays within Formula 4 budget (`reviewEngineMB ≤ 85 MB`)
+5. **Validation Criterion 2** — measure NNUE worker RSS on real iPhone Safari.
+   This is the final open item blocking full ADR acceptance. Without it, the
+   ~5 MB memory margin is unconfirmed on the target device.
+   - If iPhone RSS > 85 MB: revise Hash setting downward (try `Hash=16`) and re-measure
+   - If iPhone RSS ≤ 85 MB: mark Validation Criterion 2 resolved; ADR fully Accepted
 
 ## Performance Implications
 

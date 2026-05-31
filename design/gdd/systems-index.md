@@ -30,9 +30,9 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 | 7 | Post-Game Review | Gameplay | v0 | Approved (round 2, 2026-05-28) | [post-game-review.md](./post-game-review.md) ([review log](./reviews/post-game-review-review-log.md)) | Game Lifecycle, Chess Engine, Opening ID, Move Annotation |
 | 8 | Game Export / Share | Gameplay | v0 | Approved (2026-05-27) | [game-export-share.md](./game-export-share.md) | Game Lifecycle |
 | 8b | Opening Knowledge Cards | Gameplay | v0 | **Not Started** (added 2026-05-28 per Pillar 2 Option A) | — | Opening Identification, Post-Game Review |
-| 9 | Authentication | Persistence | MVP | Not Started | — | — |
+| 9 | Authentication | Persistence | MVP | Designed (combined with #11) | [supabase-integration.md](./supabase-integration.md) | — |
 | 10 | Difficulty System | Gameplay | MVP | Not Started | — | Chess Engine |
-| 11 | Data Sync (Supabase) | Persistence | MVP | Not Started | — | Authentication |
+| 11 | Data Sync (Supabase) | Persistence | MVP | Designed (combined with #9) | [supabase-integration.md](./supabase-integration.md) | Authentication |
 | 12 | Game History | Gameplay | MVP | Not Started | — | Game Lifecycle, Data Sync |
 | 13 | Skill Scoring | Progression | MVP | Not Started | — | Post-Game Review, Data Sync |
 | 14 | Level Progression | Progression | MVP | Not Started | — | Skill Scoring, Difficulty System |
@@ -172,12 +172,12 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 | Metric | Count |
 |--------|-------|
 | Total systems identified | 18 |
-| Design docs started | 9 (skeleton for #8b Opening Knowledge Cards added 2026-05-28) |
+| Design docs started | 11 (skeleton for #8b Opening Knowledge Cards added 2026-05-28; #9+#11 combined GDD added 2026-05-30) |
 | Design docs reviewed | 8 |
 | Design docs approved | 8 |
 | v0 systems designed | 8/9 (Opening Knowledge Cards GDD pending — skeleton exists) |
-| MVP systems designed | 8/15 |
-| Polish systems designed | 8/18 |
+| MVP systems designed | 10/15 (#9 + #11 combined as supabase-integration.md) |
+| Polish systems designed | 10/18 |
 
 ---
 
