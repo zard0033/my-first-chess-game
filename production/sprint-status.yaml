@@ -9,19 +9,19 @@
 #   done           ↔  Complete
 #   blocked        ↔  Blocked
 
-sprint: 5
-goal: "完成 iOS 可見性探測 + 棋盤視覺主題，確認效能/記憶體達標，v0 MVP 達到可發布品質"
-start: "2026-07-24"
-end: "2026-08-06"
+sprint: 7
+goal: "實作 Supabase Auth + Data Sync（#9 + #11），使 v0 遊戲資料首次能跨裝置持久化"
+start: "2026-08-21"
+end: "2026-09-03"
 generated: "2026-05-30"
-updated: "2026-05-30"
+updated: "2026-05-30"  # S7-01 done
 
 stories:
   # ---- Must Have (必須完成) ----
 
-  - id: "S5-01"
-    name: "chess-engine: iOS Visibility-Change Liveness Probe + Worker Respawn"
-    file: "production/epics/chess-engine/story-005-ios-visibility.md"
+  - id: "S7-01"
+    name: "Supabase 專案設定：singleton + .env.example + CSP connect-src"
+    file: "production/epics/supabase/story-001-project-setup.md"
     priority: must-have
     status: done
     owner: ""
@@ -29,56 +29,76 @@ stories:
     blocker: ""
     completed: "2026-05-30"
 
-  - id: "S5-02"
-    name: "visual-identity: Board Theme — Custom Piece Set & Board Colors"
-    file: "production/epics/visual-identity/story-001-board-theme.md"
+  - id: "S7-02"
+    name: "useAuthStore：initAuth + signIn + signOut + onAuthStateChange"
+    file: "production/epics/supabase/story-002-auth-store.md"
     priority: must-have
-    status: done
+    status: in-progress
     owner: ""
-    estimate_days: 0.63
-    blocker: ""
-    completed: "2026-05-30"
+    estimate_days: 0.75
+    blocker: "S7-01"
+    completed: ""
+
+  - id: "S7-03"
+    name: "Supabase migration：game_sessions + skill_scores + RLS"
+    file: "production/epics/supabase/story-003-migration.md"
+    priority: must-have
+    status: ready-for-dev
+    owner: ""
+    estimate_days: 0.38
+    blocker: "S7-01"
+    completed: ""
+
+  - id: "S7-04"
+    name: "useDataSyncStore：syncGame + offline queue + flushUnsyncedQueue"
+    file: "production/epics/supabase/story-004-data-sync-store.md"
+    priority: must-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.75
+    blocker: "S7-01,S7-02,S7-03"
+    completed: ""
+
+  - id: "S7-05"
+    name: "Route guards：/history + /profile auth gate + App.vue initAuth"
+    file: "production/epics/supabase/story-005-route-guards.md"
+    priority: must-have
+    status: backlog
+    owner: ""
+    estimate_days: 0.25
+    blocker: "S7-02"
+    completed: ""
 
   # ---- Should Have (延伸目標) ----
 
-  - id: "S5-03"
-    name: "ADR-0007 spike: iPhone Safari depth-22 可達性驗證"
-    file: ""
+  - id: "S7-06"
+    name: "Sign In UI：email input + Magic Link flow + check-email state"
+    file: "production/epics/supabase/story-006-sign-in-ui.md"
     priority: should-have
     status: backlog
     owner: ""
-    estimate_days: 0.25
-    blocker: ""
+    estimate_days: 0.50
+    blocker: "S7-02"
     completed: ""
 
-  - id: "S5-04"
-    name: "chess-board: Bundle Size Verification (≤ 120KB gzip)"
-    file: "production/epics/chess-board/story-007-bundle-size.md"
+  - id: "S7-07"
+    name: "PostGameReview sync badge：Saving / Saved / Not saved yet"
+    file: "production/epics/supabase/story-007-sync-badge.md"
     priority: should-have
     status: backlog
     owner: ""
     estimate_days: 0.25
-    blocker: ""
+    blocker: "S7-04"
     completed: ""
 
   # ---- Nice to Have (有餘力再做) ----
 
-  - id: "S5-05"
-    name: "chess-engine: Memory Budget Verification (≤ 150MB)"
-    file: "production/epics/chess-engine/story-007-memory-budget.md"
+  - id: "S7-08"
+    name: "ADR-0011 → Accepted：iOS PWA Magic Link on-device 驗證"
+    file: "production/epics/supabase/story-008-adr-accepted.md"
     priority: nice-to-have
     status: backlog
     owner: ""
     estimate_days: 0.25
-    blocker: ""
-    completed: ""
-
-  - id: "S5-06"
-    name: "opening-knowledge-cards: GDD 完成（sections 3/5/7/8）"
-    file: ""
-    priority: nice-to-have
-    status: backlog
-    owner: ""
-    estimate_days: 0.50
-    blocker: ""
+    blocker: "S7-02,S7-06"
     completed: ""

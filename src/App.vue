@@ -1,4 +1,10 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+
+const authStore = useAuthStore()
+// initAuth() not awaited — isAuthLoading guards against flash of unauthenticated state
+onMounted(() => { authStore.initAuth() })
 </script>
 
 <template>

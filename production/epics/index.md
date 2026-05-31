@@ -1,8 +1,8 @@
 # Epics Index
 
-**Last Updated**: 2026-05-28
+**Last Updated**: 2026-05-30
 **Engine**: Web App — TypeScript 5 · Vue 3 · Vite 5 · vue3-chessboard · stockfish@16.0.0
-**Manifest Version**: 2026-05-28 (control-manifest.md)
+**Manifest Version**: 2026-05-29 (control-manifest.md)
 
 ## v0 Epics (all systems)
 
@@ -16,32 +16,45 @@
 | [move-annotation](move-annotation/EPIC.md) | Core | MoveAnnotationDisplay | move-annotation-display.md | 5 | 5/5 ✅ | 2 stories | Ready |
 | [post-game-review](post-game-review/EPIC.md) | Feature | PostGameReview | post-game-review.md | 7 | 7/7 ✅ | 5 stories | Ready |
 | [game-export](game-export/EPIC.md) | Feature | GameExport | game-export-share.md | 4 | 4/4 ✅ | 2 stories | Ready |
-| [opening-knowledge-cards](opening-knowledge-cards/EPIC.md) | Feature | (PostGameReview panel) | opening-knowledge-cards.md | 0 | 0/0 — GDD incomplete | Blocked | **Blocked** |
+| [opening-knowledge-cards](opening-knowledge-cards/EPIC.md) | Feature | (PostGameReview panel) | opening-knowledge-cards.md | 6 | 6/6 ✅ | 2 stories | **Complete** |
 | [visual-identity](visual-identity/EPIC.md) | Presentation | BoardTheme | visual-identity.md *(pending)* | 2 | 0/2 — no ADR yet | 1 story | **Backlog** |
+
+## MVP Epics
+
+| Epic | Layer | Module | GDD | TR-IDs | ADR Coverage | Stories | Status |
+|------|-------|--------|-----|--------|--------------|---------|--------|
+| [supabase](supabase/EPIC.md) | Persistence | useAuthStore + useDataSyncStore | supabase-integration.md | 13 | 13/13 (ADR-0011) | 8 stories | **Ready (Sprint 7)** |
 
 ## Summary
 
-- **Total epics**: 10
-- **Ready**: 8
-- **Blocked**: 1 (opening-knowledge-cards — GDD sections 3/5/7/8 TO AUTHOR)
-- **Backlog**: 1 (visual-identity — GDD + ADR pending; Sprint 3 target)
-- **Total TR-IDs**: 49 (44 v0 + 2 visual-identity + 3 in opening-knowledge-cards TBD)
-- **ADR Coverage**: 44/44 registered v0 TR-IDs fully covered
+- **Total epics**: 11
+- **Ready**: 9 (v0) + 1 (MVP)
+- **Complete**: 1 (opening-knowledge-cards — Sprint 6)
+- **Blocked**: 0
+- **Backlog**: 1 (visual-identity — GDD + ADR pending)
+- **Total TR-IDs**: 62 (49 v0 + 13 MVP supabase)
+- **ADR Coverage**: 44/44 v0 + 13/13 MVP supabase fully covered
 
 ## Layer Order (implementation sequence)
 
 ```
-Foundation (Sprint 2 target):
+v0 Foundation (Sprints 2–3):
   chess-board → chess-engine → opening-id → app-router
 
-Core (Sprint 3 target):
+v0 Core (Sprint 3):
   game-lifecycle → move-annotation
 
-Feature (Sprint 4 target):
-  post-game-review → game-export → opening-knowledge-cards (after GDD complete)
+v0 Feature (Sprints 4–6):
+  post-game-review → game-export → opening-knowledge-cards ✅
 
-Presentation (Sprint 3–4):
-  visual-identity (board theme + custom pieces)
+MVP Persistence (Sprint 7):
+  supabase (Auth #9 + Data Sync #11)
+
+MVP Feature (Sprint 8+):
+  game-history (#12) → skill-scoring (#13) → level-progression (#14)
+
+Presentation:
+  visual-identity (board theme) — Sprint TBD
 ```
 
 ## Story Count Summary
@@ -50,9 +63,10 @@ Presentation (Sprint 3–4):
 |-------|-------|---------------|
 | Foundation | chess-board (7), chess-engine (7), opening-id (1), app-router (2) | 17 |
 | Core | game-lifecycle (2), move-annotation (2) | 4 |
-| Feature | post-game-review (5), game-export (2), opening-knowledge-cards (Blocked) | 7 |
-| **Total** | **8 Ready** | **28 stories** |
+| Feature | post-game-review (5), game-export (2), opening-knowledge-cards (2) ✅ | 9 |
+| Persistence (MVP) | supabase (8) | 8 |
+| **Total** | **10 epics active** | **38 stories** |
 
 ## Next Steps
 
-Run `/sprint-plan` to schedule Sprint 2 (Foundation implementation begins).
+Sprint 7 in progress — run `/qa-plan sprint` then `/story-readiness` on S7-01 to begin implementation.
