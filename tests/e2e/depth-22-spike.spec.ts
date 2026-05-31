@@ -11,7 +11,10 @@
  * Run: npx playwright test depth-22-spike --project=chromium
  * Excluded from default CI suite (@spike tag).
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, devices } from '@playwright/test'
+
+// Spike requires WASM workers — only reliable on Chromium in CI headless
+test.use({ ...devices['Desktop Chrome'] })
 
 const REVIEW_TARGET_DEPTH = 22
 const REVIEW_MAX_MOVE_TIME_MS = 10_000

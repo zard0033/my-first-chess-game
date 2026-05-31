@@ -11,7 +11,10 @@
  * Run: npx playwright test memory-budget-spike --project=chromium
  * Excluded from default CI suite (@spike tag).
  */
-import { test, expect } from '@playwright/test'
+import { test, expect, devices } from '@playwright/test'
+
+// Spike uses performance.memory (Chrome-only) — restrict to Chromium
+test.use({ ...devices['Desktop Chrome'] })
 
 async function measureHeapMB(page: import('@playwright/test').Page): Promise<number> {
   return page.evaluate(() => {
