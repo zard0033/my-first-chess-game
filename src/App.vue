@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import { useDataSyncStore } from '@/stores/data-sync'
 
 const authStore = useAuthStore()
+const dataSyncStore = useDataSyncStore()
+
+// Flush offline queue when player logs in (SUPA-AC-08).
+watch(() => authStore.userId, (userId) => {
+  if (userId) dataSyncStore.flushUnsyncedQueue()
+})
+
 // initAuth() not awaited — isAuthLoading guards against flash of unauthenticated state
 onMounted(() => { authStore.initAuth() })
 </script>

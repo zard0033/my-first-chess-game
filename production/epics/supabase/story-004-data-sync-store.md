@@ -1,12 +1,12 @@
 # Story 004: useDataSyncStore
 
 > **Epic**: Supabase
-> **Status**: Not Started (backlog — depends on S7-01, S7-02, S7-03)
+> **Status**: Complete
 > **Layer**: Persistence — Core
 > **Type**: Logic (Pinia store)
 > **Estimate**: M (6 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-30
+> **Last Updated**: 2026-05-31
 
 ## Context
 
@@ -179,3 +179,14 @@ async flushUnsyncedQueue() {
 - Depends on: story-003-migration.md (tables exist)
 - Depends on: `src/config/sync-tuning.ts` (constants — create in this story)
 - Unlocks: story-007-sync-badge.md (reads `syncStatus`)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-31
+**Criteria**: 6/6 passing (SUPA-AC-06~09, SUPA-AC-13, unit tests)
+**Deviations**:
+- ADVISORY: `flushUnsyncedQueue` trigger implemented via App.vue `watch(authStore.userId)` instead of modifying auth.ts — avoids circular module dependency (data-sync → auth → data-sync). Functionally equivalent.
+- ADVISORY: `pgn` field stores space-joined UCI moves (not proper PGN) — placeholder until PGN viewer story is implemented.
+**Test Evidence**: Logic — `tests/unit/stores/data-sync-store.test.ts` 14/14 pass; 386/386 total
+**Code Review**: Lean mode — all ACs verified by tests; row mapping covers all endReason/result variants

@@ -53,11 +53,11 @@ stories:
     name: "useDataSyncStore：syncGame + offline queue + flushUnsyncedQueue"
     file: "production/epics/supabase/story-004-data-sync-store.md"
     priority: must-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.75
     blocker: "S7-01,S7-02,S7-03"
-    completed: ""
+    completed: "2026-05-31"
 
   - id: "S7-05"
     name: "Route guards：/history + /profile auth gate + App.vue initAuth"
