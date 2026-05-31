@@ -1,12 +1,12 @@
 # Story 005: Route Guards + App.vue initAuth
 
 > **Epic**: Supabase
-> **Status**: Not Started (backlog — depends on S7-02)
+> **Status**: Complete
 > **Layer**: Persistence — Core
 > **Type**: Logic (Vue Router integration)
 > **Estimate**: XS (2 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-30
+> **Last Updated**: 2026-05-31
 
 ## Context
 
@@ -110,3 +110,16 @@ Integration test (Playwright): load app fresh, navigate to `/history` → confir
 
 - Depends on: story-002-auth-store.md (`useAuthStore`, `isAuthLoading`, `userId`)
 - Requires: `/history` and `/profile` route names exist in `src/router/index.ts` (check before implementing)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-31
+**Criteria**: 4/4 passing
+- SUPA-AC-10: unauthenticated → redirect to home?login=required ✅ (unit test)
+- AC-S5-02: isAuthLoading guard waits before deciding ✅ (unit test)
+- AC-S5-03: authenticated user navigates freely ✅ (unit test)
+- AC-S5-04: App.vue onMounted initAuth — already set in S7-02 ✅
+**Deviations**: None
+**Test Evidence**: Logic — `tests/unit/app-router/auth-guard.test.ts` 6/6 pass; route-table.test.ts updated (9 pass)
+**Code Review**: Lean mode — guard pattern matches story spec; isAuthLoading watch correctly prevents premature redirect

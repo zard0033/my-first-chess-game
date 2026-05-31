@@ -8,9 +8,9 @@ describe('route-table', () => {
     expect(last.path).toBe('/:pathMatch(.*)*')
   })
 
-  it('test_routeTable_containsExactlyFourRoutes', () => {
+  it('test_routeTable_containsExactlySixRoutes', () => {
     const paths = routes.map((r) => r.path)
-    expect(paths).toEqual(['/', '/play', '/review', '/:pathMatch(.*)*'])
+    expect(paths).toEqual(['/', '/play', '/review', '/history', '/profile', '/:pathMatch(.*)*'])
   })
 
   it('test_routeTable_playRoute_componentIsFunction', () => {
@@ -38,9 +38,16 @@ describe('route-table', () => {
     expect(result).toEqual({ top: 0 })
   })
 
-  it('test_routeTable_noReservedRoutes_historyAbsent', () => {
-    const paths = routes.map((r) => r.path)
-    expect(paths).not.toContain('/history')
+  it('test_routeTable_historyRoute_isAuthGuarded', () => {
+    const history = routes.find((r) => r.path === '/history')!
+    expect(history).toBeDefined()
+    expect(history.name).toBe('history')
+  })
+
+  it('test_routeTable_profileRoute_isAuthGuarded', () => {
+    const profile = routes.find((r) => r.path === '/profile')!
+    expect(profile).toBeDefined()
+    expect(profile.name).toBe('profile')
   })
 
   it('test_routeTable_noReservedRoutes_settingsAbsent', () => {
