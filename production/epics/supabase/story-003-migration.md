@@ -1,12 +1,12 @@
 # Story 003: Supabase Database Migration
 
 > **Epic**: Supabase
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Persistence — Foundation
 > **Type**: Config + Infrastructure (SQL)
 > **Estimate**: S (3 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-30
+> **Last Updated**: 2026-05-31
 
 ## Context
 
@@ -133,3 +133,12 @@ If local Supabase running:
 
 - Depends on: story-001-project-setup.md (Supabase project configured)
 - Unlocks: story-004-data-sync-store.md (needs tables to exist for integration)
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-31
+**Criteria**: 5/5 passing (AC-S3-01~03, SUPA-AC-11, SUPA-AC-12 all verified by reading SQL)
+**Deviations**: None
+**Test Evidence**: Config+Infrastructure — SQL files at `supabase/migrations/` verified; local Supabase integration test deferred (no Docker running)
+**Code Review**: Lean mode — SQL matches GDD schema and ADR-0011 exactly; no deviations

@@ -43,11 +43,11 @@ stories:
     name: "Supabase migration：game_sessions + skill_scores + RLS"
     file: "production/epics/supabase/story-003-migration.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.38
     blocker: "S7-01"
-    completed: ""
+    completed: "2026-05-31"
 
   - id: "S7-04"
     name: "useDataSyncStore：syncGame + offline queue + flushUnsyncedQueue"
@@ -63,11 +63,11 @@ stories:
     name: "Route guards：/history + /profile auth gate + App.vue initAuth"
     file: "production/epics/supabase/story-005-route-guards.md"
     priority: must-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.25
     blocker: "S7-02"
-    completed: ""
+    completed: "2026-05-31"
 
   # ---- Should Have (延伸目標) ----
 
