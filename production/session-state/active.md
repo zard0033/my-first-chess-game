@@ -1,80 +1,97 @@
-<!-- QA-PLAN: 2026-05-30 | System: Sprint 5 | Plan written: production/qa/qa-plan-sprint-5-2026-05-30.md -->
+<!-- QA-PLAN: 2026-05-30 | System: Sprint 7 | Plan written: production/qa/qa-plan-sprint-7-2026-05-30.md -->
 
 # Active Session State
 
 **Last updated**: 2026-05-30
-**Tests**: 324/324 pass
-**Sprint**: 5 (`production/sprints/sprint-5.md`)
+**Tests**: 365/365 pass
+**Sprint**: 7 (`production/sprints/sprint-7.md`)
 
 ---
 
 ## 當前進度
 
-### S5-01 ✅ COMPLETE（2026-05-30）
-- `src/modules/chess-engine/play-engine.ts` — 加入 liveness probe（BACKGROUND_THRESHOLD_MS=60s, LIVENESS_PROBE_TIMEOUT_MS=1s）、`VisibilityEventTarget` 注入參數、`dispose()` 方法
-- `tests/unit/chess-engine/visibility-liveness.test.ts` — 7 tests，全通過
-- **偏差**：`VisibilityEventTarget` injectable 替代直接存取 `document`（Node.js 測試相容性）；`dispose()` 作為新增 API
-
-### S5-02 ✅ COMPLETE（2026-05-30）
-- `public/pieces/` — 12 SVG 棋子（wK/wQ/wR/wB/wN/wP/bK/bQ/bR/bB/bN/bP），和茶系重新著色
-- `src/assets/board-theme.css` — 棋盤方格色彩覆寫 + piece CSS overrides
-- `src/main.ts` — 匯入 board-theme.css
-- `production/qa/evidence/board-theme-evidence.md` — Playwright 截圖 375px + 1440px，APPROVED
-- **對比度** light #e8dcc8 vs dark #8b6f5c ≈ 3.5:1（通過 WCAG 3:1）
-
-### S5-03 ✅ COMPLETE（2026-05-30）
-- `tests/e2e/depth-22-spike.spec.ts` — Playwright spike；HCE 模式下 3 個局面分別達 depth 27/29/27 in 10s
-- `production/qa/evidence/s5-03-depth22-spike-evidence.md` — 詳細測量記錄
-- `docs/architecture/adr-0007-*.md` — Status 更新，OQ-5 desktop spike RESOLVED
-- **關鍵發現**：NNUE 網路檔（38MB）未部署 → review engine 靜默使用 HCE；`REVIEW_TARGET_DEPTH = 22` 在 HCE 模式下 CONFIRMED ✅
-- **後續**：Sprint 6 決定是否部署 NNUE 檔或正式切換 HCE
-
-### S5-04 ✅ COMPLETE（2026-05-30）
-- `vite.config.ts` — 加入 `manualChunks: { 'chess-board': ['vue3-chessboard', 'chessground', 'chess.js'], 'chess-openings': ['chess-openings'] }`
-- `production/qa/smoke-chess-board-bundle.md` — 更新實際量測結果
-- **結果**：chess-board chunk **56.33 kB gzip** ✅（< 120 kB 預算）；chess-openings chunk 137 kB（advisory）
-- **附加效益**：chess.js 不再重複打包；game-store 從 38KB 縮至 0.58KB
-
-### S5-05 ✅ COMPLETE（2026-05-30）
-- `tests/e2e/memory-budget-spike.spec.ts` — Playwright spike；main thread heap 9.5MB
-- `production/qa/evidence/chess-engine-memory-evidence.md` — 測量結果、限制說明、手動測量指引
-- **結果**：Main thread heap 9.5 MB ✅；Worker WASM 記憶體估算 ~57 MB total（< 150 MB）
-- **限制**：無 COOP/COEP headers 無法自動量測 Worker 記憶體；完整手動測量延至 Sprint 6
+### Sprint 7 計畫 ✅ WRITTEN（2026-05-30）
+- `production/sprints/sprint-7.md` — Sprint 7 計畫寫入
+- `production/sprint-status.yaml` — Sprint 7 初始化（8 stories：S7-01~S7-08）
 
 ---
 
-## Sprint 5 Story 狀態
+## Sprint 7 Story 狀態
 
-| ID    | Story                                 | 狀態     |
-| ----- | ------------------------------------- | -------- |
-| S5-01 | iOS Visibility Liveness               | done     |
-| S5-02 | Board Theme                           | done     |
-| S5-03 | ADR-0007 depth-22 spike               | done     |
-| S5-04 | Bundle Size Verification              | done     |
-| S5-05 | Memory Budget Verification            | done     |
+| ID | Story | Status |
+| -- | ----- | ------ |
+| S7-01 | Supabase singleton + .env.example + CSP connect-src | ready-for-dev |
+| S7-02 | useAuthStore（initAuth / signIn / signOut） | ready-for-dev（需 S7-01） |
+| S7-03 | DB migration：game_sessions + skill_scores + RLS | ready-for-dev（需 S7-01） |
+| S7-04 | useDataSyncStore（syncGame / offline queue） | backlog（需 S7-01/02/03） |
+| S7-05 | Route guards + App.vue initAuth | backlog（需 S7-02） |
+| S7-06 | Sign In UI | backlog（Should Have，需 S7-02） |
+| S7-07 | PostGameReview sync badge | backlog（Should Have，需 S7-04） |
+| S7-08 | ADR-0011 → Accepted | backlog（Nice to Have） |
 
 ---
 
-## ⚠️ Sprint 5 開放項目（移交 Sprint 6）
+## Session Extract — /dev-story 2026-05-30
 
-1. **NNUE 部署決策**：`nn-5af11540bbfe.nnue`（38MB）未部署 → review engine 使用 HCE。選項：(a) 部署 NNUE 檔，(b) 正式改為 HCE-only，更新 ADR-0001
-2. **chess-openings chunk**：137 kB gzip，超過 120 kB budget（非 chess-board AC，但值得追蹤）
-3. **完整記憶體量測**：需 Chrome DevTools 手動 heap snapshot（Worker WASM 記憶體）
-4. **ADR-0007 Accepted**：OQ-5 desktop done，仍需 real iPhone + NNUE 部署決策才能達 Accepted
+- Story: production/epics/opening-knowledge-cards/story-001-component.md
+- Files changed: src/utils/parse-inline-markdown.ts, src/components/opening-knowledge-card.vue, src/views/ReviewView.vue
+- Test written: tests/unit/opening-knowledge-cards/opening-knowledge-card.test.ts (11 tests, 335/335 total pass)
+- Blockers: None
+- Next: /code-review then /story-done story-001-component.md; manual evidence AC-04/05 at production/qa/evidence/s6-02-knowledge-card-evidence.md
+
+## Session Extract — /story-done 2026-05-30
+
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/opening-knowledge-cards/story-001-component.md — OpeningKnowledgeCard.vue Component
+- Tech debt logged: 3 items (docs/tech-debt-register.md)
+- Next recommended: S6-03 — 剩餘 10 張 ECO 內容卡著作
+
+---
+
+## Sprint 5 開放項目（移交 Sprint 6）
+
+1. **NNUE 部署決策** → S6-04 Should Have
+2. **chess-openings 137kB advisory** → S6-07 Nice to Have
+3. **完整 Worker 記憶體量測** → 移至 Sprint 7（需 COOP/COEP headers）
+4. **ADR-0007 Accepted 條件**：OQ-5 desktop RESOLVED；仍需 real iPhone + NNUE 決策
 
 ---
 
 ## 下一步（新 session 入口）
 
-Sprint 5 全部 story DONE。建議：
-1. 跑 `/smoke-check sprint` 做 Sprint 5 QA sign-off
-2. 規劃 Sprint 6：解決 NNUE 決策 + Supabase 整合 + Phase 2 準備
+**Sprint 7 計畫寫入完成**（2026-05-30）
+- `production/sprints/sprint-7.md` — 8 stories，Must Have = 20h，Should Have = 6h
+- `production/sprint-status.yaml` — Sprint 7 初始化
+- ⚠️ 無 QA plan — 開始 implementation 前先跑 `/qa-plan sprint`
 
-Sprint 6 候選範圍：
-- NNUE 部署決策（ADR-0001 更新）
-- `opening-knowledge-cards` GDD 補完（sections 3/5/7/8）→ 解除 Blocked
-- Supabase 整合（Magic Link auth + 對局儲存）
-- Phase 2 準備（Claude API 解釋功能）
+## Session Extract — /story-done 2026-05-30
+
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/supabase/story-001-project-setup.md — Supabase Project Setup
+- Tech debt logged: None
+- Next recommended: S7-02 + S7-03 unblocked
+
+## Session Extract — /story-done 2026-05-31
+
+- Verdict: COMPLETE
+- Story: production/epics/supabase/story-002-auth-store.md — useAuthStore
+- Code review fixes: pendingEmail/authError cleared on SIGNED_IN; signOut error exposed; subscription handle stored; _applySession extracted
+- Tests after fixes: 365/365 pass (15 in auth-store.test.ts)
+- S7-05 constraint documented: route guards must check isAuthLoading (not just userId)
+- Next recommended: S7-03 (ready-for-dev) + S7-05 now unblocked
+
+**S6-06 完成記錄**（2026-05-30）：
+- 建立 `docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md`（Status: Proposed）
+- 更新 `design/gdd/supabase-integration.md`：useDataSync → useDataSyncStore（命名正式化為 Pinia store 慣例）
+- 更新 `docs/registry/architecture.yaml`：+2 state_ownership、+3 interfaces、+1 api_decision、+2 forbidden_patterns、last_updated 更新
+
+**S6-07 完成記錄**（2026-05-30）：
+- 建立 `docs/chess-openings-chunk-advisory.md`
+- 結論：137kB < 150kB 預算，CLOSED。lazy-load 需改同步 interface（已登錄 architecture.yaml）→ Defer Sprint 7
+
+**S6-05 完成記錄**（2026-05-30）：
+- 建立 `design/gdd/supabase-integration.md`（Authentication #9 + Data Sync #11 合併設計）
+- 8 sections 全部完成：Overview、Player Fantasy、Detailed Design（Auth Flow + Schema + Sync Protocol + Offline + Interactions）、Formulas（3 個公式）、Edge Cases（10 個）、Dependencies、Tuning Knobs、Acceptance Criteria（AC-01~AC-13）
 
 ## 歷史里程碑（參考）
 
@@ -83,3 +100,4 @@ Sprint 6 候選範圍：
 - Sprint 3: Core layer（game-lifecycle + move-annotation），182/182 tests，APPROVED WITH CONDITIONS
 - Sprint 4: Feature layer（post-game-review + game-export + keyboard-nav），314/314 tests，COMPLETE ✅
 - Sprint 5: iOS Liveness + Board Theme + depth-22 spike + bundle size + memory budget，324/324 tests，COMPLETE ✅
+- Sprint 6: opening-knowledge-cards 實作（Pillar 2 閉環）+ Supabase 設計地基，進行中

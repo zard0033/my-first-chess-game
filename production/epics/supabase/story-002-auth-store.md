@@ -1,12 +1,12 @@
 # Story 002: useAuthStore
 
 > **Epic**: Supabase
-> **Status**: Ready
+> **Status**: Complete
 > **Layer**: Persistence — Foundation
 > **Type**: Logic (Pinia store)
 > **Estimate**: M (6 hours)
 > **Manifest Version**: 2026-05-29
-> **Last Updated**: 2026-05-30
+> **Last Updated**: 2026-05-31
 
 ## Context
 
@@ -143,3 +143,12 @@ Mock `@/lib/supabase` module. Spy on `supabase.auth.getSession`, `signInWithOtp`
 
 - Depends on: story-001-project-setup.md (supabase.ts singleton)
 - Unlocks: story-004-data-sync-store.md, story-005-route-guards.md, story-006-sign-in-ui.md
+
+---
+
+## Completion Notes
+**Completed**: 2026-05-31
+**Criteria**: 6/6 passing
+**Deviations**: ADVISORY — S7-05 route guards must check `isAuthLoading` (not just `userId`) because Vue Router `beforeEach` runs before `App.vue.onMounted`. Documented as constraint for S7-05.
+**Test Evidence**: Logic — `tests/unit/stores/auth-store.test.ts` 15/15 pass
+**Code Review**: Complete — 6 findings addressed (pendingEmail/authError cleared on SIGNED_IN, signOut error exposed, subscription handle stored, _applySession helper extracted)

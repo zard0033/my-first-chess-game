@@ -172,6 +172,24 @@ describe('useAuthStore', () => {
       expect(() => fireEvent('SIGNED_OUT', null)).not.toThrow()
       expect(store.userId).toBeNull()
     })
+
+    it('SIGNED_IN event clears pendingEmail and authError', async () => {
+      vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+        data: { session: null },
+        error: null,
+      })
+      const fireEvent = setupAuthCallback()
+
+      const store = useAuthStore()
+      await store.initAuth()
+      store.pendingEmail = true
+      store.authError = 'Previous error'
+
+      fireEvent('SIGNED_IN', { user: { id: 'uid-2', email: 'b@c.com' } })
+
+      expect(store.pendingEmail).toBe(false)
+      expect(store.authError).toBeNull()
+    })
   })
 
   // ── signIn ────────────────────────────────────────────────────────────────
@@ -222,7 +240,7 @@ describe('useAuthStore', () => {
         data: { session: { user: { id: 'uid-1', email: 'a@b.com' } } as never },
         error: null,
       })
-      vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({} as never)
+      vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({ error: null } as never)
 
       const store = useAuthStore()
       await store.initAuth()
@@ -234,7 +252,26 @@ describe('useAuthStore', () => {
       expect(store.userId).toBeNull()
       expect(store.email).toBeNull()
       expect(store.pendingEmail).toBe(false)
+      expect(store.authError).toBeNull()
       expect(supabase.auth.signOut).toHaveBeenCalledOnce()
+    })
+
+    it('exposes error and still clears local state when signOut fails', async () => {
+      vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+        data: { session: { user: { id: 'uid-1', email: 'a@b.com' } } as never },
+        error: null,
+      })
+      vi.mocked(supabase.auth.signOut).mockResolvedValueOnce({
+        error: { message: 'Network error' },
+      } as never)
+
+      const store = useAuthStore()
+      await store.initAuth()
+      await store.signOut()
+
+      expect(store.userId).toBeNull()
+      expect(store.email).toBeNull()
+      expect(store.authError).toBe('Network error')
     })
   })
 })
