@@ -60,12 +60,14 @@ export const useDataSyncStore = defineStore('dataSync', () => {
   const lastSyncedGameId = ref<string | null>(null)
 
   function _getUnsyncedKeys(): string[] {
+    if (typeof localStorage === 'undefined') return []
     return Object.keys(localStorage)
       .filter(k => k.startsWith(UNSYNCED_PREFIX))
       .sort()
   }
 
   function _writeToUnsyncedQueue(game: QueuedGame): void {
+    if (typeof localStorage === 'undefined') return
     const keys = _getUnsyncedKeys()
     if (keys.length >= UNSYNCED_QUEUE_MAX) {
       localStorage.removeItem(keys[0])

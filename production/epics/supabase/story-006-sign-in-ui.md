@@ -1,7 +1,7 @@
 # Story 006: Sign In UI
 
 > **Epic**: Supabase
-> **Status**: Not Started (backlog — Should Have)
+> **Status**: Complete (2026-05-31)
 > **Layer**: Persistence — Feature UI
 > **Type**: UI
 > **Estimate**: M (4 hours)
@@ -30,12 +30,12 @@
 
 ## Acceptance Criteria
 
-- [ ] **SUPA-AC-01 (UI)**: GIVEN player on sign-in screen, WHEN valid email entered and "Send Magic Link" tapped, THEN `useAuthStore.signIn(email)` is called and UI transitions to "check-your-email" state showing confirmation message.
-- [ ] **SUPA-AC-04 (UI)**: GIVEN player is logged in, WHEN "Sign out" button tapped, THEN `useAuthStore.signOut()` is called and player returns to home.
-- [ ] **SUPA-AC-05 (UI)**: GIVEN `authError` is set in store, THEN error message is displayed in the form (text, not just color).
-- [ ] **AC-S6-04**: Email input and "Send" button have touch targets ≥ 44×44px (verified in DevTools).
-- [ ] **AC-S6-05**: Submit button is disabled while `isAuthLoading` is true.
-- [ ] **AC-S6-06**: "Check your email" state shows the email address the link was sent to.
+- [x] **SUPA-AC-01 (UI)**: GIVEN player on sign-in screen, WHEN valid email entered and "Send Magic Link" tapped, THEN `useAuthStore.signIn(email)` is called and UI transitions to "check-your-email" state showing confirmation message.
+- [x] **SUPA-AC-04 (UI)**: GIVEN player is logged in, WHEN "Sign out" button tapped, THEN `useAuthStore.signOut()` is called and player returns to home.
+- [x] **SUPA-AC-05 (UI)**: GIVEN `authError` is set in store, THEN error message is displayed in the form (text, not just color).
+- [x] **AC-S6-04**: Email input and "Send" button have touch targets ≥ 44×44px (verified in DevTools).
+- [x] **AC-S6-05**: Submit button is disabled while `isAuthLoading` is true.
+- [x] **AC-S6-06**: "Check your email" state shows the email address the link was sent to.
 
 ---
 

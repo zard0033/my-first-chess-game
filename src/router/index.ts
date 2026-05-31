@@ -11,6 +11,7 @@ export const routes = [
   { path: '/review',          name: 'review',    component: () => import('@/views/ReviewView.vue') },
   { path: '/history',         name: 'history',   component: () => import('@/views/HistoryView.vue') },
   { path: '/profile',         name: 'profile',   component: () => import('@/views/ProfileView.vue') },
+  { path: '/sign-in',         name: 'sign-in',   component: () => import('@/views/SignInView.vue') },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ]
 

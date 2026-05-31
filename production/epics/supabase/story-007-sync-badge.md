@@ -1,7 +1,7 @@
 # Story 007: PostGameReview Sync Badge
 
 > **Epic**: Supabase
-> **Status**: Not Started (backlog — Should Have)
+> **Status**: Complete (2026-05-31)
 > **Layer**: Persistence — Feature UI
 > **Type**: UI
 > **Estimate**: XS (2 hours)
@@ -29,11 +29,11 @@
 
 ## Acceptance Criteria
 
-- [ ] **SUPA-AC-13**: PostGameReview mounts and displays move list / analysis without blocking on sync.
-- [ ] **AC-S7-02**: When `syncStatus === 'syncing'`, a "Saving…" badge is visible near the top of PostGameReview.
-- [ ] **AC-S7-03**: When `syncStatus === 'synced'`, badge shows "Saved ✓" or "Saved" (or disappears after 3s).
-- [ ] **AC-S7-04**: When `syncStatus === 'error'`, badge shows "Not saved" — review is still fully accessible.
-- [ ] **AC-S7-05**: Badge transitions smoothly between states without layout shift on the review screen.
+- [x] **SUPA-AC-13**: PostGameReview mounts and displays move list / analysis without blocking on sync.
+- [x] **AC-S7-02**: When `syncStatus === 'syncing'`, a "Saving…" badge is visible near the top of PostGameReview.
+- [x] **AC-S7-03**: When `syncStatus === 'synced'`, badge shows "Saved ✓" or "Saved" (or disappears after 3s).
+- [x] **AC-S7-04**: When `syncStatus === 'error'`, badge shows "Not saved" — review is still fully accessible.
+- [x] **AC-S7-05**: Badge transitions smoothly between states without layout shift on the review screen.
 
 ---
 

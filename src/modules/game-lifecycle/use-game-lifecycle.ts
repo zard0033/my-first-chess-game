@@ -12,6 +12,7 @@ import { ref, readonly } from 'vue'
 import { Chess } from 'chess.js'
 import { useGameStore } from '../../stores/game-store'
 import type { CompletedGame } from '../../stores/game-store'
+import { useDataSyncStore } from '../../stores/data-sync'
 
 // ---- Types ----
 
@@ -140,7 +141,8 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     const game = assembleCompletedGame(t)
     _store.setCompletedGame(game)        // 1. write completed game to store
     _store.setGameInProgress(false)      // 2. disarm navigation guard (no await between 1 and 2)
-    if (_router) await _router.push('/review') // 3. navigate
+    void useDataSyncStore().syncGame(game) // 3. fire-and-forget: sets syncStatus before ReviewView mounts
+    if (_router) await _router.push('/review') // 4. navigate
   }
 
   // ---- Actions ----

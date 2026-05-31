@@ -2,32 +2,30 @@
 
 # Active Session State
 
-**Last updated**: 2026-05-30
-**Tests**: 365/365 pass
+**Last updated**: 2026-05-31
+**Tests**: 386/386 pass (S7-06 完成後無新 unit tests — UI/ADVISORY story)
 **Sprint**: 7 (`production/sprints/sprint-7.md`)
+**Supabase**: 連線 OK，tables 建立，RLS 驗證通過
 
 ---
 
 ## 當前進度
 
-### Sprint 7 計畫 ✅ WRITTEN（2026-05-30）
-- `production/sprints/sprint-7.md` — Sprint 7 計畫寫入
-- `production/sprint-status.yaml` — Sprint 7 初始化（8 stories：S7-01~S7-08）
-
----
-
-## Sprint 7 Story 狀態
+### Sprint 7 Must Have ✅ ALL DONE（2026-05-31）
 
 | ID | Story | Status |
 | -- | ----- | ------ |
-| S7-01 | Supabase singleton + .env.example + CSP connect-src | ready-for-dev |
-| S7-02 | useAuthStore（initAuth / signIn / signOut） | ready-for-dev（需 S7-01） |
-| S7-03 | DB migration：game_sessions + skill_scores + RLS | ready-for-dev（需 S7-01） |
-| S7-04 | useDataSyncStore（syncGame / offline queue） | backlog（需 S7-01/02/03） |
-| S7-05 | Route guards + App.vue initAuth | backlog（需 S7-02） |
-| S7-06 | Sign In UI | backlog（Should Have，需 S7-02） |
-| S7-07 | PostGameReview sync badge | backlog（Should Have，需 S7-04） |
+| S7-01 | Supabase singleton + .env.example + CSP connect-src | ✅ done |
+| S7-02 | useAuthStore（initAuth / signIn / signOut） | ✅ done |
+| S7-03 | DB migration：game_sessions + skill_scores + RLS | ✅ done |
+| S7-04 | useDataSyncStore（syncGame / offline queue） | ✅ done |
+| S7-05 | Route guards + App.vue initAuth | ✅ done |
+| S7-06 | Sign In UI | ✅ done |
+| S7-07 | PostGameReview sync badge | ✅ done |
 | S7-08 | ADR-0011 → Accepted | backlog（Nice to Have） |
+
+**Commits（未 push）**：9352d16, 4136f78, 6d41fdd, dfce561
+**Supabase 已連線**：.env.local 設定完成，tables 建立，RLS 驗證通過
 
 ---
 
@@ -59,10 +57,14 @@
 
 ## 下一步（新 session 入口）
 
-**Sprint 7 計畫寫入完成**（2026-05-30）
-- `production/sprints/sprint-7.md` — 8 stories，Must Have = 20h，Should Have = 6h
-- `production/sprint-status.yaml` — Sprint 7 初始化
-- ⚠️ 無 QA plan — 開始 implementation 前先跑 `/qa-plan sprint`
+**Sprint 7 Smoke Check PASS WITH WARNINGS**（2026-05-31）
+- 386/386 tests pass，0 errors
+- S7-06 ✅、S7-07 ✅（3 狀態截圖 + evidence 文件）、smoke check ✅
+- Smoke report：`production/qa/smoke-2026-05-31.md`
+- S7-07 evidence：`production/qa/evidence/s7-07-sync-badge-evidence.md`
+- S7-06 screenshots：`evidence/s7-06-sign-in-ui-screenshot.png`、`evidence/s7-06-home-nav-screenshot.png`
+- 未 commit（等 sprint 完成後一次 commit）
+- 下一步：`/team-qa sprint` 做 QA sign-off
 
 ## Session Extract — /story-done 2026-05-30
 
@@ -79,6 +81,21 @@
 - Tests after fixes: 365/365 pass (15 in auth-store.test.ts)
 - S7-05 constraint documented: route guards must check isAuthLoading (not just userId)
 - Next recommended: S7-03 (ready-for-dev) + S7-05 now unblocked
+
+## Session Extract — autonomous dev 2026-05-31
+
+- S7-03 COMPLETE: supabase/migrations/ × 2 SQL files; RLS on both tables; 5/5 AC verified
+- S7-05 COMPLETE: beforeEach guard + isAuthLoading wait; ProfileView stub; 6 new tests; 372/372 total
+- Commits: 9352d16 (S7-02), 4136f78 (S7-03), 6d41fdd (S7-05)
+- Sprint 7 Must Have status: S7-01 ✅ S7-02 ✅ S7-03 ✅ S7-04 backlog S7-05 ✅
+- Next: S7-04 useDataSyncStore (backlog → now unblocked: S7-01/02/03 all done)
+
+## Session Extract — autonomous dev 2026-05-31 (continued)
+
+- S7-04 COMPLETE: useDataSyncStore, sync-tuning.ts, App.vue flush watcher; 14 tests; 386/386
+- Commit: dfce561
+- Sprint 7 Must Have: **全部完成** (S7-01~05 all done)
+- Next: S7-06 Sign In UI (Should Have) — OR — 先 push + .env.local 設定 Supabase 憑證再繼續
 
 **S6-06 完成記錄**（2026-05-30）：
 - 建立 `docs/architecture/adr-0011-supabase-authentication-and-data-sync-strategy.md`（Status: Proposed）

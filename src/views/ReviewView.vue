@@ -9,11 +9,16 @@ import type { OpeningResult } from '@/modules/opening-id/opening-index'
 import { MATE_CP } from '@/config/engine-tuning'
 import type { Annotation, EvaluationInput } from '@/modules/move-annotation/annotation-types'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
+import OpeningKnowledgeCard from '@/components/opening-knowledge-card.vue'
+import { useDataSyncStore } from '@/stores/data-sync'
 
 const router = useRouter()
 const gameStore = useGameStore()
+const dataSyncStore = useDataSyncStore()
 const review = usePostGameReview()
 const engine = useReviewEngine()
+
+const syncStatus = computed(() => dataSyncStore.syncStatus)
 
 const openingResult = ref<OpeningResult | null>(null)
 const boardPlaceholderRef = ref<HTMLElement | null>(null)
@@ -218,12 +223,26 @@ function handleExit(): void {
       <div class="w-16" />
     </div>
 
-    <!-- Opening header (AC-8, AC-9, AC-10) -->
+    <!-- Opening header + knowledge card (OKC-01, OKC-02, OKC-03) -->
+    <OpeningKnowledgeCard
+      :eco="openingResult?.eco ?? null"
+      :header-text="openingHeader"
+    />
+
+    <!-- Sync status badge (SUPA-AC-13, AC-S7-02~05) -->
     <div
-      v-if="openingHeader"
-      class="w-full max-w-md text-sm text-center text-gray-700 mb-2"
+      v-if="syncStatus !== 'idle'"
+      class="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1 mb-2"
+      :class="{
+        'bg-yellow-100 text-yellow-800': syncStatus === 'syncing',
+        'bg-green-100 text-green-800': syncStatus === 'synced',
+        'bg-red-100 text-red-800': syncStatus === 'error',
+      }"
+      aria-live="polite"
     >
-      {{ openingHeader }}
+      <span v-if="syncStatus === 'syncing'">Saving…</span>
+      <span v-if="syncStatus === 'synced'">Saved</span>
+      <span v-if="syncStatus === 'error'">Not saved</span>
     </div>
 
     <!-- Progress indicator (Rule 12, AC-16) -->
