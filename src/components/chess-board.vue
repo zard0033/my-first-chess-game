@@ -218,7 +218,7 @@ const keyboard = useBoardKeyboard({
     if (props.disabled) return
     boardApi.value?.move({ from: from as Key, to: to as Key })
   },
-  onPieceSelected: (square, legalDests) => {
+  onPieceSelected: (square, _legalDests) => {
     boardApi.value?.setConfig({
       drawable: { shapes: buildLegalMoveShapes(square as Key, props.fen), brushes: BOARD_BRUSHES },
     }, false)

@@ -6,7 +6,6 @@ import { usePostGameReview } from '@/modules/post-game-review/use-post-game-revi
 import { useReviewEngine } from '@/modules/chess-engine/review-engine'
 import { identifyOpening } from '@/modules/opening-id/opening-index'
 import type { OpeningResult } from '@/modules/opening-id/opening-index'
-import { MATE_CP } from '@/config/engine-tuning'
 import type { Annotation, EvaluationInput } from '@/modules/move-annotation/annotation-types'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import OpeningKnowledgeCard from '@/components/opening-knowledge-card.vue'

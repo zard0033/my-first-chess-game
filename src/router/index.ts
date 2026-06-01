@@ -46,6 +46,7 @@ export function createAppRouter() {
     if (!authStore.userId) {
       return { name: 'home', query: { login: 'required' } }
     }
+    return undefined
   })
 
   router.afterEach(() => {

@@ -76,18 +76,14 @@ export function mapOpeningDisplay(openingName: string | null, openingEco: string
   return 'Unknown opening'
 }
 
-/** Map a raw game_sessions DB row to a GameHistoryEntry display model */
-export function mapRowToEntry(row: {
-  id: string
-  played_at: string
-  result: string
-  player_color: string
-  end_reason: string
-  ai_difficulty: number
-  move_count: number
-  opening_name: string | null
-  opening_eco: string | null
-}): GameHistoryEntry {
+/** Map a raw game_sessions DB row to a GameHistoryEntry display model.
+ *  Accepts Record<string, unknown> because Supabase returns untyped rows. */
+export function mapRowToEntry(raw: Record<string, unknown>): GameHistoryEntry {
+  const row = raw as {
+    id: string; played_at: string; result: string; player_color: string
+    end_reason: string; ai_difficulty: number; move_count: number
+    opening_name: string | null; opening_eco: string | null
+  }
   const { playerResult, playerResultPrefix } = mapPlayerResult(row.result, row.player_color)
   const { date, displayDate } = mapDisplayDate(row.played_at)
   return {
@@ -108,7 +104,9 @@ export function mapRowToEntry(row: {
   }
 }
 
-/** Build the next cursor from the last row of a result set */
-export function buildCursor(row: { played_at: string; created_at: string; id: string }): Cursor {
+/** Build the next cursor from the last row of a result set.
+ *  Accepts Record<string, unknown> because Supabase returns untyped rows. */
+export function buildCursor(raw: Record<string, unknown>): Cursor {
+  const row = raw as { played_at: string; created_at: string; id: string }
   return { playedAt: row.played_at, createdAt: row.created_at, id: row.id }
 }

@@ -85,7 +85,6 @@ function squareCenter(square: string): { x: number; y: number } | null {
 
 // Arrow shaft width and head length scale with board size (Formula 2 of GDD)
 const shaftWidthPx = computed(() => Math.max(4, Math.min(20, squarePx.value * 0.16)))
-const headLengthPx = computed(() => Math.max(12, Math.min(60, squarePx.value * 0.40)))
 
 interface ArrowGeometry {
   x1: number; y1: number
