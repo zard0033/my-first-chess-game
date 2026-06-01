@@ -50,9 +50,16 @@ interface GameReplay {
 
 ## QA Test Cases
 
-- Rate a game, reload → rating persists
-- Edit notes, navigate away, return → notes persist
-- Clear rating (click again to deselect)
+**Gate level**: BLOCKING — unit tests for localStorage read/write
+
+- **AC-02 save**: Click star 3 → assert `localStorage.getItem('pgr:replay:${gameId}')` contains `{ rating: 3 }`
+- **AC-03 load**: Set localStorage before mount → component renders correct selected star state
+- **AC-02 deselect**: Click already-selected star → assert localStorage updated with cleared rating
+- **AC-04 notes**: Type 200-char string in textarea → blur → localStorage updated; type 201st char → truncated or rejected
+
+**Edge cases**:
+- `gameId` undefined → no localStorage write; no crash
+- localStorage unavailable (throws) → silent failure; UI still renders
 
 ---
 

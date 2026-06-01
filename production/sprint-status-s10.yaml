@@ -13,11 +13,11 @@ stories:
     name: "pgn-viewer Vue 3 wrapper"
     file: "production/epics/game-replay/story-001-pgn-viewer-wrapper.md"
     priority: must-have
-    status: ready-for-dev
+    status: done
     owner: ""
     estimate_days: 0.75
     blocker: ""
-    completed: ""
+    completed: "2026-06-01"
 
   - id: "s10-02"
     name: "ReplayView UI + navigation"

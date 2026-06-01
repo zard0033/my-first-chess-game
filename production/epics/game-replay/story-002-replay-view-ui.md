@@ -65,11 +65,23 @@ nextMove() / prevMove() / jumpToMove(index)
 
 ## QA Test Cases
 
-- Route navigation: History → ReplayView
-- Move step through: all 10+ moves in a game
-- Control responsiveness: play/pause timing
-- Mobile layout: board responsive, controls accessible
-- Back navigation: returns to History, doesn't persist state
+**Gate level**: BLOCKING — unit tests for navigation and state; ADVISORY — mobile screenshot
+
+- **AC-02 route**: Mount ReplayView with `{ params: { gameId } }` → route resolves; auth guard (S7-05 pattern) rejects unauthenticated user
+- **AC-03a next**: Call `nextMove()` → assert `moveIndex` increments by 1; at max, call again → stays clamped
+- **AC-03b prev**: Call `prevMove()` → assert `moveIndex` decrements by 1; at 0, call again → stays at 0
+- **AC-03c slider**: Call `jumpToMove(5)` on 10-move game → assert `moveIndex === 5`
+- **AC-03d play/pause**: Toggle play/pause → assert `isPlaying` state flips
+- **AC-04 highlight**: Mock `moveIndex = 3` → assert move list item index 3 has active class; scroll-into-view triggered
+- **AC-05 back**: Back button fires `router.back()`; remount component → `moveIndex` resets to 0
+- **AC-07 keyboard**: Arrow keys call `nextMove`/`prevMove`; Esc calls `router.back()`
+
+**Edge cases (GDD)**:
+- EC-01: `pgn` with 0 moves → prev/next controls disabled; no crash
+- EC-02: Game aborted at move 3 → move list has 3 items; `nextMove()` clamped at 3
+- EC-03: `gameId` not found → assert router redirects to `/history`
+
+**Visual evidence**: Mobile screenshot showing board full-width + controls below (ADVISORY — `production/qa/evidence/s10-02-replay-view-mobile.png`)
 
 ---
 

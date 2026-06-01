@@ -45,8 +45,16 @@
 
 ## QA Test Cases
 
-- Animations play smoothly during rapid move stepping
-- No visual stuttering or delayed updates
+**Gate level**: ADVISORY — manual visual verification only (animations are not automatable)
+
+- **AC-01**: Eval bar shows 100ms fade transition on move change (not an instant jump)
+- **AC-02**: Best move arrow slides from previous position at 200ms (not a snap)
+- **AC-03**: Move list highlight crossfades at 100ms
+- **AC-04**: Hold arrow key for 3+ seconds — no stutter or dropped frames
+- **AC-04 iPhone**: Profile on Safari DevTools — 60fps maintained throughout
+- **CSS check**: Only `transform` and `opacity` animated — no `width`, `height`, `top`, or other layout properties
+
+**Evidence**: Screen recording or screenshot comparison before/after transition (`production/qa/evidence/s10-05-animation-polish.*`)
 
 ---
 

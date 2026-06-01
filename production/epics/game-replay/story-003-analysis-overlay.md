@@ -53,10 +53,20 @@
 
 ## QA Test Cases
 
-- Pre-analysis completes without errors
-- Eval bar updates on move step
-- Best move arrow points to correct square
-- Performance: 60fps @ 10 moves/second stepping
+**Gate level**: BLOCKING — integration tests for eval formula + Stockfish bridge
+
+GDD Formula: `fillRatio = (eval + 4) / 8` where `eval ∈ [-4, +4]`
+
+- **Formula**: eval = 0 → fillRatio = 0.5; eval = 4 → 1.0; eval = -4 → 0.0; eval = 6 (over) → clamped 1.0; eval = -6 (under) → clamped 0.0
+- **Pre-analysis**: 5-move game analyzed at `depthForSpeed = 12` without errors; completes < 30s
+- **Eval reactivity**: Step move 1 → move 2 → assert eval bar `fillRatio` value changes
+- **Arrow data**: Best move arrow component receives correct `from`/`to` square for current position
+
+**Edge cases (GDD)**:
+- EC-04: Stockfish error/timeout → eval bar hidden; board visible; no crash or stuck spinner
+- EC-05: 100+ move game → eval updates without lag
+- Depth indicator: "depth 12" string rendered for current position
+- Position timeout (3s): that move shows blank eval, not crash
 
 ---
 
