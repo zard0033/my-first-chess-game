@@ -19,9 +19,12 @@
 
 ## Screenshots
 
-- `s7-07-sync-badge-saving.png` — "Saving…" state (yellow badge)
-- `s7-07-sync-badge-saved.png` — "Saved" state (green badge)
-- `s7-07-sync-badge-error.png` — "Not saved" state (red badge, review content still accessible)
+- `s7-07-sync-badge-saving.png` — "Saving…" state (yellow badge) — smoke check 2026-05-31
+- `s7-07-sync-badge-saved.png` — "Saved" state (green badge) — smoke check 2026-05-31
+- `s7-07-sync-badge-error.png` — "Not saved" state (red badge, review content still accessible) — smoke check 2026-05-31
+- `s7-07-saving-badge-qa.png` — "Saving…" state re-verified — QA 2026-06-01
+- `s7-07-saved-badge-qa.png` — "Saved" state re-verified — QA 2026-06-01
+- `s7-07-not-saved-badge-qa.png` — "Not saved" state re-verified — QA 2026-06-01
 
 ---
 

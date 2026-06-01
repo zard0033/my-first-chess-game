@@ -2,7 +2,7 @@
 
 # Active Session State
 
-**Last updated**: 2026-05-31
+**Last updated**: 2026-06-01
 **Tests**: 386/386 pass (S7-06 完成後無新 unit tests — UI/ADVISORY story)
 **Sprint**: 7 (`production/sprints/sprint-7.md`)
 **Supabase**: 連線 OK，tables 建立，RLS 驗證通過
@@ -56,6 +56,14 @@
 ---
 
 ## 下一步（新 session 入口）
+
+**Sprint 7 QA Sign-Off: APPROVED**（2026-06-01）
+- 7/8 stories PASS（S7-08 SKIPPED — 需 iOS 實機，carry to Sprint 8）
+- Sign-off report：`production/qa/qa-signoff-sprint7-2026-06-01.md`
+- Evidence 文件：s7-03/05/06/07 全部寫入 `production/qa/evidence/`
+- 截圖：7 張新截圖（s7-05/06/07）已存入 evidence/
+- 下一步：git commit + push（未 commit commits：9352d16, 4136f78, 6d41fdd, dfce561 + QA evidence）→ `/sprint-plan` 規劃 Sprint 8
+- Sprint 8 第一項：S7-08 ADR-0011 iOS PWA Magic Link 驗證
 
 **Sprint 7 Smoke Check PASS WITH WARNINGS**（2026-05-31）
 - 386/386 tests pass，0 errors
