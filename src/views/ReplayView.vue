@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGameHistoryStore } from '@/stores/game-history'
 import PgnViewer from '@/components/pgn-viewer.vue'
+import ReplayAnalysisOverlay from '@/components/replay-analysis-overlay.vue'
+import GameReplayRating from '@/components/game-replay-rating.vue'
 import type { GameHistoryEntry } from '@/types/game-history'
 
 const route = useRoute()
@@ -107,31 +109,41 @@ onMounted(() => {
           <div><span class="text-gray-600">Difficulty:</span> {{ game.difficultyLabel }}</div>
           <div><span class="text-gray-600">Moves:</span> {{ game.moveCount }}</div>
         </div>
+
+        <!-- S10-03: Analysis overlay -->
+        <ReplayAnalysisOverlay
+          class="mt-3"
+          :move-index="currentMoveIndex"
+          :total-moves="totalMoves"
+        />
       </div>
     </div>
 
-    <!-- Controls -->
+    <!-- Controls (S10-05: fade transition on play state) -->
     <div class="flex flex-wrap items-center gap-2 justify-center mb-4">
       <button
-        class="px-4 py-2 rounded bg-gray-200 text-sm min-h-[44px]"
+        class="px-4 py-2 rounded bg-gray-200 text-sm min-h-[44px] transition-opacity duration-150"
+        :class="{ 'opacity-40': currentMoveIndex <= 0 }"
         :disabled="currentMoveIndex <= 0"
         @click="prevMove"
       >← Prev</button>
 
       <button
-        class="px-4 py-2 rounded bg-blue-600 text-white text-sm min-h-[44px]"
+        class="px-4 py-2 rounded bg-blue-600 text-white text-sm min-h-[44px] transition-colors duration-150"
+        :class="{ 'bg-blue-800': isPlaying }"
         @click="togglePlay"
       >{{ isPlaying ? '⏸ Pause' : '▶ Play' }}</button>
 
       <button
-        class="px-4 py-2 rounded bg-gray-200 text-sm min-h-[44px]"
+        class="px-4 py-2 rounded bg-gray-200 text-sm min-h-[44px] transition-opacity duration-150"
+        :class="{ 'opacity-40': currentMoveIndex >= totalMoves }"
         :disabled="currentMoveIndex >= totalMoves"
         @click="nextMove"
       >Next →</button>
     </div>
 
     <!-- Move slider -->
-    <div class="flex items-center gap-4">
+    <div class="flex items-center gap-4 mb-6">
       <input
         type="range"
         min="0"
@@ -142,6 +154,9 @@ onMounted(() => {
       />
       <span class="text-sm text-gray-600 w-12">{{ currentMoveIndex }}/{{ totalMoves }}</span>
     </div>
+
+    <!-- S10-04: Game rating -->
+    <GameReplayRating :game-id="gameId" />
   </div>
 
   <!-- No game found -->

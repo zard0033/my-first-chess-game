@@ -28,6 +28,7 @@ function makeRouter() {
       { path: '/', component: { template: '<div/>' } },
       { path: '/play', component: { template: '<div/>' } },
       { path: '/history', component: HistoryView },
+      { path: '/replay/:gameId', component: { template: '<div/>' } },
     ],
   })
 }
@@ -322,7 +323,8 @@ describe('AC-12: expanded row panel fields', () => {
     const wrapper = mountView(pinia)
     await flushPromises()
 
-    await wrapper.find('[data-testid="history-row"]').trigger('click')
+    // Row click now navigates to /replay/:gameId; expand via store directly
+    store.expandedRowId = 'row-1'
     await wrapper.vm.$nextTick()
 
     const text = wrapper.text()
