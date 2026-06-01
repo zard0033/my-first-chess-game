@@ -2,7 +2,7 @@
 
 > **Epic**: game-replay
 > **Sprint**: S10-01 (Must Have)
-> **Status**: Ready for Dev
+> **Status**: Complete
 > **Layer**: Feature / UI Component
 > **Type**: Component Integration
 > **Estimate**: M (6 hours)
@@ -12,8 +12,19 @@
 ## Context
 
 **GDD**: design/gdd/game-replay.md (pending design-review)
+**ADR**: N/A — `@lichess-org/pgn-viewer` is pre-approved in the Phase 2 tech stack (CLAUDE.md); no new architectural decision required for wrapping an approved library.
 **Dependencies**: pgn-viewer (npm: @lichess-org/pgn-viewer) — already reserved in tech stack
+**Story dependencies**: None — S10-01 is the entry story for the game-replay epic.
 **Purpose**: Wrap pgn-viewer into a Vue 3 component that accepts a PGN string and emits move selection events
+
+**Out of scope**: Move history display, evaluation overlay, game state management — owned by ReplayView (S10-02) and analysis overlay (S10-03).
+
+**Control Manifest Rules** (Manifest Version: 2026-05-29):
+- Touch targets ≥ 44×44px for any interactive elements inside the wrapper
+- No hover-only interactions (mobile has no hover state)
+- Component must be stateless — parent (ReplayView) manages selected move index
+
+**Performance**: Component mount expected < 50ms; no frame budget impact during initial render. Touch/click events fire synchronously.
 
 ---
 
@@ -96,3 +107,10 @@ type Emits = {
 - pgn-viewer npm package may have its own types; use @types or declare module if needed
 - Consider wrapping pgn-viewer's click/select handler to emit custom event (data normalization)
 - Keep component stateless; parent (ReplayView) manages selected move
+
+## Completion Notes
+**Completed**: 2026-06-01
+**Criteria**: 6/6 passing
+**Deviations**: highlighted prop @deprecated (intentional); stale-closure bug fixed in code review
+**Test Evidence**: Component Integration: tests/unit/components/pgn-viewer.test.ts (12/12 pass)
+**Code Review**: Complete — stale closure fix applied (localViewer capture)

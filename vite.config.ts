@@ -6,9 +6,16 @@ export default defineConfig({
   base: process.env.VITE_BASE_URL ?? '/',
   plugins: [vue()],
   resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
+    alias: [
+      { find: '@', replacement: fileURLToPath(new URL('./src', import.meta.url)) },
+      // pgn-viewer doesn't export CSS in its package.json exports map; bypass via absolute path
+      {
+        find: '@lichess-org/pgn-viewer/dist/lichess-pgn-viewer.css',
+        replacement: fileURLToPath(
+          new URL('./node_modules/@lichess-org/pgn-viewer/dist/lichess-pgn-viewer.css', import.meta.url),
+        ),
+      },
+    ],
   },
   optimizeDeps: {
     exclude: ['stockfish'],

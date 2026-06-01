@@ -1,3 +1,4 @@
+<!-- QA-PLAN: 2026-06-01 | System: Sprint 10 | Plan written: production/qa/qa-plan-sprint-10-2026-06-01.md -->
 <!-- QA-PLAN: 2026-06-01 | System: Sprint 8 | Plan pending: run /qa-plan sprint after S8-02 stories created -->
 
 # Active Session State
@@ -129,12 +130,28 @@
 
 | ID | Task | Priority | Status |
 | -- | ---- | -------- | ------ |
-| S10-01 | pgn-viewer Vue 3 wrapper | Must Have | Ready for Dev |
+| S10-01 | pgn-viewer Vue 3 wrapper | Must Have | ✅ **COMPLETE** (2026-06-01) — 12 tests; stale-closure fix applied |
 | S10-02 | ReplayView UI + navigation | Must Have | Ready for Dev |
 | S10-03 | Engine analysis overlay | Must Have | Ready for Dev |
 | S10-04 | (Stretch) Game-level rating/notes | Should Have | Backlog |
 
-**下一步**：Sprint 10 開始 → `/qa-plan sprint` → 實作 Game Replay Phase 2
+**下一步**：S10-02 ReplayView UI + navigation
+
+---
+
+## Session Extract — /dev-story 2026-06-01
+
+- Story: production/epics/game-replay/story-001-pgn-viewer-wrapper.md — pgn-viewer Vue 3 Wrapper
+- Files changed: src/components/pgn-viewer.vue (rewritten to wrap @lichess-org/pgn-viewer), tests/unit/components/pgn-viewer.test.ts (rewritten, 12 component tests)
+- Test written: tests/unit/components/pgn-viewer.test.ts (12/12 pass; 456/456 total)
+- Blockers: None
+- Next: /code-review src/components/pgn-viewer.vue tests/unit/components/pgn-viewer.test.ts then /story-done production/epics/game-replay/story-001-pgn-viewer-wrapper.md
+
+## Session Extract — /story-done 2026-06-01
+- Verdict: COMPLETE WITH NOTES
+- Story: production/epics/game-replay/story-001-pgn-viewer-wrapper.md — pgn-viewer Vue 3 Wrapper Component
+- Tech debt logged: None
+- Next recommended: S10-02 — ReplayView UI + navigation (production/epics/game-replay/story-002-replay-view-ui.md)
 
 ---
 
