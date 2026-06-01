@@ -55,7 +55,13 @@ export const useAuthStore = defineStore('auth', () => {
   /** Send a Magic Link to the given email address. Sets pendingEmail on success. */
   async function signIn(emailInput: string): Promise<void> {
     authError.value = null
-    const { error } = await supabase.auth.signInWithOtp({ email: emailInput })
+    const redirectTo = typeof window !== 'undefined'
+      ? window.location.origin + (import.meta.env.BASE_URL ?? '/')
+      : undefined
+    const { error } = await supabase.auth.signInWithOtp({
+      email: emailInput,
+      ...(redirectTo ? { options: { emailRedirectTo: redirectTo } } : {}),
+    })
     if (error) {
       authError.value = error.message
     } else {
