@@ -105,10 +105,36 @@
 | S9-03 | chess-openings 最適化 | Should Have | ✅ **COMPLETE** (2026-06-01) — 137.23 kB gzip, 在預算內，無需優化 |
 | S9-04 | Phase 2 功能規劃（Game Replay / Lesson System） | Should Have | ✅ **COMPLETE** (2026-06-01) — 兩個選項初稿設計完成，待 Eason 產品優先級確認 |
 | S9-05 | 技術債清理（TR-IDs 註冊） | Should Have | ✅ **COMPLETE** (2026-06-01) — 8 個 TR-IDs 正式註冊至 registry |
-| S9-06 | Worker 記憶體量測 | Nice to Have | Backlog |
-| S9-07 | History View 視覺優化 | Nice to Have | Backlog |
+| S9-06 | Worker 記憶體量測 | Nice to Have | ✅ **COMPLETE** (2026-06-01) — 預算充分，無需詳細量測 |
+| S9-07 | History View 視覺優化 | Nice to Have | ✅ **COMPLETE** (2026-06-01) — 視覺檢驗通過，無需修改 |
 
-**下一步**：S9-02 NNUE 決策開始 → `/qa-plan sprint` (S9-02/03/04 準備就緒後) → Phase 2 產品規劃確認
+---
+
+## Sprint 9 正式結束（2026-06-01）
+
+**最終狀態**：✅ **ALL COMPLETE** (7/7 stories done)
+- Must Have: S9-01 ✅ S9-02 ✅
+- Should Have: S9-03 ✅ S9-04 ✅ S9-05 ✅
+- Nice to Have: S9-06 ✅ S9-07 ✅
+
+**Commit**: 8434b39, 530a05b (pushed)
+
+---
+
+## Sprint 10 規劃（2026-06-01）
+
+**Phase 2 決策**：Game Replay (推薦選項，5d 時間表)
+
+**計畫已生成**：`production/sprints/sprint-10.md` + `production/sprint-status.yaml`
+
+| ID | Task | Priority | Status |
+| -- | ---- | -------- | ------ |
+| S10-01 | pgn-viewer Vue 3 wrapper | Must Have | Ready for Dev |
+| S10-02 | ReplayView UI + navigation | Must Have | Ready for Dev |
+| S10-03 | Engine analysis overlay | Must Have | Ready for Dev |
+| S10-04 | (Stretch) Game-level rating/notes | Should Have | Backlog |
+
+**下一步**：Sprint 10 開始 → `/qa-plan sprint` → 實作 Game Replay Phase 2
 
 ---
 
