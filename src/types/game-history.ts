@@ -19,4 +19,5 @@ export interface GameHistoryEntry {
   openingName: string | null
   openingEco: string | null
   openingDisplay: string
+  pgn: string
 }

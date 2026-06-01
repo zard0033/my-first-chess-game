@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { useGameHistoryStore } from '@/stores/game-history'
 import type { GameHistoryEntry } from '@/types/game-history'
 
 const props = defineProps<{
@@ -9,7 +8,6 @@ const props = defineProps<{
 }>()
 
 const router = useRouter()
-const historyStore = useGameHistoryStore()
 let touchStartY = 0
 
 function onRowClick() {

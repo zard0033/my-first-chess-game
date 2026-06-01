@@ -82,7 +82,7 @@ export function mapRowToEntry(raw: Record<string, unknown>): GameHistoryEntry {
   const row = raw as {
     id: string; played_at: string; result: string; player_color: string
     end_reason: string; ai_difficulty: number; move_count: number
-    opening_name: string | null; opening_eco: string | null
+    opening_name: string | null; opening_eco: string | null; pgn: string
   }
   const { playerResult, playerResultPrefix } = mapPlayerResult(row.result, row.player_color)
   const { date, displayDate } = mapDisplayDate(row.played_at)
@@ -101,6 +101,7 @@ export function mapRowToEntry(raw: Record<string, unknown>): GameHistoryEntry {
     openingName: row.opening_name,
     openingEco: row.opening_eco,
     openingDisplay: mapOpeningDisplay(row.opening_name, row.opening_eco),
+    pgn: row.pgn,
   }
 }
 

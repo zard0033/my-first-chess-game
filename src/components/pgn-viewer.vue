@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 
 interface Props {
   pgn: string
   orientation?: 'white' | 'black'
-  highlighted?: string
+  highlighted?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {

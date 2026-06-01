@@ -96,8 +96,8 @@ onMounted(() => {
       <div class="flex-1">
         <PgnViewer
           :pgn="pgn"
-          :highlighted="`move-${currentMoveIndex}`"
-          @move-selected="(move) => {}"
+          :highlighted="currentMoveIndex"
+          @move-selected="() => {}"
         />
       </div>
 
