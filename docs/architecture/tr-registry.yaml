@@ -444,3 +444,75 @@ requirements:
     created: 2026-05-29
     revised: ""
     status: active
+
+  # ---- Lesson System ----
+  - id: TR-lesson-system-001
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "/learn renders lesson catalog with title, difficulty, and completion state (AC-01)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-002
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Linear unlock: locked lessons show lock badge and are not navigable; first lesson always unlocked; completing a lesson unlocks the next by order (AC-02, AC-03)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-003
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Curriculum progress = completedCount / totalLessons (AC-04)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-004
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Narration step shows coach text and advances on Next (AC-05)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-005
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Interactive step accepts only the expectedMove; promotion matches only when from/to/promotion all match (AC-06, AC-12)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-006
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Legal non-expected move on interactive step: does not advance, not committed to board, shows hint (AC-07)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-007
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Coach arrows/highlights render on steps that define them (AC-08)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-008
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Progress persists to pgr:lessons:progress and reloads correctly; corrupt data treated as empty without error (AC-09, EC-06)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-009
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Direct navigation to locked or non-existent lessonId redirects to /learn (AC-10, EC-03, EC-04)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-lesson-system-010
+    system: lesson-system
+    gdd: design/gdd/lesson-system.md
+    requirement: "Mobile layout <768px: board full width, coach panel below, touch targets ≥44x44px (AC-11)"
+    created: 2026-06-01
+    revised: ""
+    status: active

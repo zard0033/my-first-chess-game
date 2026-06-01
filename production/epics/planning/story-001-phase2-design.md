@@ -126,10 +126,18 @@ S11-04: Progress tracking + badges (T: 1d)
 
 ## Completion Notes
 
-**Status**: In Progress — awaiting Eason product decision
+**Status**: Complete
 
-**Decision Pending**:
-- Game Replay (5d timeline) or
-- Lesson System (6d timeline)?
+**Decision (2026-06-01)**:
+- **Phase 2a (S10)**: Game Replay — built and shipped (this option's stories became S10-01…05).
+- **Phase 2c (S12)**: Lesson System — confirmed as the next directed-learning track, with two scope refinements vs. Option B above:
+  1. **Coach explanations are static pre-scripted** (not AI). Zero API cost, offline-capable, deterministic.
+  2. **Data layer is static front-end data** (`src/data/lessons/`), **not** a Supabase `lessons` table. This removes the schema/migration story (original S11-01) and lowers the engineering load; hand-authored content remains the critical path.
+- First catalog scope: **opening-principles concept lessons** (3–4 lessons).
 
-Once confirmed, stories will be created and Sprint 10 can begin immediately.
+**Artifacts created**:
+- GDD: `design/gdd/lesson-system.md` (system #18, pending design-review)
+- Epic: `production/epics/lesson-system/EPIC.md` with stories S12-01…05
+- TR-IDs: `TR-lesson-system-001…010` in `docs/architecture/tr-registry.yaml`
+
+Implementation is scheduled for S12 (run `/sprint-plan new` when S12 starts).

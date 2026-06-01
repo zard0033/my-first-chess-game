@@ -39,6 +39,7 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 | 15 | PWA Support | Meta | Polish | Not Started | — | — |
 | 16 | Audio System | Audio | Polish | Not Started | — | — |
 | 17 | Settings | UI | Polish | Not Started | — | Multiple |
+| 18 | Lesson System | Gameplay | Phase 2 | **In Design** (2026-06-01; static scripted, S12) | [lesson-system.md](./lesson-system.md) | Chess Board, Navigation & Routing |
 
 ---
 
@@ -171,7 +172,7 @@ None found. The Level Progression → Difficulty System link is one-way: Level r
 
 | Metric | Count |
 |--------|-------|
-| Total systems identified | 18 |
+| Total systems identified | 19 (#18 Lesson System added 2026-06-01, Phase 2) |
 | Design docs started | 12 (#8b Opening Knowledge Cards skeleton; #9+#11 combined; #12 Game History 2026-06-01) |
 | Design docs reviewed | 8 |
 | Design docs approved | 8 |
