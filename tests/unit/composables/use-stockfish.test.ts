@@ -50,13 +50,13 @@ describe('useStockfish', () => {
     expect(mock.commands[0]).toBe('uci')
   })
 
-  it('sends HCE setoptions after uciok and before isready', async () => {
+  it('sends NNUE setoptions after uciok and before isready', async () => {
     const { mock, factory } = makeMock()
     const { init } = useStockfish(factory)
     await init()
     const uciIdx = mock.commands.indexOf('uci')
     const isreadyIdx = mock.commands.indexOf('isready')
-    const nnueIdx = mock.commands.indexOf('setoption name Use NNUE value false')
+    const nnueIdx = mock.commands.indexOf('setoption name Use NNUE value true')
     const hashIdx = mock.commands.indexOf('setoption name Hash value 16')
     expect(nnueIdx).toBeGreaterThan(uciIdx)
     expect(hashIdx).toBeGreaterThan(uciIdx)

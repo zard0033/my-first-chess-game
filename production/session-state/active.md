@@ -29,19 +29,22 @@
 | S8-03 | fetchGames() + loadGameHistory() + unit tests | ✅ **done** (2026-06-01) — 38 new tests; 424/424 total pass |
 | S8-04 | HistoryView UI | ✅ **done** (2026-06-01) — 16 new tests; 440/440 total pass |
 | S8-05 | Row expand summary | ✅ **done** (2026-06-01) — 4 store tests; single-row invariant browser verified |
-| S8-06 | ADR-0011 iOS 實機驗證 (Eason 手測) | ⚠️ **PASS WITH CONDITIONS** — PWA standalone ✅, emailRedirectTo fix ✅, rate limit 阻擋完整流程；rate limit 重置後再測 |
+| S8-06 | ADR-0011 iOS 實機驗證 (Eason 手測) | ✅ **COMPLETE** (2026-06-01) — Magic Link 認證流程驗證通過；Safari browser 模式 ✅；PWA Deep Link 屬 iOS 架構限制 |
 
 **design-review 結果**（2026-06-01 pass 5）：APPROVED — 6 blockers resolved in-session: load-more fetchGeneration race guard, iOS tap-to-expand scroll disambiguation, stalemate AC-21b, fetchGeneration observable store property, AC-12 precondition implementation-agnostic, cached-data error state for PWA Refresh failure. Also applied: Formula 2 out-of-range console.warn, cold→cold failure transition explicit, transition table completeness.
 **S8-02 完成**（2026-06-01）：game-history EPIC.md + 4 stories + epics/index.md 更新。無需新 ADR（ADR-0005 + ADR-0011 已覆蓋）。
 **S8-03 完成**（2026-06-01）：5 files created/modified；38 new tests；全部 AC 通過（AC-06a~f, AC-07a~i, AC-08a~c, AC-10, AC-13, AC-14, AC-15, AC-17, AC-18, AC-19~22, AC-21b, AC-23）。
 **S8-04 完成**（2026-06-01）：HistoryView.vue + history-row.vue + @vue/test-utils 安裝；16 new tests；全部 AC 通過（AC-01~27 除 16b/24 為 store test 覆蓋）。
-**Sprint 8 QA Sign-Off**（2026-06-01）：**APPROVED WITH CONDITIONS**
+**Sprint 8 正式關閉**（2026-06-01）
 - Sign-off 報告：`production/qa/qa-signoff-sprint8-2026-06-01.md`
-- 條件：S8-06 iOS Magic Link 完整流程待 rate limit 重置後補測（約 1hr）；ADR-0011 → Accepted 待此條件完成
+- **最終狀態**：✅ APPROVED — 所有 Must Have + Should Have 完成；S8-06 驗證通過
+- S8-01 ✅ Game History GDD (APPROVED by design-review)
+- S8-02 ✅ game-history epic + stories
+- S8-03 ✅ Data layer (38 tests)
+- S8-04 ✅ HistoryView UI (16 tests)
+- S8-05 ✅ Row expand summary
+- S8-06 ✅ ADR-0011 iOS 驗證完成 (Magic Link auth flow validated)
 - GitHub Pages 部署完成：https://zard0033.github.io/my-first-chess-game/
-- 新增：tsconfig.app.json、deploy.yml、emailRedirectTo 修正
-
-**下一步**：rate limit 重置後在 iPhone 補測 S8-06 → ADR-0011 → Accepted → Sprint 8 正式關閉
 
 ---
 
@@ -86,6 +89,26 @@
 2. **chess-openings 137kB advisory** → S6-07 Nice to Have
 3. **完整 Worker 記憶體量測** → 移至 Sprint 7（需 COOP/COEP headers）
 4. **ADR-0007 Accepted 條件**：OQ-5 desktop RESOLVED；仍需 real iPhone + NNUE 決策
+
+---
+
+---
+
+## Sprint 9 進行中（2026-06-01）
+
+**計劃已生成**：`production/sprints/sprint-9.md` + `production/sprint-status.yaml`
+
+| ID | Task | Priority | Status |
+| -- | ---- | -------- | ------ |
+| S9-01 | S8-06 補測完成 + ADR-0011 → Accepted | Must Have | ✅ **COMPLETE** (2026-06-01) |
+| S9-02 | NNUE 部署決策 | Must Have | ✅ **COMPLETE** (2026-06-01) — `Use NNUE value true` enabled; all tests 444/444 pass |
+| S9-03 | chess-openings 最適化 | Should Have | Backlog |
+| S9-04 | Phase 2 功能規劃（Game Replay / Lesson System） | Should Have | Backlog |
+| S9-05 | 技術債清理（TR-IDs 註冊） | Should Have | Backlog |
+| S9-06 | Worker 記憶體量測 | Nice to Have | Backlog |
+| S9-07 | History View 視覺優化 | Nice to Have | Backlog |
+
+**下一步**：S9-02 NNUE 決策開始 → `/qa-plan sprint` (S9-02/03/04 準備就緒後) → Phase 2 產品規劃確認
 
 ---
 

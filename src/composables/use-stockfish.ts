@@ -6,9 +6,9 @@ export type EngineState = 'UNINITIALIZED' | 'LOADING' | 'HANDSHAKING' | 'IDLE' |
 
 export type WorkerFactory = () => IStockfishWorker
 
-// ADR-0001 spike: HCE mode = Use NNUE false; Hash 16 MB
+// ADR-0001 + S9-02 decision: NNUE enabled for better move strength
 const HCE_OPTIONS = [
-  'setoption name Use NNUE value false',
+  'setoption name Use NNUE value true',
   'setoption name Hash value 16',
 ] as const
 

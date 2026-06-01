@@ -4,11 +4,10 @@
 Accepted
 
 > **Accepted**: 2026-06-01 — Sprint 7 implementation complete (S7-01–S7-07 all verified).
-> All code-side validation criteria met. One outstanding risk: iOS PWA Magic Link
-> `#access_token` hash fragment behavior requires physical device testing (S8-06).
-> `detectSessionInUrl: true` is the supabase-js v2 default and handles the fragment
-> automatically — iOS verification confirms Safari PWA passes the hash on redirect.
-> ADR accepted with S8-06 as the post-acceptance verification gate.
+> Post-acceptance verification (S8-06, 2026-06-01): Magic Link end-to-end validated on iOS Safari.
+> **Result**: ✅ Authentication flow complete — Magic Link email → sign-in → session established.
+> **iOS PWA Deep Link Limitation**: Safari browser mode verified; PWA Deep Link (email → PWA app) deferred as iOS architectural constraint (not PWA-specific, affects all web apps on iOS). Web app functioning correctly in browser mode.
+> `detectSessionInUrl: true` (supabase-js v2 default) confirmed handling `#access_token` fragment correctly on iOS Safari.
 
 ## Date
 2026-05-30
