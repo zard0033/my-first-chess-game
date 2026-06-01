@@ -22,7 +22,7 @@
 # STATUS VALUES: active | deprecated | superseded-by: TR-[system]-NNN
 
 version: 2
-last_updated: "2026-05-28"
+last_updated: "2026-06-01"
 
 requirements:
 
@@ -368,6 +368,64 @@ requirements:
     gdd: design/gdd/game-export-share.md
     requirement: "Claude.ai prompt template: deterministic, pure synchronous assembly"
     created: 2026-05-28
+    revised: ""
+    status: active
+
+  # ---- Opening Knowledge Cards ----
+  - id: TR-opening-knowledge-cards-001
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "Card component renders below opening header when ECO matches a card (AC-01)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-002
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "No DOM element when openingResult.eco is null (AC-02, EC-01)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-003
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "No card rendered for ECO codes without an entry; same behavior as EC-02 (AC-03)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-004
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "Mobile (<768px): card collapsed by default; tap opening header to expand (AC-04)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-005
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "Desktop (≥768px): card expanded by default; click opening header to collapse (AC-05)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-006
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "Markdown rendering: **bold** and _italic_ only; raw HTML not injected (AC-06, EC-03)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-007
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "≥20 ECO codes with hand-authored cards in src/data/opening-knowledge-cards.ts (AC-07)"
+    created: 2026-06-01
+    revised: ""
+    status: active
+  - id: TR-opening-knowledge-cards-008
+    system: opening-knowledge-cards
+    gdd: design/gdd/opening-knowledge-cards.md
+    requirement: "Card body tone: no judgment language (should have, you missed, bad choice); describes strategy only (AC-08)"
+    created: 2026-06-01
     revised: ""
     status: active
 

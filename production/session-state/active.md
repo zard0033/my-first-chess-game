@@ -102,9 +102,9 @@
 | -- | ---- | -------- | ------ |
 | S9-01 | S8-06 補測完成 + ADR-0011 → Accepted | Must Have | ✅ **COMPLETE** (2026-06-01) |
 | S9-02 | NNUE 部署決策 | Must Have | ✅ **COMPLETE** (2026-06-01) — `Use NNUE value true` enabled; all tests 444/444 pass |
-| S9-03 | chess-openings 最適化 | Should Have | Backlog |
-| S9-04 | Phase 2 功能規劃（Game Replay / Lesson System） | Should Have | Backlog |
-| S9-05 | 技術債清理（TR-IDs 註冊） | Should Have | Backlog |
+| S9-03 | chess-openings 最適化 | Should Have | ✅ **COMPLETE** (2026-06-01) — 137.23 kB gzip, 在預算內，無需優化 |
+| S9-04 | Phase 2 功能規劃（Game Replay / Lesson System） | Should Have | ✅ **COMPLETE** (2026-06-01) — 兩個選項初稿設計完成，待 Eason 產品優先級確認 |
+| S9-05 | 技術債清理（TR-IDs 註冊） | Should Have | ✅ **COMPLETE** (2026-06-01) — 8 個 TR-IDs 正式註冊至 registry |
 | S9-06 | Worker 記憶體量測 | Nice to Have | Backlog |
 | S9-07 | History View 視覺優化 | Nice to Have | Backlog |
 
