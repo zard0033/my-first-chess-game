@@ -1,0 +1,2 @@
+export const HISTORY_LOAD_LIMIT = 100
+export const HISTORY_SKELETON_ROWS = 8

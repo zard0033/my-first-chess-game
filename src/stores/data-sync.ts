@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import type { CompletedGame } from '@/stores/game-store'
 import { UNSYNCED_QUEUE_MAX } from '@/config/sync-tuning'
+import { HISTORY_LOAD_LIMIT } from '@/config/history-config'
+import type { Cursor } from '@/types/game-history'
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error'
 
@@ -96,6 +98,9 @@ export const useDataSyncStore = defineStore('dataSync', () => {
     } else {
       lastSyncedGameId.value = queued.id
       syncStatus.value = 'synced'
+      // Deferred import to avoid circular dependency (data-sync ↔ game-history)
+      const { useGameHistoryStore } = await import('@/stores/game-history')
+      useGameHistoryStore().invalidate()
     }
   }
 
@@ -117,7 +122,42 @@ export const useDataSyncStore = defineStore('dataSync', () => {
         lastSyncedGameId.value = game.id
       }
     }
+    if (_getUnsyncedKeys().length === 0) {
+      // All queued games flushed — invalidate history cache
+      const { useGameHistoryStore } = await import('@/stores/game-history')
+      useGameHistoryStore().invalidate()
+    }
   }
 
-  return { syncStatus, lastSyncedGameId, syncGame, flushUnsyncedQueue }
+  /**
+   * Fetch game_sessions for the logged-in user, ordered by played_at desc.
+   * Cursor-based pagination per GDD §4. All supabase.from() calls live here per ADR-0011.
+   * AC-10: returns [] immediately if userId is null.
+   */
+  async function loadGameHistory(cursor?: Cursor): Promise<Record<string, unknown>[]> {
+    const authStore = useAuthStore()
+    if (!authStore.userId) return []
+
+    let query = supabase
+      .from('game_sessions')
+      .select('*')
+      .order('played_at', { ascending: false })
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: true })
+      .limit(HISTORY_LOAD_LIMIT)
+
+    if (cursor) {
+      query = query.or(
+        `played_at.lt.${cursor.playedAt},` +
+        `and(played_at.eq.${cursor.playedAt},created_at.lt.${cursor.createdAt}),` +
+        `and(played_at.eq.${cursor.playedAt},created_at.eq.${cursor.createdAt},id.gt.${cursor.id})`,
+      )
+    }
+
+    const { data, error } = await query
+    if (error) throw new Error(error.message ?? 'Failed to load game history')
+    return data ?? []
+  }
+
+  return { syncStatus, lastSyncedGameId, syncGame, flushUnsyncedQueue, loadGameHistory }
 })

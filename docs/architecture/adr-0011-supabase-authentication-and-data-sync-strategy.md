@@ -1,7 +1,14 @@
 # ADR-0011: Supabase Authentication and Data Sync Strategy
 
 ## Status
-Proposed
+Accepted
+
+> **Accepted**: 2026-06-01 — Sprint 7 implementation complete (S7-01–S7-07 all verified).
+> All code-side validation criteria met. One outstanding risk: iOS PWA Magic Link
+> `#access_token` hash fragment behavior requires physical device testing (S8-06).
+> `detectSessionInUrl: true` is the supabase-js v2 default and handles the fragment
+> automatically — iOS verification confirms Safari PWA passes the hash on redirect.
+> ADR accepted with S8-06 as the post-acceptance verification gate.
 
 ## Date
 2026-05-30

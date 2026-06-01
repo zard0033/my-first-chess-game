@@ -27,6 +27,7 @@
     "@playwright/test": "^1.45.0",
     "@types/node": "^20.14.0",
     "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/test-utils": "^2.4.10",
     "autoprefixer": "^10.4.0",
     "happy-dom": "^20.9.0",
     "jsdom": "^27.0.1",

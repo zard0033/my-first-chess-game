@@ -23,17 +23,18 @@
 
 | Epic | Layer | Module | GDD | TR-IDs | ADR Coverage | Stories | Status |
 |------|-------|--------|-----|--------|--------------|---------|--------|
-| [supabase](supabase/EPIC.md) | Persistence | useAuthStore + useDataSyncStore | supabase-integration.md | 13 | 13/13 (ADR-0011) | 8 stories | **Ready (Sprint 7)** |
+| [supabase](supabase/EPIC.md) | Persistence | useAuthStore + useDataSyncStore | supabase-integration.md | 13 | 13/13 (ADR-0011) | 8 stories | **Complete (Sprint 7)** |
+| [game-history](game-history/EPIC.md) | MVP Feature | useGameHistoryStore + HistoryView | game-history.md | 27 | ADR-0005 + ADR-0011 | 4 stories | **Ready (Sprint 8)** |
 
 ## Summary
 
-- **Total epics**: 11
-- **Ready**: 9 (v0) + 1 (MVP)
-- **Complete**: 1 (opening-knowledge-cards — Sprint 6)
+- **Total epics**: 12
+- **Ready**: 8 (v0) + 1 (MVP game-history)
+- **Complete**: 2 (opening-knowledge-cards Sprint 6; supabase Sprint 7)
 - **Blocked**: 0
 - **Backlog**: 1 (visual-identity — GDD + ADR pending)
-- **Total TR-IDs**: 62 (49 v0 + 13 MVP supabase)
-- **ADR Coverage**: 44/44 v0 + 13/13 MVP supabase fully covered
+- **Total TR-IDs**: 89 (49 v0 + 13 MVP supabase + 27 MVP game-history)
+- **ADR Coverage**: 44/44 v0 + 13/13 supabase + ADR-0005+ADR-0011 cover game-history (no new ADR required)
 
 ## Layer Order (implementation sequence)
 
@@ -48,10 +49,11 @@ v0 Feature (Sprints 4–6):
   post-game-review → game-export → opening-knowledge-cards ✅
 
 MVP Persistence (Sprint 7):
-  supabase (Auth #9 + Data Sync #11)
+  supabase (Auth #9 + Data Sync #11) ✅
 
 MVP Feature (Sprint 8+):
-  game-history (#12) → skill-scoring (#13) → level-progression (#14)
+  game-history (#12) ← Sprint 8 in progress
+  → skill-scoring (#13) → level-progression (#14)
 
 Presentation:
   visual-identity (board theme) — Sprint TBD
@@ -64,9 +66,12 @@ Presentation:
 | Foundation | chess-board (7), chess-engine (7), opening-id (1), app-router (2) | 17 |
 | Core | game-lifecycle (2), move-annotation (2) | 4 |
 | Feature | post-game-review (5), game-export (2), opening-knowledge-cards (2) ✅ | 9 |
-| Persistence (MVP) | supabase (8) | 8 |
-| **Total** | **10 epics active** | **38 stories** |
+| Persistence (MVP) | supabase (8) ✅ | 8 |
+| MVP Feature | game-history (4) | 4 |
+| **Total** | **11 epics active** | **42 stories** |
 
 ## Next Steps
 
-Sprint 7 in progress — run `/qa-plan sprint` then `/story-readiness` on S7-01 to begin implementation.
+Sprint 8 in progress — run `/story-readiness` on `game-history/story-001-data-layer.md` to begin S8-03 implementation.
+
+**Last Updated**: 2026-06-01
