@@ -10,6 +10,7 @@ export const routes = [
   { path: '/play',            name: 'play',      component: () => import('@/views/PlayView.vue') },
   { path: '/review',          name: 'review',    component: () => import('@/views/ReviewView.vue') },
   { path: '/history',         name: 'history',   component: () => import('@/views/HistoryView.vue') },
+  { path: '/replay/:gameId',  name: 'replay',    component: () => import('@/views/ReplayView.vue') },
   { path: '/profile',         name: 'profile',   component: () => import('@/views/ProfileView.vue') },
   { path: '/sign-in',         name: 'sign-in',   component: () => import('@/views/SignInView.vue') },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { useGameHistoryStore } from '@/stores/game-history'
 import type { GameHistoryEntry } from '@/types/game-history'
 
@@ -7,8 +8,14 @@ const props = defineProps<{
   isExpanded: boolean
 }>()
 
+const router = useRouter()
 const historyStore = useGameHistoryStore()
 let touchStartY = 0
+
+function onRowClick() {
+  // Navigate to replay view on row click
+  router.push({ name: 'replay', params: { gameId: props.entry.id } })
+}
 
 function onTouchStart(e: TouchEvent) {
   touchStartY = e.touches[0].clientY
@@ -17,7 +24,7 @@ function onTouchStart(e: TouchEvent) {
 function onTouchEnd(e: TouchEvent) {
   const delta = Math.abs(e.changedTouches[0].clientY - touchStartY)
   if (delta < 4) {
-    historyStore.setExpandedRow(props.entry.id)
+    onRowClick()
   }
 }
 </script>
@@ -28,7 +35,7 @@ function onTouchEnd(e: TouchEvent) {
     data-testid="history-row"
     role="listitem"
     :aria-expanded="props.isExpanded"
-    @click="historyStore.setExpandedRow(props.entry.id)"
+    @click="onRowClick"
     @touchstart.passive="onTouchStart"
     @touchend.prevent="onTouchEnd"
   >
