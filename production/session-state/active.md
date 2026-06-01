@@ -1,15 +1,49 @@
-<!-- QA-PLAN: 2026-05-30 | System: Sprint 7 | Plan written: production/qa/qa-plan-sprint-7-2026-05-30.md -->
+<!-- QA-PLAN: 2026-06-01 | System: Sprint 8 | Plan pending: run /qa-plan sprint after S8-02 stories created -->
 
 # Active Session State
 
 **Last updated**: 2026-06-01
-**Tests**: 386/386 pass (S7-06 完成後無新 unit tests — UI/ADVISORY story)
-**Sprint**: 7 (`production/sprints/sprint-7.md`)
+**Tests**: 444/444 pass
+**Sprint**: 8 (`production/sprints/sprint-8.md`)
 **Supabase**: 連線 OK，tables 建立，RLS 驗證通過
 
 ---
 
+## 新 Session 入口（S8-03 起）
+
+**接手指令**：`請繼續開發 Sprint 8，從 S8-03 開始，按規劃完成到 S8-05，然後做 smoke check + QA sign-off`
+
+**授權**：全自主，重大決策才問 Eason
+
+---
+
 ## 當前進度
+
+### Sprint 8 進行中
+
+| ID | Task | Status |
+| -- | ---- | ------ |
+| S8-01 | Game History GDD (#12) + /design-review | ✅ **APPROVED** (pass 5, 2026-06-01) — 6 blockers resolved in-session |
+| S8-01b | ADR-0011 → Accepted | ✅ done (2026-06-01) |
+| S8-02 | game-history epic + stories | ✅ **done** (2026-06-01) — 4 stories + EPIC.md + index.md updated; no new ADR needed |
+| S8-03 | fetchGames() + loadGameHistory() + unit tests | ✅ **done** (2026-06-01) — 38 new tests; 424/424 total pass |
+| S8-04 | HistoryView UI | ✅ **done** (2026-06-01) — 16 new tests; 440/440 total pass |
+| S8-05 | Row expand summary | ✅ **done** (2026-06-01) — 4 store tests; single-row invariant browser verified |
+| S8-06 | ADR-0011 iOS 實機驗證 (Eason 手測) | ⚠️ **PASS WITH CONDITIONS** — PWA standalone ✅, emailRedirectTo fix ✅, rate limit 阻擋完整流程；rate limit 重置後再測 |
+
+**design-review 結果**（2026-06-01 pass 5）：APPROVED — 6 blockers resolved in-session: load-more fetchGeneration race guard, iOS tap-to-expand scroll disambiguation, stalemate AC-21b, fetchGeneration observable store property, AC-12 precondition implementation-agnostic, cached-data error state for PWA Refresh failure. Also applied: Formula 2 out-of-range console.warn, cold→cold failure transition explicit, transition table completeness.
+**S8-02 完成**（2026-06-01）：game-history EPIC.md + 4 stories + epics/index.md 更新。無需新 ADR（ADR-0005 + ADR-0011 已覆蓋）。
+**S8-03 完成**（2026-06-01）：5 files created/modified；38 new tests；全部 AC 通過（AC-06a~f, AC-07a~i, AC-08a~c, AC-10, AC-13, AC-14, AC-15, AC-17, AC-18, AC-19~22, AC-21b, AC-23）。
+**S8-04 完成**（2026-06-01）：HistoryView.vue + history-row.vue + @vue/test-utils 安裝；16 new tests；全部 AC 通過（AC-01~27 除 16b/24 為 store test 覆蓋）。
+**Sprint 8 QA Sign-Off**（2026-06-01）：**APPROVED WITH CONDITIONS**
+- Sign-off 報告：`production/qa/qa-signoff-sprint8-2026-06-01.md`
+- 條件：S8-06 iOS Magic Link 完整流程待 rate limit 重置後補測（約 1hr）；ADR-0011 → Accepted 待此條件完成
+- GitHub Pages 部署完成：https://zard0033.github.io/my-first-chess-game/
+- 新增：tsconfig.app.json、deploy.yml、emailRedirectTo 修正
+
+**下一步**：rate limit 重置後在 iPhone 補測 S8-06 → ADR-0011 → Accepted → Sprint 8 正式關閉
+
+---
 
 ### Sprint 7 Must Have ✅ ALL DONE（2026-05-31）
 
