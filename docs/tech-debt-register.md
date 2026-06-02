@@ -24,6 +24,21 @@ Tracks advisory deviations accepted at story close. Review at sprint retrospecti
 - **✅ `game_sessions.pgn` real PGN** (S11-03): `data-sync.buildRow` now calls shared `buildPgn(game)` → standard tagged PGN that round-trips to chess.js + external tools. Replay unaffected.
 - **✅ Dead `Use NNUE` setoption** (S11-04): removed from `use-stockfish.ts` + `play-engine.ts`; tests + array names updated.
 
-### Still open (S11 deferred)
-- **control-manifest HCE rules** still describe the SF16 two-build/`Use NNUE` model — regen via `/create-control-manifest` (part of the SF16→SF18 docs reconciliation below).
-- **CSP `font-src 'self' data:`** — pgn-viewer inline font (cosmetic console warning). Tracked as S11-06 (Nice-to-have).
+### Engine docs reconciliation (SF16→SF18) — RESOLVED via forward-reference notes (S11-05 audit, 2026-06-30)
+Re-audited: the forward-reference / superseded notes the 2026-06-02 drift entry called for were
+**already added during S10-06** and are present across every listed doc:
+- **ADR-0002 / ADR-0007 / ADR-0008** — each carries an "Engine migration note (2026-06-02, S10-06)" /
+  RESOLVED strikethrough pointing to ADR-0001's amendment. Bodies intentionally NOT rewritten
+  (ADRs are point-in-time records). ✅
+- **architecture.md / chess-engine-integration.md (GDD) / control-manifest.md** — each has a top-of-file
+  "⚠️ Engine superseded (2026-06-02, S10-06)" banner flagging the inline SF16/HCE references as historical
+  and pointing to ADR-0001. ✅
+- **tr-registry.yaml** `TR-chess-engine-001` — already states "Single engine: Stockfish 18 Lite … shared by
+  Play + Review + Replay" with a `revised` note. ✅
+
+**Still open (1 item):** `control-manifest.md` inline HCE/NNUE-split rules (§Engine chunk budgets,
+`Use NNUE` toggles) are flagged stale by its banner but not yet regenerated — run
+`/create-control-manifest update` deliberately (it rewrites the whole manifest). Tracked, not blocking.
+
+### CSP — RESOLVED (S11-06)
+- **✅ CSP `font-src 'self' data:`** added to `index.html` (pgn-viewer inline icon font). Build green.
