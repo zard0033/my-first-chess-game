@@ -9,7 +9,7 @@ Task: S11 完成（spec↔code 偏移修復），待 Eason 決策大型功能方
 **Last updated**: 2026-06-30
 **Tests**: 510/510 pass · **Build**: vue-tsc + vite ✅ green
 **Engine**: Stockfish 18 Lite single-threaded（NNUE 內嵌，`stockfish@18.0.7`）— play+review+replay 共用
-**最新 main**: S11 共 6 個本地 commit（**尚未 push** — 等 Eason 確認）
+**最新 main**: S11 共 9 個本地 commit（**尚未 push** — 等 Eason 確認）；已過 code review（修掉一個 buildPgn 持久化 regression）
 **Supabase**: 連線 OK，tables + RLS 已驗證
 
 ---
@@ -25,7 +25,7 @@ Sprint 1–11 全部完成（細節見 `production/epics/index.md`）。
   - **S11-03**（logic）：`game_sessions.pgn` 改存真 PGN（共用 buildPgn），可與 lichess 等外部工具互通
   - **S11-04**（chore）：移除失效的 `Use NNUE` setoption no-op + 正名 + 更新測試
 
-**本機驗證**：510 單元/整合測試全綠、`vue-tsc --noEmit` + `vite build` 綠燈。
+**本機驗證**：512 單元/整合測試全綠、`vue-tsc --noEmit` + `vite build` 綠燈、code review 通過（已修 buildPgn 在持久化路徑遇非法 move 會 crash/遺失遊戲的 regression，退回 raw UCI）。
 
 ---
 
