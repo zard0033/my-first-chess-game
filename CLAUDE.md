@@ -65,6 +65,11 @@ Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
 - Multi-file changes require explicit approval for the full changeset
 - No commits without user instruction
 
+> **Push guardrail**: this repo is a fork of the `Claude-Code-Game-Studios` template.
+> `origin` = `zard0033/my-first-chess-game` (your fork); `upstream` = the template.
+> Always push explicitly with `git push origin main` — never bare `git push` — so a
+> branch that tracks `upstream` can never push your work to the template repo.
+
 See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 
 > **First session?** If the project has no engine configured and no game concept,
