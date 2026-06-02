@@ -6,6 +6,7 @@ import type { CompletedGame } from '@/stores/game-store'
 import { UNSYNCED_QUEUE_MAX } from '@/config/sync-tuning'
 import { HISTORY_LOAD_LIMIT } from '@/config/history-config'
 import type { Cursor } from '@/types/game-history'
+import { buildPgn } from '@/modules/game-export/assembler'
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error'
 
@@ -43,8 +44,8 @@ function buildRow(game: QueuedGame, userId: string) {
     player_color: game.playerColor,
     end_reason: mapEndReason(game.endReason),
     ai_difficulty: game.aiSkillLevel,
-    // MVP: UCI move string; replaced with proper PGN when PGN viewer is added.
-    pgn: game.moves.join(' '),
+    // Real standard PGN (S11-03): round-trips to chess.js and external tools (lichess).
+    pgn: buildPgn(game),
     move_count: game.moves.length,
     opening_eco: null as string | null,
     opening_name: null as string | null,

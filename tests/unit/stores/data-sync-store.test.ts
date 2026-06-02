@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
+import { Chess } from 'chess.js'
 
 vi.mock('@/lib/supabase', () => ({
   supabase: {
@@ -89,9 +90,27 @@ describe('useDataSyncStore', () => {
       const [row] = vi.mocked(supabase.from).mock.results[0].value.upsert.mock.calls[0]
       expect(row.result).toBe('white_wins')
       expect(row.player_color).toBe('white')
-      expect(row.pgn).toBe('e2e4 e7e5 g1f3')
       expect(row.move_count).toBe(3)
       expect(row.user_id).toBe('uid-1')
+    })
+
+    it('S11-03: pgn column stores real standard PGN that round-trips via chess.js', async () => {
+      mockFrom({ error: null })
+      const authStore = useAuthStore()
+      authStore.userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      await store.syncGame(makeGame())
+
+      const [row] = vi.mocked(supabase.from).mock.results[0].value.upsert.mock.calls[0]
+      // Not raw UCI any more — it is movetext SAN inside a tagged PGN.
+      expect(row.pgn).not.toBe('e2e4 e7e5 g1f3')
+      expect(row.pgn).toContain('[Result "1-0"]')
+      expect(row.pgn).toContain('1. e4 e5 2. Nf3')
+
+      const chess = new Chess()
+      expect(() => chess.loadPgn(row.pgn)).not.toThrow()
+      expect(chess.history().length).toBe(3)
     })
 
     it('SUPA-AC-09: uses ignoreDuplicates:true for ON CONFLICT DO NOTHING', async () => {
