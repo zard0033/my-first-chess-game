@@ -8,8 +8,10 @@ Proposed — OQ-5 desktop spike RESOLVED (2026-05-30); real-iPhone measurement d
 > `production/qa/evidence/s5-03-depth22-spike-evidence.md`.
 >
 > **Open items blocking Accepted status**:
-> 1. NNUE network file (`nn-5af11540bbfe.nnue`, 38 MB) not deployed — review engine silently uses HCE.
->    Decision needed: deploy NNUE file vs. explicitly switch to HCE for all workers. See Sprint 6.
+> 1. ~~NNUE network file (`nn-5af11540bbfe.nnue`, 38 MB) not deployed — review engine silently uses HCE.~~
+>    **RESOLVED (2026-06-02, S10-06)**: migrated to Stockfish 18 Lite — NNUE is embedded in the
+>    ~7.3 MB WASM, no external network file. Review now genuinely runs NNUE in-browser
+>    (verified). See ADR-0001 (amendment 2026-06-02).
 > 2. Real iPhone Safari depth + memory measurement still required to fully close OQ-5.
 
 ## Date

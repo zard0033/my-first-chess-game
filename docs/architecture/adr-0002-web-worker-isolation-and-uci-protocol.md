@@ -5,6 +5,8 @@ Accepted
 
 > **Review complete (2026-05-28)**: No blocking gaps. ADR-0001 dependency ✅ Accepted. Knowledge Risk LOW; all APIs stable and within training data. Verification is behavioral (unit + integration tests at implementation time). No spikes required.
 
+> **Engine migration note (2026-06-02, S10-06):** Engine migrated from the SF16 two-build (HCE Play + NNUE Review) model to **Stockfish 18 Lite single-threaded** (one build, NNUE embedded in the ~7.3 MB WASM, no external network file). References below to `stockfish-nnue-16*` worker filenames and the HCE/NNUE split are historical; the postMessage-only / single-threaded / no-SharedArrayBuffer decisions still hold. Worker URL now built from `import.meta.env.BASE_URL`. Current engine: see ADR-0001 (amendment 2026-06-02).
+
 ## Date
 2026-05-28
 

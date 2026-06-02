@@ -9,6 +9,8 @@ Proposed
 > (c) PWA service worker installs normally under this policy.
 > This is Validation Criterion 1 (iOS Safari spike). Chrome/Firefox verification can run in parallel.
 
+> **Engine migration note (2026-06-02, S10-06):** Engine migrated to **Stockfish 18 Lite single-threaded** (one build, NNUE embedded, no external network file). The two-build CSP model and `stockfish-nnue-16.js`/`.wasm` worker paths below are historical — now a single `stockfish-18-lite-single.{js,wasm}` served from `public/stockfish/`. The CSP requirements still hold (`worker-src`, `'wasm-unsafe-eval'`, `default-src 'self'`, no COOP/COEP). Known follow-up: pgn-viewer embeds a base64 icon font blocked by `default-src 'self'` (no `font-src`) — cosmetic; consider `font-src 'self' data:`. Current engine: see ADR-0001 (amendment 2026-06-02).
+
 ## Date
 2026-05-28
 

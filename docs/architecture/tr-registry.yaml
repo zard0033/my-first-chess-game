@@ -81,9 +81,9 @@ requirements:
   - id: TR-chess-engine-001
     system: chess-engine
     gdd: design/gdd/chess-engine-integration.md
-    requirement: "Two engines: HCE Play + NNUE Review (separate WASM builds)"
+    requirement: "Single engine: Stockfish 18 Lite single-threaded (NNUE embedded in WASM), shared by Play + Review + Replay"
     created: 2026-05-28
-    revised: ""
+    revised: "2026-06-02 (S10-06: superseded the SF16 two-build HCE/NNUE split — see ADR-0001 amendment)"
     status: active
   - id: TR-chess-engine-002
     system: chess-engine

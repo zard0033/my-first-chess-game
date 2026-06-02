@@ -1,5 +1,12 @@
 # Chess Engine Integration
 
+> **⚠️ Engine superseded (2026-06-02, S10-06):** This GDD describes the original SF16 two-build
+> design — **HCE Play engine + NNUE Review engine (separate WASM builds)**, with a 40 MB external
+> NNUE network and a Formula-4 memory budget split. The implementation migrated to **Stockfish 18
+> Lite single-threaded** — one build for Play+Review+Replay, NNUE embedded in the ~7.3 MB WASM, no
+> external network, always-NNUE (no `Use NNUE` toggle). The HCE/NNUE-split rules, OQ#6, and the
+> two-build memory budget below are historical. Current engine of record: ADR-0001 (amendment 2026-06-02).
+>
 > **Status**: Approved (pending OQ#6 spike — confirm HCE build availability before v0 implementation)
 > **Author**: Eason + Claude
 > **Last Updated**: 2026-05-27

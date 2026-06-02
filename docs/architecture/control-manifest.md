@@ -1,7 +1,8 @@
 # Control Manifest
 
-> **Engine**: Web App — Vue 3 (Composition API) + TypeScript + Vite + vue3-chessboard (chessground 9.x) + stockfish.wasm (lichess fork, SF16.1) + Pinia 2 + Vue Router 4. No traditional game engine.
-> **Last Updated**: 2026-05-29
+> **Engine**: Web App — Vue 3 (Composition API) + TypeScript + Vite + vue3-chessboard (chessground 9.x) + Stockfish 18 Lite single-threaded WASM (`stockfish@18.0.7`, NNUE embedded, one build for Play+Review+Replay) + Pinia 2 + Vue Router 4. No traditional game engine.
+> **Last Updated**: 2026-06-02
+> **Engine note (S10-06)**: migrated SF16.1 two-build (HCE/NNUE) → SF18 Lite single-threaded (ADR-0001 amendment). The HCE/NNUE-split rules below (§Engine WASM chunk budgets, `Use NNUE` toggles, "Play=HCE / Review=NNUE") are stale — to be reconciled at the next `/create-control-manifest` regen.
 > **Manifest Version**: 2026-05-29
 > **ADRs Covered**: ADR-0001, ADR-0002, ADR-0003, ADR-0004, ADR-0005, ADR-0006, ADR-0007, ADR-0008, ADR-0009, ADR-0010
 > **Status**: Active — regenerate with `/create-control-manifest update` when ADRs change.

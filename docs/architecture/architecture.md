@@ -1,5 +1,12 @@
 # Chess Training Companion — Master Architecture
 
+> **⚠️ Engine superseded (2026-06-02, S10-06):** This 2026-05-28 blueprint describes the SF16
+> two-build engine model (HCE Play + NNUE Review, separate WASM builds, Formula-4 memory split).
+> The engine was migrated to **Stockfish 18 Lite single-threaded** (one build, NNUE embedded in the
+> ~7.3 MB WASM, no external network, no COOP/COEP). Engine-specific rows/risks below (HCE spike,
+> two-build model, `stockfish-nnue-16` paths) are historical. Current engine of record:
+> ADR-0001 (amendment 2026-06-02); current registry: `docs/registry/architecture.yaml`.
+
 ## Document Status
 
 | Field | Value |
