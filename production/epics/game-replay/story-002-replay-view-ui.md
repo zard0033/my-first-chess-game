@@ -2,12 +2,19 @@
 
 > **Epic**: game-replay
 > **Sprint**: S10-02 (Must Have)
-> **Status**: Ready for Dev
+> **Status**: Done (2026-06-02)
 > **Layer**: Feature / UI
 > **Type**: View Component + Navigation
 > **Estimate**: L (8 hours)
 > **Manifest Version**: 2026-06-01
-> **Last Updated**: 2026-06-01
+> **Last Updated**: 2026-06-02
+
+> **Completion note (2026-06-02)**: Re-implemented to AC. Navigation is now driven by
+> `useReplayNavigation` (single source of truth for `currentPly`); the pgn-viewer board
+> is mirrored from it (`toPly`), eliminating the earlier dual-navigation defect. Keyboard
+> (arrows = move, Esc = back) and move-list click-to-sync added. Tests:
+> `tests/unit/views/replay-view.test.ts` (11), `tests/unit/game-replay/replay-navigation.test.ts` (8).
+> AC-04 60fps and mobile screenshot remain advisory (manual QA).
 
 ## Context
 

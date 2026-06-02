@@ -23,38 +23,55 @@ stories:
     name: "ReplayView UI + navigation"
     file: "production/epics/game-replay/story-002-replay-view-ui.md"
     priority: must-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 1.0
-    blocker: "s10-01"
-    completed: ""
+    blocker: ""
+    completed: "2026-06-02"
 
   - id: "s10-03"
     name: "Engine analysis overlay"
     file: "production/epics/game-replay/story-003-analysis-overlay.md"
     priority: must-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.75
-    blocker: "s10-02"
-    completed: ""
+    blocker: ""
+    completed: "2026-06-02"
 
   - id: "s10-04"
     name: "Game-level rating / notes UI"
     file: "production/epics/game-replay/story-004-game-rating.md"
     priority: should-have
-    status: backlog
+    status: done
     owner: ""
     estimate_days: 0.5
-    blocker: "s10-03"
-    completed: ""
+    blocker: ""
+    completed: "2026-06-02"
 
+  # S10-05 是 nice-to-have，ADVISORY gate（純手動視覺，無自動測試）。
+  # 基本 transition 已在 overlay/控制列；完整 fade/slide + iPhone 60fps profiling 延後。
+  # Deferred — nice-to-have，基本 transition 已在 overlay/控制列；完整 fade/slide +
+  # iPhone 60fps profiling 為 ADVISORY，不阻擋 sprint，移至後續 polish sprint。
   - id: "s10-05"
     name: "Animation polish"
     file: "production/epics/game-replay/story-005-animation-polish.md"
     priority: nice-to-have
-    status: backlog
+    status: deferred
     owner: ""
     estimate_days: 0.5
-    blocker: "s10-03"
+    blocker: ""
     completed: ""
+
+  # 計畫外但必要：瀏覽器實測發現 NNUE 網路檔從未部署（SF16 一啟用 NNUE 即卡死，
+  # review 在瀏覽器其實壞的）。改用 Stockfish 18 Lite（NNUE 內嵌 ~7.3MB、無需 headers），
+  # play+review+replay 共用一個 build。詳見 ADR-0001 amendment (2026-06-02)。
+  - id: "s10-06"
+    name: "引擎遷移 SF16 → Stockfish 18 Lite single-threaded"
+    file: "production/epics/game-replay/story-006-engine-sf18-lite.md"
+    priority: must-have
+    status: done
+    owner: ""
+    estimate_days: 0.75
+    blocker: ""
+    completed: "2026-06-02"

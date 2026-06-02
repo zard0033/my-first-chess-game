@@ -2,12 +2,20 @@
 
 > **Epic**: game-replay
 > **Sprint**: S10-03 (Must Have)
-> **Status**: Ready for Dev
+> **Status**: Done (2026-06-02)
 > **Layer**: Feature / Analysis
 > **Type**: Integration with Existing Engine
 > **Estimate**: M (6 hours)
 > **Manifest Version**: 2026-06-01
-> **Last Updated**: 2026-06-01
+> **Last Updated**: 2026-06-02
+
+> **Completion note (2026-06-02)**: Real engine analysis wired (was a static stub before).
+> `useReplayAnalysis` pre-analyses every position at depth-12 via the NNUE review engine
+> (`useReviewEngine`), caches by FEN, and degrades gracefully on per-position failure (EC-04).
+> Overlay renders eval bar (mate-aware) + depth + best move; best-move arrow drawn on the
+> pgn-viewer board via `setAutoShapes`. Tests:
+> `tests/integration/game-replay/analysis.test.ts` (5), `tests/unit/game-replay/replay-positions.test.ts` (6).
+> AC-04 60fps under rapid stepping remains advisory (manual QA on device).
 
 ## Context
 

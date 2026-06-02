@@ -1,72 +1,87 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+/**
+ * Replay analysis overlay (S10-03) — eval bar + depth + best move for the current
+ * replay position. Driven by the pre-computed analysis entry; when no entry exists
+ * (still analysing, or engine failed) the bar is hidden (EC-04) and a state hint shows.
+ *
+ * GDD formula: fillRatio = (clamp(evalPawns, -4, +4) + 4) / 8, White's perspective.
+ */
 interface Props {
-  moveIndex: number
-  totalMoves: number
-  eval?: number
+  /** Centipawn eval (White POV); undefined when not yet analysed. */
+  evalCp?: number
+  /** Forced-mate distance (positive = White mates); overrides evalCp. */
+  evalMate?: number
+  /** Analysis depth reached for this position. */
   depth?: number
+  /** Engine best move for this position, UCI (e.g. "e2e4"); null at terminal. */
+  bestMove?: string | null
+  /** Whether background pre-analysis is still running. */
+  analysing?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  eval: 0,
-  depth: 0,
+  evalCp: undefined,
+  evalMate: undefined,
+  depth: undefined,
+  bestMove: undefined,
+  analysing: false,
 })
 
-// Clamp eval to [-4, +4] pawns (same as post-game review)
-const clampedEval = computed(() => {
-  const val = props.eval ?? 0
-  return Math.max(-4, Math.min(4, val))
+// An entry exists once we have either a cp or a mate score for this position.
+const hasEval = computed(() => props.evalMate !== undefined || props.evalCp !== undefined)
+
+const clampedPawns = computed(() => {
+  if (props.evalMate !== undefined) return props.evalMate > 0 ? 4 : -4
+  const pawns = (props.evalCp ?? 0) / 100
+  return Math.max(-4, Math.min(4, pawns))
 })
 
-// Fill ratio: -4 → 0%, 0 → 50%, +4 → 100%
-const fillPercentage = computed(() => {
-  return ((clampedEval.value + 4) / 8) * 100
-})
+const fillPercentage = computed(() => ((clampedPawns.value + 4) / 8) * 100)
 
-// Eval bar color: red (Black) to green (White)
 const barColor = computed(() => {
   const ratio = fillPercentage.value / 100
-  if (ratio < 0.5) {
-    // Red to neutral
-    return `rgb(${Math.round(255 - ratio * 100)}, ${Math.round(ratio * 100)}, 0)`
-  } else {
-    // Neutral to green
-    return `rgb(${Math.round(100 - (ratio - 0.5) * 100)}, 200, 0)`
-  }
+  return ratio < 0.5
+    ? `rgb(${Math.round(255 - ratio * 100)}, ${Math.round(ratio * 100)}, 0)`
+    : `rgb(${Math.round(100 - (ratio - 0.5) * 100)}, 200, 0)`
 })
 
-// Format eval for display
 const evalDisplay = computed(() => {
-  if (props.eval === undefined) return '?'
-  const val = props.eval
-  if (val >= 10) return '+'
-  if (val <= -10) return '−'
-  return val.toFixed(1)
+  if (props.evalMate !== undefined) {
+    return props.evalMate > 0 ? `M${props.evalMate}` : `-M${Math.abs(props.evalMate)}`
+  }
+  if (props.evalCp === undefined) return '?'
+  const pawns = props.evalCp / 100
+  return (pawns >= 0 ? '+' : '') + pawns.toFixed(1)
 })
 </script>
 
 <template>
   <div class="replay-analysis-overlay">
-    <!-- Eval bar -->
-    <div class="eval-bar-container">
-      <div class="eval-label">Eval</div>
-      <div class="eval-bar-background">
-        <div
-          class="eval-bar-fill"
-          :style="{
-            width: `${fillPercentage}%`,
-            backgroundColor: barColor,
-          }"
-        />
+    <template v-if="hasEval">
+      <div class="eval-bar-container">
+        <div class="eval-label">Eval</div>
+        <div class="eval-bar-background" role="img" :aria-label="`Evaluation ${evalDisplay}`">
+          <div
+            class="eval-bar-fill"
+            :style="{ width: `${fillPercentage}%`, backgroundColor: barColor }"
+          />
+        </div>
+        <div class="eval-value">{{ evalDisplay }}</div>
       </div>
-      <div class="eval-value">{{ evalDisplay }}</div>
-    </div>
 
-    <!-- Depth indicator -->
-    <div v-if="depth" class="depth-indicator">
-      <span class="text-xs text-gray-600">depth {{ depth }}</span>
+      <div class="meta-row">
+        <span v-if="bestMove" class="best-move">Best: {{ bestMove }}</span>
+        <span v-if="depth != null" class="depth-indicator">depth {{ depth }}</span>
+      </div>
+    </template>
+
+    <!-- No eval yet: show spinner while analysing, otherwise stay quiet (EC-04) -->
+    <div v-else-if="analysing" class="analysing-hint">
+      <span class="spinner" aria-hidden="true" /> Analysing…
     </div>
+    <div v-else class="no-eval-hint">No analysis</div>
   </div>
 </template>
 
@@ -100,19 +115,50 @@ const evalDisplay = computed(() => {
 
 .eval-bar-fill {
   height: 100%;
-  transition: width 100ms ease-out, background-color 100ms ease-out;
+  transition: width 120ms ease-out, background-color 120ms ease-out;
 }
 
 .eval-value {
-  width: 2rem;
+  width: 2.5rem;
   text-align: right;
   font-size: 0.75rem;
   font-weight: 600;
   font-family: monospace;
 }
 
-.depth-indicator {
+.meta-row {
+  display: flex;
+  justify-content: space-between;
   margin-top: 0.25rem;
-  text-align: right;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.best-move {
+  font-family: monospace;
+}
+
+.analysing-hint,
+.no-eval-hint {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid #d1d5db;
+  border-top-color: #6b7280;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

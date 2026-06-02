@@ -6,13 +6,16 @@ import '@lichess-org/pgn-viewer/dist/lichess-pgn-viewer.css'
 interface Props {
   pgn: string
   orientation?: 'white' | 'black'
-  /** @deprecated ignored — pgn-viewer manages highlighted state internally */
-  highlighted?: number | string
+  /** Let pgn-viewer handle arrow-key navigation. ReplayView sets false to own the keyboard. */
+  keyboardToMove?: boolean
+  /** Show pgn-viewer's built-in control bar. ReplayView sets false and supplies its own. */
+  showControls?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   orientation: 'white',
-  highlighted: undefined,
+  keyboardToMove: true,
+  showControls: true,
 })
 
 const emit = defineEmits<{
@@ -21,11 +24,17 @@ const emit = defineEmits<{
 
 const containerRef = ref<HTMLElement | null>(null)
 let viewer: ReturnType<typeof pgnViewerStart> | null = null
+// The viewer's un-intercepted toPath. Programmatic navigation (toPly) calls this
+// directly so it does NOT re-emit move-selected; only genuine user navigation
+// (clicking a move in the list) goes through the intercepting wrapper below.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- pgn-viewer's Path type is internal
+let originalToPath: ((path: any, focus?: boolean) => void) | null = null
 
 function mountViewer() {
   if (!containerRef.value) return
   containerRef.value.innerHTML = ''
   viewer = null
+  originalToPath = null
 
   if (!props.pgn) return
 
@@ -33,9 +42,9 @@ function mountViewer() {
     viewer = pgnViewerStart(containerRef.value, {
       pgn: props.pgn,
       orientation: props.orientation,
-      keyboardToMove: true,
+      keyboardToMove: props.keyboardToMove,
       showMoves: 'auto',
-      showControls: true,
+      showControls: props.showControls,
       showPlayers: false,
       drawArrows: false,
     })
@@ -44,9 +53,10 @@ function mountViewer() {
     // Capture localViewer to avoid reading the module-level `viewer` var
     // after a remount reassigns it (stale-closure guard).
     const localViewer = viewer
-    const originalToPath = localViewer.toPath.bind(localViewer)
+    const boundToPath = localViewer.toPath.bind(localViewer)
+    originalToPath = boundToPath
     localViewer.toPath = (path, focus) => {
-      originalToPath(path, focus)
+      boundToPath(path, focus)
       const data = localViewer.curData() as unknown as Record<string, unknown> | null | undefined
       if (data && typeof data['uci'] === 'string' && data['uci']) {
         emit('move-selected', data['uci'])
@@ -62,6 +72,7 @@ onMounted(mountViewer)
 onUnmounted(() => {
   if (containerRef.value) containerRef.value.innerHTML = ''
   viewer = null
+  originalToPath = null
 })
 
 watch(
@@ -70,7 +81,41 @@ watch(
   { flush: 'post' },
 )
 
-defineExpose({ getViewer: () => viewer })
+/**
+ * Navigate the board to an absolute mainline ply (0 = initial position).
+ * Uses the un-intercepted toPath so programmatic navigation does not re-emit
+ * move-selected (which would round-trip back through the parent's sync handler).
+ */
+function toPly(ply: number): void {
+  if (!viewer || !originalToPath) return
+  try {
+    const path = viewer.game.pathAtMainlinePly(ply)
+    originalToPath(path)
+  } catch {
+    // Out-of-range ply — ignore
+  }
+}
+
+/** Current mainline ply per the viewer (0 when on the initial position). */
+function getCurrentPly(): number {
+  const data = viewer?.curData() as unknown as { ply?: number } | undefined
+  return data?.ply ?? 0
+}
+
+/** Draw (or clear) the engine best-move arrow on the board. UCI like "e2e4". */
+function setBestArrow(uci: string | null): void {
+  const ground = viewer?.ground
+  if (!ground) return
+  if (!uci || uci.length < 4) {
+    ground.setAutoShapes([])
+    return
+  }
+  ground.setAutoShapes([
+    { orig: uci.slice(0, 2) as never, dest: uci.slice(2, 4) as never, brush: 'green' },
+  ])
+}
+
+defineExpose({ getViewer: () => viewer, toPly, getCurrentPly, setBestArrow })
 </script>
 
 <template>

@@ -2,12 +2,18 @@
 
 > **Epic**: game-replay
 > **Sprint**: S10-04 (Should Have)
-> **Status**: Ready for Dev
+> **Status**: Done (2026-06-02)
 > **Layer**: Feature / User Data
 > **Type**: UI + LocalStorage
 > **Estimate**: S (4 hours)
 > **Manifest Version**: 2026-06-01
-> **Last Updated**: 2026-06-01
+> **Last Updated**: 2026-06-02
+
+> **Completion note (2026-06-02)**: `game-replay-rating.vue` 已實作並整合進 ReplayView。
+> 補上 BLOCKING 單元測試 `tests/unit/components/game-replay-rating.test.ts`（6 tests：save / load /
+> deselect / notes 200-char 截斷 / localStorage 失敗不崩 / empty state）。
+> ⚠️ 文件不一致：AC-01 文字寫 storage key `pgr:rating:${gameId}`，但 Data Model + QA cases 寫
+> `pgr:replay:${gameId}`；實作採用 `pgr:replay:`（與 QA cases 一致），測試據此撰寫。
 
 ## Context
 

@@ -2,12 +2,18 @@
 
 > **Epic**: game-replay
 > **Sprint**: S10-05 (Nice to Have)
-> **Status**: Ready for Dev
+> **Status**: Deferred (2026-06-02) — nice-to-have, shipped without
 > **Layer**: Feature / Polish
 > **Type**: Animation
 > **Estimate**: S (4 hours)
 > **Manifest Version**: 2026-06-01
-> **Last Updated**: 2026-06-01
+> **Last Updated**: 2026-06-02
+
+> **Deferral note (2026-06-02)**: Basic transitions are present (eval-bar width/colour
+> 120ms in `replay-analysis-overlay.vue`; control-bar opacity/colour). The full spec
+> (eval-bar opacity fade, best-move arrow slide-in, move-highlight crossfade, iPhone
+> 60fps profiling) is ADVISORY (manual-visual, not automatable) and does not block the
+> sprint. Moved to a future polish sprint. Sprint 10 ships without it.
 
 ## Context
 
