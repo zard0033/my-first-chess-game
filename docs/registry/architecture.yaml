@@ -368,14 +368,14 @@ performance_budgets:
 api_decisions:
   - purpose: chess_engine_wasm_source
     status: active
-    api: lichess fork of Stockfish, SF16.1, single-threaded WASM (two separate builds: HCE for Play Mode, NNUE for Review Mode)
-    not: nmrugg/stockfish.js for NNUE builds; Stockfish 17; self-built emscripten WASM; SharedArrayBuffer / multi-threaded builds
+    api: "nmrugg/stockfish.js v18 — Stockfish 18 Lite single-threaded WASM (stockfish-18-lite-single), one build for Play+Review+Replay, NNUE embedded in ~7.3MB WASM (no external network file)"
+    not: SF16 two-build HCE/NNUE split (superseded 2026-06-02, S10-06); 40MB external NNUE network; SharedArrayBuffer / multi-threaded builds (need COOP/COEP, unavailable on GitHub Pages)
     adr: docs/architecture/adr-0001-stockfish-build-versioning.md
-    reason: "Single-threaded lichess fork is GitHub Pages + iOS Safari 16.0–16.3 compatible. Two-build split is the mechanism that keeps Formula 4 memory budget within the 150 MB ceiling. SF16.1 pins the skill-level AC baseline."
+    reason: "Single-threaded, no COOP/COEP → GitHub Pages + iOS Safari compatible. NNUE embedded (~7.3MB) avoids the 40MB external-network deployment that was never shipped under SF16. SF18 is always-NNUE (no `Use NNUE` UCI option). Migrated from SF16.1 lichess fork — see ADR-0001 amendment (2026-06-02)."
     referenced_by:
       - docs/architecture/adr-0001-stockfish-build-versioning.md
     added: 2026-05-28
-    revised: ""
+    revised: "2026-06-02 (S10-06: SF16 → SF18 Lite single-threaded)"
 
   - purpose: chess_openings_dataset
     status: active

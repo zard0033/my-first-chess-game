@@ -150,8 +150,10 @@ const defaultEventTarget: VisibilityEventTarget | undefined =
   typeof document !== 'undefined' ? document : undefined
 
 /**
- * HCE Play Engine composable.
- * ADR-0001: stockfish@16.0.0 single-threaded build, HCE via `Use NNUE false`.
+ * Play Engine composable.
+ * ADR-0001 (amended 2026-06-02): Stockfish 18 Lite single-threaded build. SF18 is
+ * always-NNUE (no `Use NNUE` option); the `Use NNUE value false` setoption below is a
+ * now-ignored no-op kept for back-compat. Beginner difficulty comes from Skill Level.
  * ADR-0002: postMessage-only IPC; nine-state machine.
  * TR-chess-engine-009: iOS visibility liveness probe (60s threshold, 1s readyok timeout).
  *
