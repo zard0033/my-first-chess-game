@@ -6,9 +6,8 @@ export type EngineState = 'UNINITIALIZED' | 'LOADING' | 'HANDSHAKING' | 'IDLE' |
 
 export type WorkerFactory = () => IStockfishWorker
 
-// ADR-0001 + S9-02 decision: NNUE enabled for better move strength
-const HCE_OPTIONS = [
-  'setoption name Use NNUE value true',
+// ADR-0001 (amended 2026-06-02): SF18 Lite is always-NNUE (no `Use NNUE` switch); only Hash is set.
+const HANDSHAKE_OPTIONS = [
   'setoption name Hash value 16',
 ] as const
 
@@ -29,7 +28,7 @@ function runHandshake(worker: IStockfishWorker): Promise<void> {
 
       if (!uciokSeen && line === 'uciok') {
         uciokSeen = true
-        for (const opt of HCE_OPTIONS) worker.postMessage(opt)
+        for (const opt of HANDSHAKE_OPTIONS) worker.postMessage(opt)
         worker.postMessage('isready')
         return
       }

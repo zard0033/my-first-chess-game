@@ -75,13 +75,13 @@ export interface PlayResult {
 }
 
 /**
- * HCE UCI options per ADR-0002 §7 and control manifest Core layer.
+ * Play-engine UCI options per ADR-0002 §7 and control manifest Core layer.
  * All setoption lines are sent BEFORE isready (AC-5 invariant).
+ * ADR-0001 (amended 2026-06-02): SF18 Lite is always-NNUE — no `Use NNUE` option is sent.
  */
-const HCE_OPTIONS = [
+const PLAY_ENGINE_OPTIONS = [
   'setoption name Hash value 16',
   'setoption name Threads value 1',
-  'setoption name Use NNUE value false',
   'setoption name Ponder value false',
   'setoption name MultiPV value 1',
 ] as const
@@ -125,7 +125,7 @@ function runHandshake(worker: IStockfishWorker): Promise<void> {
       if (!uciokSeen && line === 'uciok') {
         clearTimeout(uciokTimer)
         uciokSeen = true
-        for (const opt of HCE_OPTIONS) worker.postMessage(opt)
+        for (const opt of PLAY_ENGINE_OPTIONS) worker.postMessage(opt)
         worker.postMessage('isready')
         readyokTimer = setTimeout(
           () => fail(`readyok not received within ${READYOK_TIMEOUT_MS}ms`),
@@ -152,8 +152,8 @@ const defaultEventTarget: VisibilityEventTarget | undefined =
 /**
  * Play Engine composable.
  * ADR-0001 (amended 2026-06-02): Stockfish 18 Lite single-threaded build. SF18 is
- * always-NNUE (no `Use NNUE` option); the `Use NNUE value false` setoption below is a
- * now-ignored no-op kept for back-compat. Beginner difficulty comes from Skill Level.
+ * always-NNUE (no `Use NNUE` option), so no eval-mode switch is sent. Beginner
+ * difficulty comes from Skill Level.
  * ADR-0002: postMessage-only IPC; nine-state machine.
  * TR-chess-engine-009: iOS visibility liveness probe (60s threshold, 1s readyok timeout).
  *

@@ -63,7 +63,7 @@ describe('usePlayEngine — AC-1: play() resolves with PlayResult', () => {
     })
     mock.simulateResponse('bestmove d2d4')
     await promise
-    const msgAfterHandshake = mock.sentMessages.slice(7) // skip uci + 5 setoptions + isready
+    const msgAfterHandshake = mock.sentMessages.slice(6) // skip uci + 4 setoptions + isready
     expect(msgAfterHandshake).toContain('setoption name Skill Level value 10')
     expect(msgAfterHandshake.some(m => m.startsWith('position fen'))).toBe(true)
     expect(msgAfterHandshake.some(m => m.startsWith('go movetime'))).toBe(true)

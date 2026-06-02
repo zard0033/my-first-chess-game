@@ -202,7 +202,7 @@ describe('usePlayEngine — AC-5: message sequence', () => {
     })
   })
 
-  it('test_playEngine_handshake_hceSetoptionsSent', async () => {
+  it('test_playEngine_handshake_setoptionsSent', async () => {
     // Arrange
     const mock = new MockStockfishWorker()
     const { init } = usePlayEngine(factoryFor(mock))
@@ -211,12 +211,13 @@ describe('usePlayEngine — AC-5: message sequence', () => {
     mock.simulateResponse('readyok')
     await p
 
-    // Assert — all five HCE options required by control manifest Core layer
+    // Assert — play-engine options required by control manifest Core layer.
+    // ADR-0001 (amended): SF18 Lite is always-NNUE — no `Use NNUE` setoption is sent.
     expect(mock.sentMessages).toContain('setoption name Hash value 16')
     expect(mock.sentMessages).toContain('setoption name Threads value 1')
-    expect(mock.sentMessages).toContain('setoption name Use NNUE value false')
     expect(mock.sentMessages).toContain('setoption name Ponder value false')
     expect(mock.sentMessages).toContain('setoption name MultiPV value 1')
+    expect(mock.sentMessages).not.toContain('setoption name Use NNUE value false')
   })
 })
 

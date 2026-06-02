@@ -50,17 +50,16 @@ describe('useStockfish', () => {
     expect(mock.commands[0]).toBe('uci')
   })
 
-  it('sends NNUE setoptions after uciok and before isready', async () => {
+  it('sends Hash setoption after uciok and before isready', async () => {
+    // ADR-0001 (amended): SF18 Lite is always-NNUE — no `Use NNUE` setoption is sent.
     const { mock, factory } = makeMock()
     const { init } = useStockfish(factory)
     await init()
     const uciIdx = mock.commands.indexOf('uci')
     const isreadyIdx = mock.commands.indexOf('isready')
-    const nnueIdx = mock.commands.indexOf('setoption name Use NNUE value true')
     const hashIdx = mock.commands.indexOf('setoption name Hash value 16')
-    expect(nnueIdx).toBeGreaterThan(uciIdx)
+    expect(mock.commands).not.toContain('setoption name Use NNUE value true')
     expect(hashIdx).toBeGreaterThan(uciIdx)
-    expect(nnueIdx).toBeLessThan(isreadyIdx)
     expect(hashIdx).toBeLessThan(isreadyIdx)
   })
 
