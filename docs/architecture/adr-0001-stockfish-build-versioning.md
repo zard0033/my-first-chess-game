@@ -15,6 +15,22 @@ Accepted
 > yet deployed**; review engine is currently running in HCE mode as a temporary fallback.
 > Sprint 7 story will complete the deployment (see Post-Implementation Notes below).
 
+> **AMENDMENT — S10-06 (2026-06-02): migrated to Stockfish 18 Lite single-threaded.**
+> Root cause found in browser smoke testing: SF16's NNUE network file
+> (`nn-5af11540bbfe.nnue`, ~40 MB) was never deployed to `public/stockfish/`, so enabling
+> `Use NNUE true` hung the engine ("network file was not loaded successfully") — review
+> analysis was silently broken in the browser despite passing unit tests (which mock the
+> worker). Rather than commit a 40 MB external network, we upgraded to
+> **`stockfish-18-lite-single`** (npm `stockfish@18.0.7`): the NNUE network is **embedded
+> in the ~7.3 MB WASM**, it is single-threaded (no COOP/COEP cross-origin-isolation headers
+> required — works on GitHub Pages), and SF18 is always-NNUE (the `Use NNUE` UCI option no
+> longer exists). One build now serves play, review, and replay. Files in
+> `public/stockfish/`: `stockfish-18-lite-single.js` + `.wasm`. Worker URL is built from
+> `import.meta.env.BASE_URL` so it resolves under the GitHub Pages base path. The legacy
+> SF16 files and the HCE/NNUE split are removed. Verified in-browser: handshake + bestmove,
+> and replay depth-12 eval over a full game. (Strength delta vs SF16 is irrelevant for a
+> beginner trainer; SF18 Lite is still far above any human.)
+
 ## Date
 2026-05-28
 

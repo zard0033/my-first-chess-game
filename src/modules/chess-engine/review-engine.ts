@@ -1,6 +1,6 @@
 /**
  * Review Engine composable — NNUE analysis with lazy-load and 30s auto-terminate.
- * ADR-0001: NNUE enabled via `Use NNUE true`.
+ * ADR-0001: Stockfish 18 Lite (NNUE embedded in WASM; no `Use NNUE` switch).
  * ADR-0002: Worker lifecycle — IDLE_TERMINATED auto-respawns; DISPOSED rejects synchronously.
  * TR-chess-engine-005: lazy-create on first analyze(); auto-terminate after 30s idle.
  */
@@ -74,10 +74,11 @@ const READYOK_TIMEOUT_MS = 10_000
 const STOP_DRAIN_TIMEOUT_MS = 2_000
 const IDLE_TERMINATE_MS = 30_000
 
-const NNUE_OPTIONS = [
+// Stockfish 18 Lite is always NNUE (the eval network is embedded in the WASM and
+// there is no `Use NNUE` UCI option), so no eval-mode switch is sent here.
+const ENGINE_OPTIONS = [
   'setoption name Hash value 16',
   'setoption name Threads value 1',
-  'setoption name Use NNUE value true',
   'setoption name Ponder value false',
   'setoption name MultiPV value 1',
 ] as const
@@ -104,7 +105,7 @@ function runHandshake(worker: IStockfishWorker): Promise<void> {
       if (!uciokSeen && line === 'uciok') {
         clearTimeout(uciokTimer)
         uciokSeen = true
-        for (const opt of NNUE_OPTIONS) worker.postMessage(opt)
+        for (const opt of ENGINE_OPTIONS) worker.postMessage(opt)
         worker.postMessage('isready')
         readyokTimer = setTimeout(() => fail(`readyok not received within ${READYOK_TIMEOUT_MS}ms`), READYOK_TIMEOUT_MS)
         return

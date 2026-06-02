@@ -20,7 +20,7 @@ See `~/interviews/chess-training-companion-brief.md` for the full concept brief.
 - **Styling**: Tailwind CSS
 - **Build System**: Vite + vite-plugin-pwa
 - **Chess Board**: vue3-chessboard (wraps lichess chessground for Vue)
-- **Chess Engine**: stockfish.wasm (lichess open source)
+- **Chess Engine**: Stockfish 18 Lite (single-threaded WASM, NNUE embedded) — `stockfish@18.0.7` (nmrugg/stockfish.js); files in `public/stockfish/stockfish-18-lite-single.{js,wasm}`
 - **Chess Rules**: chess.js (bundled with vue3-chessboard)
 - **Opening Database**: chess-openings (lichess open source)
 - **Cloud Backend**: Supabase (PostgreSQL + Auth with Magic Link)

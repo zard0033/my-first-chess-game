@@ -74,7 +74,7 @@
 | `tailwindcss` ^3.x | Utility-first CSS | Community |
 | `vue3-chessboard` ^1.x | Chess board Vue component (wraps chessground) | qwerty084 |
 | `chess.js` | Chess rules (bundled with vue3-chessboard) | Community |
-| `stockfish@16.0.0` (WASM) | Chess engine — single-threaded, HCE+NNUE via UCI switch | nmrugg/stockfish.js |
+| `stockfish@18.0.7` (WASM) | Chess engine — Stockfish 18 Lite single-threaded, NNUE embedded (~7.3MB, no external net, no COOP/COEP); serves play+review+replay | nmrugg/stockfish.js |
 | `chess-openings` | Opening name database | lichess |
 | `@supabase/supabase-js` ^2.x | Cloud database + Auth client | Supabase |
 | `vitest` ^1.x | Unit test framework | Community |

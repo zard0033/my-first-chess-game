@@ -1,10 +1,10 @@
-import type { IStockfishWorker } from './stockfish-worker'
+import { STOCKFISH_WORKER_URL, type IStockfishWorker } from './stockfish-worker'
 
 /**
- * Creates the NNUE Review Engine Web Worker.
- * ADR-0001: same single build; NNUE enabled via `Use NNUE true` setoption (applied by review-engine.ts).
- * Files served from public/stockfish/ so Vite does not transform them.
+ * Creates the Review Engine Web Worker (Stockfish 18 Lite single-threaded, ADR-0001).
+ * NNUE is embedded in the WASM (no external network file); the engine is always NNUE.
+ * Shared with the play engine — same single-threaded build, base-path aware URL.
  */
 export function createReviewEngineWorker(): IStockfishWorker {
-  return new Worker('/stockfish/stockfish-nnue-16-single.js') as unknown as IStockfishWorker
+  return new Worker(STOCKFISH_WORKER_URL) as unknown as IStockfishWorker
 }

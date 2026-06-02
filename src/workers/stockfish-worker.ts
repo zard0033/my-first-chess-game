@@ -1,6 +1,3 @@
-import stockfishSingleUrl from 'stockfish/src/stockfish-nnue-16-single.js?url'
-import stockfishWasmUrl from 'stockfish/src/stockfish-nnue-16-single.wasm?url'
-
 /** Minimal Worker interface used by useStockfish — enables mocking in unit tests. */
 export interface IStockfishWorker {
   postMessage(data: string): void
@@ -8,15 +5,17 @@ export interface IStockfishWorker {
   terminate(): void
 }
 
+/** Public URL of the Stockfish 18 Lite (single-threaded) engine, base-path aware. */
+export const STOCKFISH_WORKER_URL = `${import.meta.env.BASE_URL}stockfish/stockfish-18-lite-single.js`
+
 /**
- * Creates a classic Web Worker running the single-threaded Stockfish 16 build.
- * HCE mode (no NNUE) by default; switch via UCI `setoption name Use NNUE value true`.
- * ADR-0001: stockfish-nnue-16-single handles both modes via UCI option switch.
+ * Creates a classic Web Worker running Stockfish 18 Lite (single-threaded, ADR-0001).
+ * NNUE is embedded in the ~7MB WASM (no external network file); the engine is always NNUE.
  *
- * The WASM URL is passed via the URL hash (#encodedWasmUrl) because stockfish-nnue-16-single.js
- * reads `self.location.hash` to locate its WASM file. Without this, it falls back to the
- * bare filename "stockfish-nnue-16-single.wasm" which resolves incorrectly under Vite.
+ * Files are served from public/stockfish/. The WASM resolves relative to the JS URL
+ * automatically (same directory), so no URL hash is required. The URL is built from
+ * import.meta.env.BASE_URL so it is correct under the GitHub Pages base path.
  */
 export function createStockfishWorker(): IStockfishWorker {
-  return new Worker(`${stockfishSingleUrl}#${encodeURIComponent(stockfishWasmUrl)}`)
+  return new Worker(STOCKFISH_WORKER_URL) as unknown as IStockfishWorker
 }

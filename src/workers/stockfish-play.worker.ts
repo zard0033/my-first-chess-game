@@ -1,15 +1,13 @@
-import type { IStockfishWorker } from './stockfish-worker'
+import { STOCKFISH_WORKER_URL, type IStockfishWorker } from './stockfish-worker'
 
 /**
- * Creates the HCE Play Engine Web Worker.
- * ADR-0001: single build handles HCE/NNUE via UCI option `Use NNUE false/true`.
- * HCE options are applied by the main-thread wrapper (play-engine.ts), not here.
+ * Creates the Play Engine Web Worker (Stockfish 18 Lite single-threaded, ADR-0001).
+ * Beginner difficulty is controlled by UCI `Skill Level` / `UCI_LimitStrength`
+ * (applied by play-engine.ts), independent of the eval (SF18 is always NNUE).
+ *
  * Cast is required: TypeScript DOM Worker.onmessage carries `this: Worker` which
  * is structurally incompatible with IStockfishWorker's narrower signature.
- *
- * Files served from public/stockfish/ so Vite does not transform them.
- * WASM resolves relative to the JS URL automatically (same directory).
  */
 export function createPlayEngineWorker(): IStockfishWorker {
-  return new Worker('/stockfish/stockfish-nnue-16-single.js') as unknown as IStockfishWorker
+  return new Worker(STOCKFISH_WORKER_URL) as unknown as IStockfishWorker
 }
