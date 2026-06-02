@@ -1,7 +1,7 @@
 # Epics Index
 
-**Last Updated**: 2026-06-02
-**Engine**: Web App — TypeScript 5 · Vue 3 · Vite 5 · vue3-chessboard · stockfish@16.0.0 (NNUE enabled, ADR-0001)
+**Last Updated**: 2026-06-30
+**Engine**: Web App — TypeScript 5 · Vue 3 · Vite 5 · vue3-chessboard · stockfish@18.0.7 (SF18 Lite single-threaded, NNUE embedded; ADR-0001 amended 2026-06-02)
 **Manifest Version**: 2026-05-29 (control-manifest.md)
 
 ## v0 Epics (all systems)
@@ -77,9 +77,12 @@ Presentation:                      visual-identity (board theme) — Sprint TBD,
 
 ## Next Steps
 
-Sprint 10 in progress — S10-02 (ReplayView) and S10-03 (analysis overlay) re-implemented to AC on
-2026-06-02 (486 unit/integration tests pass, build green). Remaining: manual browser QA of the
-eval bar + best-move arrow with real Stockfish, then `/smoke-check sprint` and QA sign-off. S11 not
-yet planned (candidates: game-history S8-06 iOS 補測收口 + game-replay QA sign-off).
+Sprint 10 shipped (Game Replay full feature; engine migrated SF16→SF18 Lite). Sprint 11 closed
+the 2026-06-02 spec↔code drift audit: S11-01 move-annotation eval-bar GDD aligned to arctan code;
+S11-02 game-export assembler aligned to the GDD "Coach" template + PGN tags; S11-03 `game_sessions.pgn`
+now stores real PGN; S11-04 removed the dead `Use NNUE` no-op. 510 unit tests pass, build green.
 
-**Last Updated**: 2026-06-02
+Deferred (need Eason): **lesson-system (S12 prep) vs visual-identity** feature choice; SF16→SF18
+historical-docs reconciliation (forward-reference notes, S11-05); iPhone on-device QA.
+
+**Last Updated**: 2026-06-30
