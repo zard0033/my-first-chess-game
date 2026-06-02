@@ -106,12 +106,12 @@ describe('assembleExportPayload — AC-3: Seven Tag Roster', () => {
   })
 
   it('test_assembleExportPayload_whitePlayer_setsWhiteToPlayerName', () => {
-    const game = makeGame(['e2e4'], 'white')
+    const game = makeGame(['e2e4'], 'white') // makeGame aiSkillLevel = 10
     const output = assembleExportPayload(game, { ...defaultConfig, playerName: 'Bob' })
     const pgn = extractPgn(output)
 
     expect(pgn).toMatch(/\[White "Bob"\]/)
-    expect(pgn).toMatch(/\[Black "Stockfish"\]/)
+    expect(pgn).toMatch(/\[Black "Stockfish \(level 10\)"\]/)
   })
 
   it('test_assembleExportPayload_blackPlayer_setsBlackToPlayerName', () => {
@@ -119,7 +119,7 @@ describe('assembleExportPayload — AC-3: Seven Tag Roster', () => {
     const output = assembleExportPayload(game, { ...defaultConfig, playerName: 'Carol' })
     const pgn = extractPgn(output)
 
-    expect(pgn).toMatch(/\[White "Stockfish"\]/)
+    expect(pgn).toMatch(/\[White "Stockfish \(level 10\)"\]/)
     expect(pgn).toMatch(/\[Black "Carol"\]/)
   })
 
@@ -164,22 +164,124 @@ describe('assembleExportPayload — AC-5: no forbidden imports', () => {
   })
 })
 
-// ---- Prompt structure ----
+// ---- Prompt structure (Coach template, game-export-share.md §3) ----
 
-describe('assembleExportPayload — prompt structure', () => {
-  it('test_assembleExportPayload_containsOpeningLine', () => {
+describe('assembleExportPayload — Coach prompt structure', () => {
+  it('test_assembleExportPayload_containsCoachRoleFraming', () => {
     const output = assembleExportPayload(makeGame(), defaultConfig)
-    expect(output).toContain('Here is my chess game for analysis:')
+    expect(output).toContain('review it like a patient coach')
+    expect(output).toContain("adult learner working through fundamentals")
   })
 
-  it('test_assembleExportPayload_containsClosingInstruction', () => {
+  it('test_assembleExportPayload_containsNumberedAskList', () => {
     const output = assembleExportPayload(makeGame(), defaultConfig)
-    expect(output).toContain('Please review my moves and identify my biggest mistakes')
+    expect(output).toContain('1. Name the opening')
+    expect(output).toContain('2. Walk me through')
+    expect(output).toContain('3. Point out one or two recurring habits')
+    expect(output).toContain('4. Suggest one specific thing to study')
+  })
+
+  it('test_assembleExportPayload_containsAntiPatternGuidance', () => {
+    const output = assembleExportPayload(makeGame(), defaultConfig)
+    expect(output).toContain('Use move numbers')
+    expect(output).toContain("Don't just list every move")
   })
 
   it('test_assembleExportPayload_containsPgnFenceBlock', () => {
     const output = assembleExportPayload(makeGame(), defaultConfig)
     expect(output).toContain('```pgn')
     expect(output).toContain('```')
+  })
+
+  it('test_assembleExportPayload_containsContextLines', () => {
+    const game = makeGame(['e2e4'], 'white')
+    const output = assembleExportPayload(game, defaultConfig)
+    expect(output).toContain('- I played white against Stockfish (skill level 10).')
+    expect(output).toContain('- Result:')
+  })
+})
+
+// ---- PGN tags aligned to GDD Core Rules 4-5 ----
+
+describe('assembleExportPayload — GDD-aligned PGN tags', () => {
+  it('test_assembleExportPayload_siteTag_isLocalLabelNotUrl', () => {
+    const pgn = extractPgn(assembleExportPayload(makeGame(), defaultConfig))
+    expect(pgn).toMatch(/\[Site "Chess Training Companion \(local\)"\]/)
+    expect(pgn).not.toContain('http')
+  })
+
+  it('test_assembleExportPayload_terminationTag_isNormalForCheckmate', () => {
+    const pgn = extractPgn(assembleExportPayload(makeGame(), defaultConfig))
+    // Core Rule 5: standard-only vocabulary — checkmate maps to "normal"
+    expect(pgn).toMatch(/\[Termination "normal"\]/)
+  })
+
+  it('test_assembleExportPayload_aiNameMissingLevel_dropsParenthetical', () => {
+    const game = { ...makeGame(['e2e4'], 'white'), aiSkillLevel: undefined as unknown as number }
+    const pgn = extractPgn(assembleExportPayload(game, defaultConfig))
+    expect(pgn).toMatch(/\[Black "Stockfish"\]/)
+  })
+
+  it('test_assembleExportPayload_dateTag_usesLocalCalendarDate', () => {
+    // Build a game completed at a fixed local wall-clock time; assert the Date tag
+    // reflects the LOCAL calendar date (not a UTC shift) by deriving the expected value
+    // from the same local getters the assembler uses.
+    const epoch = new Date(2026, 4, 27, 0, 30).getTime() // 2026-05-27 00:30 local
+    const game = { ...makeGame(), completedAt: epoch }
+    const pgn = extractPgn(assembleExportPayload(game, defaultConfig))
+    expect(pgn).toMatch(/\[Date "2026\.05\.27"\]/)
+  })
+})
+
+// ---- RESULT_PLAIN mapping (§3) ----
+
+describe('assembleExportPayload — RESULT_PLAIN mapping', () => {
+  it('test_resultPlain_blackPlayerWinsByCheckmate_isWon', () => {
+    // playerColor black + result 0-1 + checkmate → player won
+    const game: CompletedGame = { ...makeGame([], 'black'), result: '0-1', endReason: 'checkmate' }
+    const output = assembleExportPayload(game, defaultConfig)
+    expect(output).toContain('- Result: I won by checkmate.')
+  })
+
+  it('test_resultPlain_whitePlayerLosesByCheckmate_isLost', () => {
+    const game: CompletedGame = { ...makeGame([], 'white'), result: '0-1', endReason: 'checkmate' }
+    const output = assembleExportPayload(game, defaultConfig)
+    expect(output).toContain('- Result: I lost — I was checkmated.')
+  })
+
+  it('test_resultPlain_drawByStalemate', () => {
+    const game: CompletedGame = { ...makeGame([], 'white'), result: '1/2-1/2', endReason: 'stalemate' }
+    const output = assembleExportPayload(game, defaultConfig)
+    expect(output).toContain('- Result: It was a draw by stalemate.')
+  })
+})
+
+// ---- Optional context enrichment (opening / review) ----
+
+describe('assembleExportPayload — context enrichment', () => {
+  it('test_assembleExportPayload_withOpening_addsLineAndTags', () => {
+    const output = assembleExportPayload(makeGame(), defaultConfig, {
+      opening: { openingName: 'Italian Game', eco: 'C50' },
+    })
+    expect(output).toContain('- The opening was Italian Game (C50).')
+    const pgn = extractPgn(output)
+    expect(pgn).toMatch(/\[Opening "Italian Game"\]/)
+    expect(pgn).toMatch(/\[ECO "C50"\]/)
+  })
+
+  it('test_assembleExportPayload_noContext_omitsLinesNoBlankLeftBehind', () => {
+    const output = assembleExportPayload(makeGame(), defaultConfig)
+    expect(output).not.toContain('The opening was')
+    expect(output).not.toContain('turning points')
+    // No blank line should be left where the omitted slots were:
+    // "Result: ...." is followed by exactly one blank line then "Please:"
+    expect(output).toMatch(/- Result: [^\n]+\n\nPlease:/)
+  })
+
+  it('test_assembleExportPayload_withReview_addsHintLine', () => {
+    const output = assembleExportPayload(makeGame(), defaultConfig, {
+      review: { keyMoveNumbers: [14, 22] },
+    })
+    expect(output).toContain('turning points around moves 14, 22.')
   })
 })

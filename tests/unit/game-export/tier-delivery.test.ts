@@ -208,6 +208,45 @@ describe('useGameExport — AC-6: no await before tier decision (static check)',
   })
 })
 
+// ---- SUCCESS → IDLE auto-revert timer (game-export-share.md Core Rule 9) ----
+
+describe('useGameExport — SUCCESS→IDLE feedback timer', () => {
+  it('test_onExportTap_success_revertsToIdleAfterFeedbackDuration', async () => {
+    vi.useFakeTimers()
+    try {
+      const nav = makeClipboardNav(false)
+      const { state, onExportTap } = useGameExport(makeGame(), config, nav)
+
+      await onExportTap()
+      expect(state.value).toBe('SUCCESS')
+
+      vi.advanceTimersByTime(2000) // default feedbackDurationMs
+      expect(state.value).toBe('IDLE')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('test_onExportTap_success_honoursCustomFeedbackDuration', async () => {
+    vi.useFakeTimers()
+    try {
+      const nav = makeClipboardNav(false)
+      const cfg: ExportConfig = { ...config, feedbackDurationMs: 1000 }
+      const { state, onExportTap } = useGameExport(makeGame(), cfg, nav)
+
+      await onExportTap()
+      expect(state.value).toBe('SUCCESS')
+
+      vi.advanceTimersByTime(999)
+      expect(state.value).toBe('SUCCESS') // not yet
+      vi.advanceTimersByTime(1)
+      expect(state.value).toBe('IDLE')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
 // ---- dismissFallback ----
 
 describe('useGameExport — dismissFallback', () => {
