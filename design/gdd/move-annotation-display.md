@@ -58,7 +58,7 @@ The discipline here mirrors the Chess Board's "no Brilliant! labels during play"
 
 6. **Evaluation readout — two coordinated views, both neutral and numeric.**
    - **Eval badge**: a small text chip showing the formatted eval (e.g. `+1.2`, `−0.7`, `M3`, or `—` when no data). Positive is conventionally White-favoring (see Formula 3 sign convention). Placed in a fixed UI slot beside the board, never floating over pieces.
-   - **Eval bar**: an optional thin vertical bar beside the board, filled proportionally white-from-bottom / black-from-top to reflect the clamped eval (Formula 1). The bar is a gauge, not a score — no tick marks reading "you are losing," no color shift to red at extremes.
+   - **Eval bar**: an optional thin vertical bar beside the board, filled proportionally white-from-bottom / black-from-top to reflect the compressed eval (Formula 1, arctan curve). The bar is a gauge, not a score — no tick marks reading "you are losing," no color shift to red at extremes.
    - Both views read from the same `evaluation` object so they never disagree.
 
 7. **Eval sign convention (display layer owns the flip).** The Chess Engine returns `evalCp` / `evalMate` in *side-to-move* convention (positive = side-to-move is better). This system renders from a fixed **White's perspective** by default (positive = White better), so it flips the sign when the annotated position has Black to move. The consumer passes the position's side-to-move alongside the eval so this system can normalize. **Both `evalCp` and `evalMate` go through the same normalization** (raw in → this system flips): the normalized values are `evalNormCp` and `evalMateNorm`, and all downstream formulas (Formula 1 bar, Formula 3 display) consume the normalized values, never the raw inputs. (This mirrors the Chess Engine GDD's note: "Display layer flips sign if rendering from White's perspective.")
@@ -97,7 +97,7 @@ There is no input-driven state — the consumer's prop is the single source of t
 |--------|-----------|-----------|
 | **Chess Board & Move System** | IN ← | Consumes the board's exposed `boardRef` (HTMLElement) and square-to-pixel coordinate helper to position the overlay and resolve algebraic squares to current pixel coordinates (orientation-aware). Reads board size on resize. |
 | **Post-Game Review** | IN ← | Receives the `annotations` array (arrows + highlights, each with a neutral `role`) and the `evaluation` object (`evalCp` / `evalMate` + side-to-move) per displayed position. Post-Game Review owns *what* to show (the neutral pawn-swing number + best line); this system owns *how* to draw it. |
-| **Settings** (future, Polish) | IN ← | Reads annotation theme: arrow colors per role, eval-bar visibility default, eval-bar clamp range, `annotationFadeMs`. Cannot exceed Safe Ranges. |
+| **Settings** (future, Polish) | IN ← | Reads annotation theme: arrow colors per role, eval-bar visibility default, eval-bar softness (`evalBarSoftnessCp`), `annotationFadeMs`. Cannot exceed Safe Ranges. |
 
 ## Formulas
 
@@ -105,11 +105,11 @@ This system has four design-level formulas. All visual constants not listed here
 
 ### Formula 1: Eval → eval-bar fill ratio
 
-Maps a centipawn (or mate) evaluation to a 0–1 fill ratio for the vertical eval bar. A linear cp scale is unusable (a +900 position would peg the bar identically to +200), so a bounded clamp with a soft mid-range is used.
+Maps a centipawn (or mate) evaluation to a 0–1 fill ratio for the vertical eval bar. A linear cp scale is unusable (a +900 position would peg the bar identically to +200), so an **arctangent compression curve** is used: it is steepest (most expressive) in the meaningful ±3-pawn middlegame range and flattens smoothly toward the extremes, self-bounding to (0, 1) without a hard clamp.
 
-`evalCpClamped = clamp(evalCp, −evalBarClampCp, +evalBarClampCp)`
+`fillRatio = atan(evalNormCp / evalBarSoftnessCp) / π + 0.5`
 
-`fillRatio = 0.5 + 0.5 × (evalCpClamped / evalBarClampCp)`
+where `evalNormCp` is `evalCp` already normalized to White's perspective (Rule 7) and `evalBarSoftnessCp` is the curve's softness constant (the cp value at which the bar reaches the 0.75 / 0.25 quarter marks).
 
 For mate scores, the bar pegs fully to the mating side (using `evalMateNorm`, already flipped to White's perspective per Rule 7), with a third branch for terminal positions:
 
@@ -117,15 +117,17 @@ For mate scores, the bar pegs fully to the mating side (using `evalMateNorm`, al
 - `evalMateNorm < 0` (White is mated) → `fillRatio = 0.0`
 - `evalMateNorm === 0` (terminal position — checkmate/stalemate already on the board, no forward eval) → `fillRatio = 0.5` and the bar renders **dimmed/neutral** (consistent with the no-data dimmed state per Edge Cases / AC; the badge shows `—`)
 
+> **Note (arctan vs. clamp):** unlike a hard clamp, the arctan curve **asymptotically approaches but never reaches** 0.0/1.0 for finite cp — only a *mate* score pegs the bar to the rail. A hopeless −50.0 cp position renders at ≈0.02, visually indistinguishable from the rail but never quite touching it. This is intentional: the bar reserves the literal rail for forced mate.
+
 | Variable | Type | Range | Description |
 |----------|------|-------|-------------|
-| `evalCp` | int (centipawns) | −∞..+∞ in theory; practically ±3000 | Position eval, White's-perspective normalized |
-| `evalBarClampCp` | int | 600–1500 | Eval magnitude at which the bar is considered "fully tilted." Default `1000` (≈ +10.0 pawns) |
-| `evalCpClamped` | int | −`evalBarClampCp`..+`evalBarClampCp` | Clamped eval |
-| `fillRatio` | float | 0.0–1.0 | White-side fill fraction (0.5 = equal) |
+| `evalCp` | int (centipawns) | −∞..+∞ in theory; practically ±3000 | Position eval (raw, side-to-move convention) |
+| `evalNormCp` | int (centipawns) | −∞..+∞ | `evalCp` normalized to White's perspective (Rule 7) |
+| `evalBarSoftnessCp` | int | 200–600 | Softness constant; cp at the 0.75/0.25 quarter marks. Default `300` (≈ +3.0 pawns). Currently a code constant in `annotation-formulas.ts`; a future Settings knob may expose it |
+| `fillRatio` | float | (0.0, 1.0) | White-side fill fraction (0.5 = equal); open interval for cp, closed only via mate branch |
 
-**Output range:** 0.0 (Black fully winning / White mated) to 1.0 (White fully winning). 0.5 = dead equal.
-**Example:** `evalCp = +250`, `evalBarClampCp = 1000` → `fillRatio = 0.5 + 0.5 × (250/1000) = 0.625` (bar 62.5% white). `evalCp = +4000` → clamps to +1000 → `fillRatio = 1.0`. `evalMateNorm = +3` → `fillRatio = 1.0`. `evalMateNorm = 0` (terminal) → `fillRatio = 0.5`, bar dimmed.
+**Output range:** approaches 0.0 (Black fully winning) and 1.0 (White fully winning) asymptotically for cp; reaches them exactly only via the mate branch. 0.5 = dead equal.
+**Example:** `evalCp = +120` (White to move) → `fillRatio = atan(120/300)/π + 0.5 = atan(0.4)/π + 0.5 ≈ 0.621` (bar ≈62% white). `evalCp = +300` → `atan(1)/π + 0.5 = 0.75`. `evalCp = +5000` → `atan(16.67)/π + 0.5 ≈ 0.981` (near the rail but not pegged). `evalMateNorm = +3` → `fillRatio = 1.0` (mate pegs). `evalMateNorm = 0` (terminal) → `fillRatio = 0.5`, bar dimmed.
 
 ### Formula 2: Square size → arrow geometry
 
@@ -211,7 +213,7 @@ A single rAF callback per frame already guarantees at most one redraw per ~16.6m
 - **If `evaluation` is `null` or both `evalCp` and `evalMate` are undefined:** eval badge shows `—`; eval bar renders at its `fillRatio = 0.5` neutral position **dimmed/grayed** (visually distinct from a real "equal" reading) OR hidden per `evalBarHideWhenUnknown` (default: dimmed, not hidden, so the bar doesn't jump in/out of layout). This honors the Chess Engine GDD's "Consumer should display '—' rather than '0'" rule.
 - **If `evalMate` is present:** the bar pegs fully to the mating side (Formula 1); the badge shows `M{n}`. No "checkmate is coming!" styling — it's still a neutral readout.
 - **If `evalMate = 0`** (the position *is* checkmate/stalemate, per engine's `bestmove (none)` → `{ evalMate: 0 }` contract): badge shows `—` (game already over, no forward eval to display) and no best-move arrow is drawn (there is no best move). The consumer should not pass a best-move arrow for a terminal position; if it does, the arrow is dropped and a console warning is logged.
-- **If eval is extreme** (e.g. `evalCp = ±5000` from a hopeless position): Formula 1 clamps the bar to 0.0/1.0; the badge shows the true large number (`+50.0`) without special styling. The clamp is on the *bar*, not the *number*.
+- **If eval is extreme** (e.g. `evalCp = ±5000` from a hopeless position): Formula 1's arctan curve compresses the bar to ≈0.98/0.02 (near the rail but never pegged for a non-mate cp); the badge shows the true large number (`+50.0`) without special styling. The compression is on the *bar*, not the *number*.
 - **If sign normalization data (side-to-move) is missing from the payload:** default to treating the eval as already White's-perspective (no flip) and log a console warning — a missing side-to-move is a consumer contract violation, not a player concern.
 
 **Orientation / geometry edge cases:**
@@ -261,13 +263,13 @@ A single rAF callback per frame already guarantees at most one redraw per ~16.6m
 
 ### Soft dependencies (enhanced by but not required)
 
-- **Settings** (future, Polish tier): supplies annotation theme (arrow colors per role, eval-bar visibility, clamp range). This system ships with defaults and functions fully without Settings.
+- **Settings** (future, Polish tier): supplies annotation theme (arrow colors per role, eval-bar visibility, eval-bar softness). This system ships with defaults and functions fully without Settings.
 
 ## Tuning Knobs
 
 | Knob | Default | Safe Range | What breaks if too high | What breaks if too low |
 |------|---------|-----------|------------------------|----------------------|
-| `evalBarClampCp` | 1000 | 600–1500 | Bar barely tilts for normal advantages; loses resolution in the meaningful ±3 pawn range | Bar pegs to full at modest advantages (+6 looks the same as +60); loses high-end nuance |
+| `evalBarSoftnessCp` | 300 | 200–600 | Bar barely tilts for normal advantages; loses resolution in the meaningful ±3 pawn range | Bar saturates near the rail at modest advantages (+6 looks the same as +60); loses high-end nuance |
 | `shaftWidthRatio` | 0.16 | 0.10–0.22 | Arrow shaft covers pieces it crosses; board feels cluttered | Arrows too thin to read at a glance on mobile |
 | `shaftWidthMinPx` | 4 | 3–6 | Shaft too thick on tiny boards, obscures pieces | Shaft invisible on smallest boards |
 | `shaftWidthMaxPx` | 20 | 16–24 | Shaft dominates large desktop board | Arrows look thin/weak on large board |
@@ -286,7 +288,7 @@ A single rAF callback per frame already guarantees at most one redraw per ~16.6m
 
 ### Interaction notes
 
-- **`evalBarClampCp` ↔ Player Fantasy "compass not score":** the clamp deliberately compresses extreme evals so the bar reads as a *direction of advantage*, not a precise loss tally. Don't lower it so far that the bar pegs on every middlegame edge (loses its calm "slight tilt" expressiveness), and don't raise it so high that decisive advantages look equal.
+- **`evalBarSoftnessCp` ↔ Player Fantasy "compass not score":** the arctan curve deliberately compresses extreme evals so the bar reads as a *direction of advantage*, not a precise loss tally. Don't lower it so far that the bar saturates on every middlegame edge (loses its calm "slight tilt" expressiveness), and don't raise it so high that decisive advantages look equal.
 - **`arrowOpacity` + `headLengthRatio` should be tuned together for mobile:** at small board sizes a high opacity *and* a long head together can fully cover the destination piece. Validate on a 352px board (the mobile minimum) that the piece under an arrowhead is still identifiable.
 - **`threatArrowColor` is the one "warning" hue and is deliberately the most restrained design risk:** keep it muted amber, never red/orange-red. A saturated threat color is the most likely way this system could accidentally violate Pillar 3 ("no alarm").
 - **All arrow/ring colors are per-theme** for the same ≥3:1 non-text contrast reason as Chess Board's `legalMoveDotOpacity` — a single global hue cannot satisfy contrast on both light and dark squares; provide per-theme values.
@@ -311,12 +313,12 @@ These values live in a TypeScript config file (e.g. `src/config/annotation-tunin
 
 ### Evaluation readout
 
-- **GIVEN** `evaluation = { evalCp: 120, sideToMove: 'w' }`, **WHEN** the eval views render, **THEN** the badge text equals `"+1.2"` AND the eval bar `fillRatio` equals `0.5 + 0.5 × (120/1000) = 0.56` (±0.5%).
+- **GIVEN** `evaluation = { evalCp: 120, sideToMove: 'w' }`, **WHEN** the eval views render, **THEN** the badge text equals `"+1.2"` AND the eval bar `fillRatio` equals `atan(120/300)/π + 0.5 ≈ 0.621` (±0.5%).
 - **GIVEN** `evaluation = { evalCp: 70, sideToMove: 'b' }`, **WHEN** the eval views render, **THEN** the sign is flipped to White's perspective AND the badge shows `"−0.7"` (true minus U+2212) AND the bar tilts toward Black.
 - **GIVEN** `evaluation = { evalMate: 3, sideToMove: 'w' }`, **WHEN** the eval views render, **THEN** the badge shows `"M3"` AND the eval bar pegs to `fillRatio = 1.0`.
 - **GIVEN** `evaluation = { evalMate: 3, sideToMove: 'b' }` (side-to-move = Black mates in 3, so after flip White is being mated), **WHEN** the eval views render, **THEN** `evalMateNorm = −3`, the badge shows `"−M3"` (true minus U+2212) AND the eval bar pegs to `fillRatio = 0.0` (tilts fully to Black).
 - **GIVEN** the eval bar is enabled AND `evaluation = null`, **WHEN** the eval views render, **THEN** the badge shows `"—"` AND the eval bar renders dimmed at the neutral 0.5 position (not hidden, default `evalBarHideWhenUnknown = false`) AND no console error is logged. (Whether the eval bar is enabled by default on mobile is OQ3 — see Open Questions; this AC governs only the enabled case.)
-- **GIVEN** `evaluation = { evalCp: 5000, sideToMove: 'w' }`, **WHEN** the eval views render, **THEN** the bar clamps to `fillRatio = 1.0` AND the badge shows the true `"+50.0"` (clamp affects bar, not number).
+- **GIVEN** `evaluation = { evalCp: 5000, sideToMove: 'w' }`, **WHEN** the eval views render, **THEN** the bar compresses toward the rail at `fillRatio = atan(5000/300)/π + 0.5 ≈ 0.981` (never pegged to 1.0 for a non-mate cp) AND the badge shows the true `"+50.0"` (compression affects bar, not number).
 
 ### Pillar enforcement (structural — no emotive labels)
 
@@ -362,7 +364,7 @@ These values live in a TypeScript config file (e.g. `src/config/annotation-tunin
 1. **chessground `drawable` API vs custom SVG overlay**: chessground ships a native arrows/highlights drawing API (`brushes` + `shapes`). Can it express (a) per-role neutral colors, (b) arrowheads at square *edge* not center, and (c) sit beneath a separately-rendered eval bar — or must we hand-roll a `pointer-events:none` SVG overlay over `boardRef`? **Owner**: ui-programmer. **Resolution**: 1-day spike before v0 implementation. If `drawable` can't do per-role styling cleanly, fall back to custom SVG (the GDD is written to support either substrate).
 2. **Curved arrows for knight moves**: lichess curves knight-move arrows so the L-shape reads naturally. v0 uses straight arrows for all moves. Is a straight arrow for `g1→f3` acceptable, or do beginners misread it? **Owner**: ux-designer + Eason. **Resolution**: Evaluate during prototype playtest; defer curving to a later iteration if straight arrows test fine.
 3. **Eval bar default visibility on mobile**: the eval bar steals horizontal width on a 352px portrait board. Should it default to *off* on mobile (badge only) and *on* on desktop, or always on? **Owner**: ux-designer + Eason. **Resolution**: Decide during UX spec; defaults currently assume always-on with `evalBarMinWidthPx` guard.
-4. **`evalBarClampCp` default (1000)**: ±10 pawns as "fully tilted" is an educated guess. Does it make the bar feel responsive in the meaningful ±3-pawn middlegame range, or too flat? **Owner**: Eason. **Resolution**: Tune during prototype against real reviewed games.
+4. **`evalBarSoftnessCp` default (300)**: ≈+3 pawns at the quarter-mark is an educated guess. Does the arctan curve make the bar feel responsive in the meaningful ±3-pawn middlegame range, or too flat/steep? **Owner**: Eason. **Resolution**: Tune during prototype against real reviewed games. *(Resolved 2026-06-30, S11-01: arctan curve adopted to match implementation; divisor 300 ships as the code constant.)*
 
 ### Technical questions
 
