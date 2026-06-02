@@ -1,8 +1,13 @@
 <!-- STATUS -->
 Epic: tech-debt
 Feature: Sprint 11
-Task: S11 完成（spec↔code 偏移修復），待 Eason 決策大型功能方向
+Task: S11 完成並 review 過；12 commit 未 push（Eason 暫緩）；功能方向待定
 <!-- /STATUS -->
+
+> **新 session 交接（2026-06-30）**：S11 全部完成、12 個本地 commit **未 push**（Eason 決定先不 push）。
+> 下個功能方向 Eason 決定「都先不做」。lesson-system GDD 已 design-review **APPROVED**
+> （見 `design/gdd/reviews/lesson-system-review-log.md`：0 blocking / 3 建議、無需新 ADR、scope M），
+> 若日後選它可直接 `/create-stories lesson-system`。接續工作前先讀本檔。
 
 # Active Session State
 
