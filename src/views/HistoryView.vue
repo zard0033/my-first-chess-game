@@ -50,11 +50,11 @@ onMounted(() => {
 <template>
   <div class="max-w-2xl mx-auto px-4 py-6">
     <header class="flex items-center justify-between mb-4">
-      <h1 class="text-2xl font-semibold" tabindex="-1">Game History</h1>
+      <h1 class="font-display text-2xl font-semibold text-ink" tabindex="-1">Game History</h1>
       <button
         v-if="showRefresh"
         aria-label="Refresh game history"
-        class="text-xl p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded hover:bg-gray-100"
+        class="text-xl p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-btn hover:bg-surface-hover text-ink"
         @click="onRefresh"
       >↻</button>
     </header>
@@ -64,7 +64,7 @@ onMounted(() => {
       <div
         v-for="n in HISTORY_SKELETON_ROWS"
         :key="n"
-        class="h-[44px] mb-1 rounded bg-gray-100 animate-pulse"
+        class="h-[44px] mb-1 rounded bg-surface-hover animate-pulse"
         aria-hidden="true"
         style="pointer-events: none"
       />
@@ -73,20 +73,14 @@ onMounted(() => {
 
     <!-- Error (initial load, no cached data) -->
     <div v-else-if="store.error && store.entries.length === 0" class="text-center py-12">
-      <p class="text-gray-700 mb-4">{{ errorMessage }}</p>
-      <button
-        class="px-4 py-2 rounded bg-blue-600 text-white min-h-[44px]"
-        @click="onRetry"
-      >Try again</button>
+      <p class="text-ink mb-4">{{ errorMessage }}</p>
+      <button class="btn btn-primary" @click="onRetry">Try again</button>
     </div>
 
     <!-- Empty -->
     <div v-else-if="store.entries.length === 0" class="text-center py-12">
-      <p class="text-gray-600 mb-4">No games recorded yet.</p>
-      <RouterLink
-        to="/play"
-        class="px-4 py-2 rounded bg-blue-600 text-white min-h-[44px] inline-flex items-center"
-      >Play a game →</RouterLink>
+      <p class="text-ink-muted mb-4">No games recorded yet.</p>
+      <RouterLink to="/play" class="btn btn-primary">Play a game →</RouterLink>
     </div>
 
     <!-- List -->
@@ -94,7 +88,7 @@ onMounted(() => {
       <!-- Error banner above cached list (refresh failure) -->
       <div
         v-if="store.error"
-        class="mb-3 px-3 py-2 bg-red-50 border border-red-200 rounded text-sm text-red-700 flex items-center justify-between"
+        class="mb-3 px-3 py-2 bg-danger-light border border-danger rounded text-sm text-danger flex items-center justify-between"
         role="alert"
       >
         <span>{{ errorMessage }}</span>
@@ -114,20 +108,20 @@ onMounted(() => {
         <button
           v-if="!store.isLoadingMore"
           data-testid="load-more-button"
-          class="px-6 py-2 rounded border border-gray-300 text-sm min-h-[44px]"
+          class="btn btn-secondary text-sm"
           @click="onLoadMore"
         >Load more</button>
         <div
           v-else
           role="status"
           aria-label="Loading more games"
-          class="inline-block w-6 h-6 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin"
+          class="inline-block w-6 h-6 border-2 border-line border-t-primary rounded-full animate-spin"
         />
       </div>
 
       <div
         v-if="loadMoreError"
-        class="mt-2 text-center text-sm text-red-600"
+        class="mt-2 text-center text-sm text-danger"
         role="alert"
       >{{ loadMoreError }}</div>
 

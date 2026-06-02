@@ -161,24 +161,24 @@ function prev(): void {
 </script>
 
 <template>
-  <div v-if="lesson" class="max-w-4xl mx-auto px-4 py-6">
+  <div v-if="lesson" class="max-w-5xl mx-auto px-4 py-6">
     <header class="flex items-center gap-3 mb-5">
       <button
-        class="text-base p-2 rounded hover:bg-gray-100 min-h-[44px] min-w-[44px]"
+        class="text-base p-2 rounded hover:bg-surface-hover text-ink min-h-[44px] min-w-[44px]"
         aria-label="返回課程清單"
         @click="router.push('/learn')"
       >←</button>
-      <h1 class="text-xl font-bold flex-1" tabindex="-1">{{ lesson.title }}</h1>
-      <label class="flex items-center gap-1.5 text-sm text-gray-600 cursor-pointer select-none min-h-[44px]">
+      <h1 class="font-display text-xl font-semibold flex-1 text-ink" tabindex="-1">{{ lesson.title }}</h1>
+      <label class="flex items-center gap-1.5 text-sm text-ink-muted cursor-pointer select-none min-h-[44px]">
         <input
           type="checkbox"
-          class="w-4 h-4 accent-blue-600"
+          class="w-4 h-4 accent-[#8b6f5c]"
           :checked="ui.showCoordinates"
           @change="ui.toggleCoordinates"
         />
         座標
       </label>
-      <span class="text-sm text-gray-500 tabular-nums">
+      <span class="text-sm text-ink-faint tabular-nums">
         {{ stepIndex + 1 }} / {{ lesson.steps.length }}
       </span>
     </header>
@@ -242,78 +242,80 @@ function prev(): void {
       </div>
 
       <!-- Coach panel -->
-      <div class="flex-1 min-w-0">
-        <p class="text-xs font-semibold text-blue-700 mb-2">教練 · {{ COACH.name }}</p>
+      <div class="flex-1 min-w-0 card p-5 lg:p-6 self-start">
+        <div class="flex items-center gap-2.5 mb-4">
+          <span
+            class="w-8 h-8 rounded-full bg-primary text-primary-fg font-display flex items-center justify-center text-base leading-none shrink-0"
+            aria-hidden="true"
+          >貝</span>
+          <span class="text-sm font-medium text-ink">教練 · {{ COACH.name }}</span>
+        </div>
 
         <p
           v-if="stepIndex === 0 && lesson.scenario"
-          class="text-sm text-gray-500 italic mb-3 border-l-2 border-gray-200 pl-3"
+          class="font-display text-base text-ink-muted italic mb-4 border-l-2 border-primary/40 pl-4 leading-relaxed"
         >{{ lesson.scenario }}</p>
 
-        <p class="text-base text-gray-800 leading-relaxed mb-4">{{ currentStep?.text }}</p>
+        <p class="text-base text-ink leading-loose mb-5">{{ currentStep?.text }}</p>
 
         <!-- Wrong move: red feedback + retry (chess.com-style) -->
         <div
           v-if="wrongMove"
-          class="mb-4 p-3 rounded-lg bg-red-50 border border-red-200"
+          class="mb-5 p-4 rounded-card bg-danger-light border border-danger/40"
         >
-          <p class="text-sm font-semibold text-red-700 mb-1">這一步不是答案</p>
-          <p v-if="currentStep?.hint" class="text-sm text-red-900">{{ currentStep.hint }}</p>
+          <p class="text-sm font-semibold text-danger mb-1">這一步不是答案</p>
+          <p v-if="currentStep?.hint" class="text-sm text-ink leading-relaxed">{{ currentStep.hint }}</p>
           <div class="mt-3 flex items-center gap-2">
-            <button
-              class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-semibold min-h-[44px]"
-              @click="retry"
-            >↻ 重試</button>
+            <button class="btn btn-danger text-sm" @click="retry">↻ 重試</button>
             <button
               v-if="!answerRevealed"
-              class="px-3 py-2 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-900 text-sm min-h-[44px]"
+              class="btn btn-secondary text-sm"
               @click="answerRevealed = true"
             >揭曉答案</button>
           </div>
-          <p v-if="answerRevealed" class="mt-2 text-sm text-amber-700">
+          <p v-if="answerRevealed" class="mt-2 text-sm text-hint">
             答案箭頭已畫在棋盤上——點「重試」後照著走。
           </p>
         </div>
 
         <!-- Interactive prompt + progressive hint (lightbulb), when not in a wrong state -->
-        <div v-else-if="isInteractive && !solved" class="mb-4">
-          <p class="text-sm text-gray-500 mb-2">輪到你了——在棋盤上走一步。</p>
+        <div v-else-if="isInteractive && !solved" class="mb-5">
+          <p class="text-sm text-ink-muted mb-3">輪到你了——在棋盤上走一步。</p>
 
           <button
-            class="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-amber-300 bg-amber-50 text-amber-800 text-sm min-h-[44px]"
+            class="btn text-sm min-h-[44px] border border-hint-ring bg-hint-light text-hint-fg hover:bg-hint-ring"
             :class="{ 'lightbulb-glow': lightbulbGlowing }"
             @click="hintShown = true"
           >
             <span aria-hidden="true">💡</span> 提示
           </button>
 
-          <div v-if="hintShown" class="mt-3 p-3 rounded-lg bg-amber-50 border border-amber-200">
-            <p class="text-sm text-amber-900">{{ currentStep?.hint }}</p>
+          <div v-if="hintShown" class="mt-3 p-4 rounded-card bg-hint-light border border-hint-ring/60">
+            <p class="text-sm text-hint-fg leading-relaxed">{{ currentStep?.hint }}</p>
             <button
               v-if="!answerRevealed"
-              class="mt-3 px-3 py-2 rounded-lg bg-amber-200 hover:bg-amber-300 text-amber-900 text-sm min-h-[44px]"
+              class="btn text-sm mt-3 bg-hint-ring hover:bg-hint text-hint-fg"
               @click="answerRevealed = true"
             >揭曉答案</button>
-            <p v-else class="mt-3 text-sm text-amber-700">答案已畫在棋盤上——照著箭頭走走看。</p>
+            <p v-else class="mt-3 text-sm text-hint">答案已畫在棋盤上——照著箭頭走走看。</p>
           </div>
         </div>
 
         <!-- Success -->
         <p
           v-if="solved && currentStep?.successText"
-          class="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-800"
+          class="mb-5 p-4 rounded-card bg-success-light border border-success/40 text-sm text-success leading-relaxed"
         >{{ currentStep.successText }}</p>
 
         <!-- Navigation -->
         <div class="flex items-center gap-2 pt-2">
           <button
             v-if="stepIndex > 0"
-            class="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-sm min-h-[44px]"
+            class="btn btn-secondary text-sm"
             @click="prev"
           >← 上一步</button>
           <button
-            class="px-5 py-2 rounded bg-blue-600 text-white text-sm font-semibold min-h-[44px] transition-opacity"
-            :class="{ 'opacity-40 cursor-not-allowed': !canAdvance }"
+            class="btn btn-primary text-sm"
             :disabled="!canAdvance"
             @click="next"
           >{{ isLastStep ? '完成課程' : '下一步 →' }}</button>
@@ -325,8 +327,8 @@ function prev(): void {
 
 <style scoped>
 @keyframes lightbulb-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.0); }
-  50%      { box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.45); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 135, 46, 0.0); }
+  50%      { box-shadow: 0 0 0 4px rgba(201, 135, 46, 0.45); }
 }
 .lightbulb-glow {
   animation: lightbulb-glow 1.1s ease-in-out infinite;
@@ -334,7 +336,7 @@ function prev(): void {
 @media (prefers-reduced-motion: reduce) {
   .lightbulb-glow {
     animation: none;
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.5);
+    box-shadow: 0 0 0 3px rgba(201, 135, 46, 0.5);
   }
 }
 </style>

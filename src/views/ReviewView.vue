@@ -212,13 +212,8 @@ function handleExit(): void {
   <div class="flex flex-col items-center p-4 min-h-screen">
     <!-- Header row -->
     <div class="w-full max-w-md flex items-center justify-between mb-3">
-      <button
-        class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 font-semibold min-w-[44px] min-h-[44px]"
-        @click="handleExit"
-      >
-        ← Back
-      </button>
-      <h1 class="text-xl font-bold">Review</h1>
+      <button class="btn btn-secondary" @click="handleExit">← Back</button>
+      <h1 class="font-display text-xl font-semibold text-ink">Review</h1>
       <div class="w-16" />
     </div>
 
@@ -233,9 +228,9 @@ function handleExit(): void {
       v-if="syncStatus !== 'idle'"
       class="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1 mb-2"
       :class="{
-        'bg-yellow-100 text-yellow-800': syncStatus === 'syncing',
-        'bg-green-100 text-green-800': syncStatus === 'synced',
-        'bg-red-100 text-red-800': syncStatus === 'error',
+        'bg-hint-light text-hint-fg': syncStatus === 'syncing',
+        'bg-success-light text-success': syncStatus === 'synced',
+        'bg-danger-light text-danger': syncStatus === 'error',
       }"
       aria-live="polite"
     >
@@ -247,13 +242,13 @@ function handleExit(): void {
     <!-- Progress indicator (Rule 12, AC-16) -->
     <div
       v-if="progressLabel"
-      class="w-full max-w-md text-xs text-center text-gray-500 mb-2"
+      class="w-full max-w-md text-xs text-center text-ink-muted mb-2"
     >
       {{ progressLabel }}
     </div>
 
     <!-- Board placeholder (FEN display) -->
-    <div ref="boardPlaceholderRef" class="w-full max-w-md bg-gray-100 rounded p-4 mb-3 text-center font-mono text-xs text-gray-500 break-all relative">
+    <div ref="boardPlaceholderRef" class="w-full max-w-md bg-surface-hover rounded p-4 mb-3 text-center font-mono text-xs text-ink-muted break-all relative">
       {{ review.currentFen.value }}
       <!-- MoveAnnotationDisplay — mobile calm: < 768px shows bestMove arrow only, no eval bar -->
       <MoveAnnotationDisplay
@@ -271,17 +266,17 @@ function handleExit(): void {
           :class="[
             'text-sm font-mono px-2 py-1 rounded',
             cpLossDisplay.text === '—' || cpLossDisplay.text === '…'
-              ? 'text-gray-400'
+              ? 'text-ink-faint'
               : cpLossDisplay.preliminary
-                ? 'text-gray-500 bg-gray-100'
-                : 'text-gray-800 bg-gray-200',
+                ? 'text-ink-muted bg-surface-hover'
+                : 'text-ink bg-surface-hover',
           ]"
         >
           {{ cpLossDisplay.text }}
         </span>
         <span
           v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor === review.cursor.value"
-          class="ml-2 text-xs text-orange-600 font-semibold"
+          class="ml-2 text-xs text-hint font-semibold"
         >
           Biggest swing
         </span>
@@ -291,20 +286,18 @@ function handleExit(): void {
     <!-- Navigation row (Rules 15-17, AC-11, AC-12) -->
     <div class="flex gap-4 items-center mb-4">
       <button
-        class="px-4 py-2 bg-gray-200 rounded font-semibold min-w-[44px] min-h-[44px]"
+        class="btn btn-secondary"
         :disabled="!review.canGoPrev.value"
-        :class="{ 'opacity-40 cursor-not-allowed': !review.canGoPrev.value }"
         @click="review.goPrev()"
       >
         ←
       </button>
-      <span class="text-sm text-gray-600">
+      <span class="text-sm text-ink-muted">
         {{ review.cursor.value }} / {{ review.totalPositions.value }}
       </span>
       <button
-        class="px-4 py-2 bg-gray-200 rounded font-semibold min-w-[44px] min-h-[44px]"
+        class="btn btn-secondary"
         :disabled="!review.canGoNext.value"
-        :class="{ 'opacity-40 cursor-not-allowed': !review.canGoNext.value }"
         @click="review.goNext()"
       >
         →
@@ -317,7 +310,7 @@ function handleExit(): void {
       class="mb-3"
     >
       <button
-        class="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 font-semibold min-h-[44px]"
+        class="btn text-sm bg-hint text-hint-fg hover:bg-hint-dark"
         @click="jumpToBiggestSwing"
       >
         Jump to biggest swing
@@ -327,7 +320,7 @@ function handleExit(): void {
     <!-- No big swings empty state (Rule 32) -->
     <div
       v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor === null && review.totalPositions.value > 0"
-      class="text-sm text-gray-500 text-center"
+      class="text-sm text-ink-muted text-center"
     >
       No big swings this game — steady throughout
     </div>
@@ -335,16 +328,11 @@ function handleExit(): void {
     <!-- Engine error state (AC-30 / Visual Requirements §Error State) -->
     <div
       v-if="review.phase.value === 'COMPLETE' && review.totalPositions.value > 0 && review.analysisResults.value.every(r => r === null)"
-      class="w-full max-w-md mt-4 p-4 bg-red-50 border border-red-300 rounded text-center"
+      class="w-full max-w-md mt-4 p-4 bg-danger-light border border-danger/40 rounded-card text-center"
     >
-      <p class="text-sm font-semibold text-red-700 mb-3">Couldn't analyze this game</p>
+      <p class="text-sm font-semibold text-danger mb-3">Couldn't analyze this game</p>
       <div class="flex gap-3 justify-center">
-        <button
-          class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-semibold min-h-[44px]"
-          @click="handleExit"
-        >
-          Exit
-        </button>
+        <button class="btn btn-danger text-sm" @click="handleExit">Exit</button>
       </div>
     </div>
   </div>

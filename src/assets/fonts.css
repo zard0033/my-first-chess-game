@@ -1,0 +1,31 @@
+/**
+ * Self-hosted fonts (CSP font-src 'self' compatible).
+ * Body/UI: Sarasa UI TC (更紗黑體) — Iosevka Latin + Source Han Sans CJK in one
+ * consistent family. Display headings: Noto Serif TC (明體襯線, 殿堂/莊嚴 gravitas).
+ * All subsetted to the ~900 glyphs used in the app; font-display: swap (no FOIT).
+ */
+
+/* ---- Sarasa UI TC (body + UI, Latin + Chinese) ---- */
+@font-face {
+  font-family: 'Sarasa UI TC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/sarasa-ui-tc-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Sarasa UI TC';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/sarasa-ui-tc-700.woff2') format('woff2');
+}
+
+/* ---- Noto Serif TC (display headings — 殿堂/莊嚴 gravitas) ---- */
+@font-face {
+  font-family: 'Noto Serif TC';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('/fonts/noto-serif-tc-600.woff2') format('woff2');
+}

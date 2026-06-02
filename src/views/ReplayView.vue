@@ -121,10 +121,10 @@ defineExpose({
     <header class="flex items-center justify-between mb-6">
       <button
         aria-label="Go back to game history"
-        class="text-base p-2 rounded hover:bg-gray-100 min-h-[44px] min-w-[44px]"
+        class="text-base p-2 rounded hover:bg-surface-hover text-ink min-h-[44px] min-w-[44px]"
         @click="goBack"
       >← Back</button>
-      <h1 class="text-2xl font-semibold flex-1 text-center">
+      <h1 class="font-display text-2xl font-semibold flex-1 text-center text-ink">
         {{ game.openingDisplay }}
       </h1>
       <div class="w-12" />
@@ -143,10 +143,10 @@ defineExpose({
       </div>
 
       <div class="lg:w-56 text-sm">
-        <div class="bg-gray-100 p-3 rounded space-y-2">
-          <div><span class="text-gray-600">Move:</span> {{ currentPly }} / {{ totalMoves }}</div>
-          <div><span class="text-gray-600">Result:</span> {{ game.playerResult }}</div>
-          <div><span class="text-gray-600">Difficulty:</span> {{ game.difficultyLabel }}</div>
+        <div class="card p-4 space-y-2">
+          <div class="text-ink"><span class="text-ink-muted">Move:</span> {{ currentPly }} / {{ totalMoves }}</div>
+          <div class="text-ink"><span class="text-ink-muted">Result:</span> {{ game.playerResult }}</div>
+          <div class="text-ink"><span class="text-ink-muted">Difficulty:</span> {{ game.difficultyLabel }}</div>
         </div>
 
         <ReplayAnalysisOverlay
@@ -163,22 +163,20 @@ defineExpose({
     <!-- Controls -->
     <div class="flex flex-wrap items-center gap-2 justify-center mb-4">
       <button
-        class="px-4 py-2 rounded bg-gray-200 text-sm min-h-[44px] transition-opacity duration-150"
-        :class="{ 'opacity-40': !nav.canGoPrev.value }"
+        class="btn btn-secondary text-sm"
         :disabled="!nav.canGoPrev.value"
         @click="nav.prevMove"
       >← Prev</button>
 
       <button
-        class="px-4 py-2 rounded bg-blue-600 text-white text-sm min-h-[44px] transition-colors duration-150"
-        :class="{ 'bg-blue-800': nav.isPlaying.value }"
+        class="btn btn-primary text-sm"
+        :class="{ 'bg-primary-dark': nav.isPlaying.value }"
         :disabled="!nav.canGoNext.value && !nav.isPlaying.value"
         @click="nav.togglePlay"
       >{{ nav.isPlaying.value ? '⏸ Pause' : '▶ Play' }}</button>
 
       <button
-        class="px-4 py-2 rounded bg-gray-200 text-sm min-h-[44px] transition-opacity duration-150"
-        :class="{ 'opacity-40': !nav.canGoNext.value }"
+        class="btn btn-secondary text-sm"
         :disabled="!nav.canGoNext.value"
         @click="nav.nextMove"
       >Next →</button>
@@ -195,13 +193,13 @@ defineExpose({
         aria-label="Jump to move"
         @input="(e) => nav.jumpToMove(parseInt((e.target as HTMLInputElement).value))"
       />
-      <span class="text-sm text-gray-600 w-12">{{ currentPly }}/{{ totalMoves }}</span>
+      <span class="text-sm text-ink-muted w-12">{{ currentPly }}/{{ totalMoves }}</span>
     </div>
 
     <GameReplayRating :game-id="gameId" />
   </div>
 
   <div v-else class="text-center py-12">
-    <p class="text-gray-700 mb-4">Game not found.</p>
+    <p class="text-ink-muted mb-4">Game not found.</p>
   </div>
 </template>

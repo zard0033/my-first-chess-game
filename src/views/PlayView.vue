@@ -107,7 +107,7 @@ function injectFen(): void {
 
 <template>
   <div class="flex flex-col items-center p-4">
-    <h1 class="text-2xl font-bold mb-4">Play</h1>
+    <h1 class="font-display text-2xl font-semibold mb-4 text-ink">Play</h1>
 
     <!-- Board + GAME_OVER overlay container -->
     <div class="relative">
@@ -123,22 +123,12 @@ function injectFen(): void {
         v-if="phase === 'GAME_OVER'"
         class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 rounded"
       >
-        <div class="bg-white rounded-lg p-6 shadow-xl text-center min-w-[220px] z-50">
-          <p class="text-xl font-bold mb-1">{{ resultLabel }}</p>
-          <p class="text-sm text-gray-600 mb-5">{{ endReasonLabel }}</p>
+        <div class="card p-6 shadow-card-hover text-center min-w-[240px] z-50">
+          <p class="font-display text-xl font-semibold mb-1 text-ink">{{ resultLabel }}</p>
+          <p class="text-sm text-ink-muted mb-5">{{ endReasonLabel }}</p>
           <div class="flex gap-3 justify-center">
-            <button
-              class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-semibold"
-              @click="handleNewGame"
-            >
-              New Game
-            </button>
-            <button
-              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 font-semibold"
-              @click="handleReview"
-            >
-              Review
-            </button>
+            <button class="btn btn-primary" @click="handleNewGame">New Game</button>
+            <button class="btn btn-secondary" @click="handleReview">Review</button>
           </div>
         </div>
       </div>

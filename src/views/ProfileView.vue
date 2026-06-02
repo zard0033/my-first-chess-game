@@ -6,8 +6,8 @@ const authStore = useAuthStore()
 
 <template>
   <div class="p-6">
-    <h1 class="text-xl font-semibold text-gray-900" tabindex="-1">Profile</h1>
-    <p class="mt-2 text-sm text-gray-500">{{ authStore.email }}</p>
-    <p class="mt-4 text-sm text-gray-500">Your profile and stats will appear here.</p>
+    <h1 class="font-display text-xl font-semibold text-ink" tabindex="-1">Profile</h1>
+    <p class="mt-2 text-sm text-ink-muted">{{ authStore.email }}</p>
+    <p class="mt-4 text-sm text-ink-muted">Your profile and stats will appear here.</p>
   </div>
 </template>

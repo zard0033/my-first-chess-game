@@ -34,55 +34,64 @@ function open(lesson: Lesson): void {
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto px-4 py-6">
-    <header class="mb-6">
-      <h1 class="text-2xl font-bold mb-1" tabindex="-1">課程</h1>
-      <p class="text-sm text-gray-600">教練：{{ COACH.name }}</p>
-      <div class="mt-3 flex items-center gap-3">
-        <div class="flex-1 h-2 bg-gray-200 rounded overflow-hidden">
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- Progress banner -->
+    <header class="card p-6 mb-10">
+      <p class="text-xs font-medium uppercase tracking-wider text-ink-faint mb-1">教練 · {{ COACH.name }}</p>
+      <h1 class="font-display font-semibold text-2xl text-ink mb-4" tabindex="-1">課程</h1>
+      <div class="flex items-center gap-4">
+        <div class="flex-1 h-1.5 bg-surface-hover rounded-full overflow-hidden">
           <div
-            class="h-full bg-blue-600 transition-[width] duration-300"
+            class="h-full bg-primary rounded-full transition-[width] duration-500"
             :style="{ width: `${progress.progress * 100}%` }"
           />
         </div>
-        <span class="text-sm text-gray-600 tabular-nums">
+        <span class="text-sm font-medium text-ink-muted tabular-nums shrink-0">
           {{ progress.completedCount }} / {{ progress.totalCount }}
         </span>
       </div>
     </header>
 
-    <section v-for="tier in tiers" :key="tier" class="mb-8">
-      <h2 class="text-lg font-semibold text-gray-800 mb-3">
+    <section v-for="tier in tiers" :key="tier" class="mb-10">
+      <h2 class="font-display font-semibold text-lg text-ink mb-4 border-l-4 border-primary pl-3 leading-tight">
         {{ LESSON_TIER_LABELS[tier] }}
       </h2>
 
-      <ul class="space-y-2">
+      <ul class="space-y-3">
         <li v-for="lesson in lessonsInTier(tier)" :key="lesson.id">
           <button
             type="button"
-            class="w-full text-left p-4 rounded-lg border min-h-[44px] flex items-start gap-3 transition-colors"
+            class="w-full text-left p-4 rounded-card min-h-[44px] flex items-start gap-3.5"
             :class="progress.isUnlocked(lesson)
-              ? 'border-gray-200 bg-white hover:bg-gray-50 cursor-pointer'
-              : 'border-gray-100 bg-gray-50 text-gray-400 cursor-not-allowed'"
+              ? 'card-interactive cursor-pointer'
+              : 'border border-line-subtle bg-surface-base/60 cursor-not-allowed opacity-70'"
             :disabled="!progress.isUnlocked(lesson)"
             :aria-label="progress.isUnlocked(lesson)
               ? `${lesson.title}${progress.isCompleted(lesson.id) ? '（已完成）' : ''}`
               : `${lesson.title}（未解鎖）`"
             @click="open(lesson)"
           >
-            <span class="text-xl leading-6 shrink-0" aria-hidden="true">
+            <span
+              class="shrink-0 w-7 h-7 mt-0.5 rounded-full flex items-center justify-center text-sm"
+              :class="progress.isCompleted(lesson.id)
+                ? 'bg-success text-success-fg'
+                : progress.isUnlocked(lesson)
+                  ? 'border-2 border-line-strong text-transparent'
+                  : 'bg-surface-hover text-ink-faint'"
+              aria-hidden="true"
+            >
               <template v-if="!progress.isUnlocked(lesson)">🔒</template>
-              <template v-else-if="progress.isCompleted(lesson.id)">✅</template>
-              <template v-else>○</template>
+              <template v-else-if="progress.isCompleted(lesson.id)">✓</template>
+              <template v-else>·</template>
             </span>
             <span class="flex-1 min-w-0">
-              <span class="flex items-center gap-2">
-                <span class="font-semibold">{{ lesson.title }}</span>
+              <span class="flex items-center gap-2 flex-wrap">
+                <span class="font-semibold text-ink" :class="{ 'text-ink-faint': !progress.isUnlocked(lesson) }">{{ lesson.title }}</span>
                 <span
-                  class="text-xs px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 shrink-0"
+                  class="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-ink-muted shrink-0"
                 >{{ DIFFICULTY_LABELS[lesson.difficulty] }}</span>
               </span>
-              <span class="block text-sm text-gray-500 mt-0.5">{{ lesson.summary }}</span>
+              <span class="block text-sm text-ink-muted mt-1 leading-relaxed">{{ lesson.summary }}</span>
             </span>
           </button>
         </li>
