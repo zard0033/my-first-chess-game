@@ -113,6 +113,21 @@ describe('useDataSyncStore', () => {
       expect(chess.history().length).toBe(3)
     })
 
+    it('S11-03: malformed move list degrades to raw UCI, never throws / loses the game', async () => {
+      mockFrom({ error: null })
+      const authStore = useAuthStore()
+      authStore.userId = 'uid-1'
+
+      // An illegal move list would make chess.js.move() throw; sync must still persist.
+      const bad = makeGame({ moves: ['e2e4', 'z9z9'] })
+      const store = useDataSyncStore()
+      await expect(store.syncGame(bad)).resolves.toBeUndefined()
+
+      const [row] = vi.mocked(supabase.from).mock.results[0].value.upsert.mock.calls[0]
+      expect(row.pgn).toBe('e2e4 z9z9') // fell back to raw UCI, row still written
+      expect(store.syncStatus).toBe('synced')
+    })
+
     it('SUPA-AC-09: uses ignoreDuplicates:true for ON CONFLICT DO NOTHING', async () => {
       mockFrom({ error: null })
       const authStore = useAuthStore()

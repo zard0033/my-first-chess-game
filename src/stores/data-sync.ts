@@ -35,6 +35,19 @@ function mapEndReason(r: CompletedGame['endReason']): string {
   return m[r]
 }
 
+/**
+ * Real standard PGN (S11-03): round-trips to chess.js and external tools (lichess).
+ * Never throw on a malformed move list — persistence must not lose a completed game.
+ * On replay failure, degrade to the raw UCI movetext (the pre-S11-03 behavior).
+ */
+function safePgn(game: QueuedGame): string {
+  try {
+    return buildPgn(game)
+  } catch {
+    return game.moves.join(' ')
+  }
+}
+
 function buildRow(game: QueuedGame, userId: string) {
   return {
     id: game.id,
@@ -44,8 +57,7 @@ function buildRow(game: QueuedGame, userId: string) {
     player_color: game.playerColor,
     end_reason: mapEndReason(game.endReason),
     ai_difficulty: game.aiSkillLevel,
-    // Real standard PGN (S11-03): round-trips to chess.js and external tools (lichess).
-    pgn: buildPgn(game),
+    pgn: safePgn(game),
     move_count: game.moves.length,
     opening_eco: null as string | null,
     opening_name: null as string | null,

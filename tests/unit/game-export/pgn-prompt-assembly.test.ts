@@ -254,6 +254,14 @@ describe('assembleExportPayload — RESULT_PLAIN mapping', () => {
     const output = assembleExportPayload(game, defaultConfig)
     expect(output).toContain('- Result: It was a draw by stalemate.')
   })
+
+  it('test_resultPlain_contradictoryComboFallsBackToGenericBucket', () => {
+    // GDD §3: on a contradictory result×endReason, the result token is authoritative —
+    // a 1/2-1/2 result paired with a decisive endReason yields the generic draw string.
+    const game: CompletedGame = { ...makeGame([], 'white'), result: '1/2-1/2', endReason: 'checkmate' }
+    const output = assembleExportPayload(game, defaultConfig)
+    expect(output).toContain('- Result: It was a draw.')
+  })
 })
 
 // ---- Optional context enrichment (opening / review) ----

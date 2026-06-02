@@ -50,6 +50,10 @@ function playerOutcome(game: CompletedGame): Outcome {
  * (game-export-share.md §3 RESULT_PLAIN mapping table).
  */
 export function buildResultPlain(game: CompletedGame): string {
+  // The GDD §3 table also lists `draw-agreement` / `abandoned` / `result: '*'` rows, but
+  // CompletedGame's v0 union (game-store.ts) cannot produce them, so they are intentionally
+  // not implemented here. The result token is authoritative for contradictory combos: the
+  // generic-bucket fallbacks ('I won/lost this game.' / 'It was a draw.') cover them.
   const outcome = playerOutcome(game)
   const reason = game.endReason
   if (outcome === 'won') {
@@ -85,7 +89,7 @@ export function buildPgn(game: CompletedGame, opts: BuildPgnOptions = {}): strin
   for (const uci of game.moves) {
     const from = uci.slice(0, 2)
     const to = uci.slice(2, 4)
-    const promo = uci.length === 5 ? (uci[4] as 'q' | 'r' | 'b' | 'n') : undefined
+    const promo = uci.length === 5 ? (uci[4].toLowerCase() as 'q' | 'r' | 'b' | 'n') : undefined
     chess.move({ from, to, promotion: promo })
   }
 
