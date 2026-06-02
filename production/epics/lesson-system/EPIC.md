@@ -10,6 +10,13 @@
 
 Implements a guided, lesson-by-lesson tutorial track for beginners. Each lesson is a static, pre-scripted sequence of board positions with coach narration and occasional "play this move" interactive steps. Lessons unlock linearly. Scope is opening-principles concept lessons, static front-end content (no backend, no AI), with localStorage progress tracking. Reuses the existing ChessBoard component and chess.js for move validation.
 
+## Content Sourcing & Licensing (guardrail)
+
+- Lesson **curriculum/pedagogy** may take inspiration from lichess's open-source Learn module (`lila/ui/learn`), but content is **clean-room authored** — all FENs and coach text are original.
+- **Do NOT port lichess code/engine/text.** `lila` is **AGPL-3.0** and its chess lib `chessops` is **GPL-3.0** (both strong copyleft); copying any of it would force this whole app under that license. We use **chess.js (BSD)**.
+- Because we validate via **chess.js, every lesson FEN must contain both kings** (lichess's Learn engine allows king-less FENs; chess.js does not). Place kings clear of the lesson focus (e.g. corners).
+- These rules are enforced by `tests/unit/data/lessons.test.ts` (FEN legality + expectedMove legality + side-to-move).
+
 ## Governing ADRs
 
 | ADR | Decision Summary | Risk |

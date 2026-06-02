@@ -18,6 +18,8 @@ const props = defineProps<{
   fen: string
   playerColor: 'white' | 'black'
   disabled: boolean
+  /** Show a–h / 1–8 coordinate labels around the board (default false). Native chessground coords — CSS-positioned, fully responsive. */
+  coordinates?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -36,17 +38,6 @@ const { syncFen, onMoveMade } = useBoardRenderer(() => boardApi.value)
 const pendingPromotion = ref<{ from: string; to: string } | null>(null)
 const promotionSquareRect = ref<Rect | null>(null)
 
-function showLegalMoves(fromSquare: Key): void {
-  const api = boardApi.value
-  if (!api) return
-  const shapes = buildLegalMoveShapes(fromSquare, props.fen)
-  if (!shapes.length) {
-    clearSelectionShapes()
-    return
-  }
-  api.setConfig({ drawable: { shapes, brushes: BOARD_BRUSHES } }, false)
-}
-
 function clearSelectionShapes(): void {
   boardApi.value?.setConfig({ drawable: { shapes: [], brushes: BOARD_BRUSHES } }, false)
 }
@@ -55,14 +46,15 @@ function clearSelectionShapes(): void {
 const boardConfig: BoardConfig = {
   fen: validateFen(props.fen),
   orientation: props.playerColor,
+  coordinates: props.coordinates ?? false,
   viewOnly: props.disabled,
   animation: { duration: PIECE_MOVE_ANIM_MS },
-  movable: { free: false, color: props.playerColor, showDests: false },
+  // Native chessground dests: filled dots on quiet moves, rings on captures (chess.com style).
+  movable: { free: false, color: props.playerColor, showDests: true },
   drawable: { enabled: true, eraseOnClick: false, brushes: BOARD_BRUSHES },
   highlight: { lastMove: true, check: true },
   events: {
     insert: (elements: Elements) => { boardRef.value = elements.wrap },
-    select: (key: Key) => { showLegalMoves(key) },
   },
 }
 
@@ -142,6 +134,11 @@ watch(
 watch(
   () => props.playerColor,
   (color) => { boardApi.value?.setConfig({ orientation: color }, false) },
+)
+
+watch(
+  () => props.coordinates,
+  (show) => { boardApi.value?.setConfig({ coordinates: !!show }, false) },
 )
 
 watch(

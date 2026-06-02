@@ -8,6 +8,8 @@ import { useAuthStore } from '@/stores/auth'
 export const routes = [
   { path: '/',                name: 'home',      component: HomeView },
   { path: '/play',            name: 'play',      component: () => import('@/views/PlayView.vue') },
+  { path: '/learn',           name: 'learn',     component: () => import('@/views/LearnView.vue') },
+  { path: '/learn/:lessonId', name: 'lesson',    component: () => import('@/views/LessonView.vue') },
   { path: '/review',          name: 'review',    component: () => import('@/views/ReviewView.vue') },
   { path: '/history',         name: 'history',   component: () => import('@/views/HistoryView.vue') },
   { path: '/replay/:gameId',  name: 'replay',    component: () => import('@/views/ReplayView.vue') },

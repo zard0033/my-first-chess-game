@@ -8,9 +8,9 @@ describe('route-table', () => {
     expect(last.path).toBe('/:pathMatch(.*)*')
   })
 
-  it('test_routeTable_containsExactlyEightRoutes', () => {
+  it('test_routeTable_containsExactlyExpectedRoutes', () => {
     const paths = routes.map((r) => r.path)
-    expect(paths).toEqual(['/', '/play', '/review', '/history', '/replay/:gameId', '/profile', '/sign-in', '/:pathMatch(.*)*'])
+    expect(paths).toEqual(['/', '/play', '/learn', '/learn/:lessonId', '/review', '/history', '/replay/:gameId', '/profile', '/sign-in', '/:pathMatch(.*)*'])
   })
 
   it('test_routeTable_playRoute_componentIsFunction', () => {

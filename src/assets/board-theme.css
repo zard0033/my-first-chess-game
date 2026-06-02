@@ -14,6 +14,39 @@ cg-board {
   background-size: 25% 25%;
 }
 
+/* ---- Coordinate labels (a–h / 1–8) ----
+   Native chessground coords (CSS-positioned → responsive). chessground's default
+   colors wash out on this tea palette, so use a solid cream fill with a real dark
+   text-stroke (not a blur) for crisp legibility on both square shades. Ranks are
+   moved to the left edge per design (1–8 on the leftmost column, a–h on the bottom). */
+.cg-wrap coords coord {
+  /* !important overrides chessground's higher-specificity per-square nth-child colors */
+  color: #3d2210 !important;
+  opacity: 1;
+  font-weight: 700;
+  font-size: 12px;
+  text-shadow: none;
+  -webkit-text-stroke: 1px #f4ead8;
+  paint-order: stroke fill;
+}
+
+.cg-wrap coords.ranks {
+  left: 1px;
+  right: auto;
+  align-items: flex-start;
+  padding-top: 1px;
+}
+
+.cg-wrap coords.files {
+  left: 0;
+  right: 0;
+  padding: 0 4px 1px;
+}
+
+.cg-wrap coords.files coord {
+  text-align: right;
+}
+
 /* ---- White pieces ---- */
 .cg-wrap piece.pawn.white   { background-image: url('/pieces/wP.svg'); }
 .cg-wrap piece.bishop.white { background-image: url('/pieces/wB.svg'); }

@@ -172,5 +172,42 @@ export const useDataSyncStore = defineStore('dataSync', () => {
     return data ?? []
   }
 
-  return { syncStatus, lastSyncedGameId, syncGame, flushUnsyncedQueue, loadGameHistory }
+  /**
+   * Fetch the user's completed lesson ids. Returns [] when not logged in or on error
+   * (lesson progress degrades to the local cache; a read failure must never surface).
+   * All lesson_progress supabase.from() calls live here per ADR-0011.
+   */
+  async function loadLessonProgress(): Promise<string[]> {
+    const authStore = useAuthStore()
+    if (!authStore.userId) return []
+    const { data, error } = await supabase.from('lesson_progress').select('lesson_id')
+    if (error) return []
+    return (data ?? []).map((r) => r.lesson_id as string)
+  }
+
+  /**
+   * Idempotently persist completed lesson ids for the logged-in user.
+   * No-op (returns false) when not logged in — the caller keeps them in localStorage
+   * and re-flushes on the next login. Duplicate completions are ignored by the PK.
+   */
+  async function upsertLessonProgress(lessonIds: string[]): Promise<boolean> {
+    const authStore = useAuthStore()
+    const userId = authStore.userId
+    if (!userId || lessonIds.length === 0) return false
+    const rows = lessonIds.map((lesson_id) => ({ user_id: userId, lesson_id }))
+    const { error } = await supabase
+      .from('lesson_progress')
+      .upsert(rows, { onConflict: 'user_id,lesson_id', ignoreDuplicates: true })
+    return !error
+  }
+
+  return {
+    syncStatus,
+    lastSyncedGameId,
+    syncGame,
+    flushUnsyncedQueue,
+    loadGameHistory,
+    loadLessonProgress,
+    upsertLessonProgress,
+  }
 })

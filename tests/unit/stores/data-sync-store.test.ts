@@ -289,4 +289,62 @@ describe('useDataSyncStore', () => {
       expect(row.result).toBe(expected)
     })
   })
+
+  // ── lesson_progress (S12 cross-device) ──────────────────────────────────
+
+  describe('loadLessonProgress', () => {
+    it('returns [] when logged out without touching supabase', async () => {
+      const store = useDataSyncStore()
+      const result = await store.loadLessonProgress()
+      expect(result).toEqual([])
+      expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('maps rows to lesson_id strings when logged in', async () => {
+      const selectFn = vi.fn().mockResolvedValueOnce({
+        data: [{ lesson_id: 'pawn-basics' }, { lesson_id: 'rook-and-bishop' }],
+        error: null,
+      })
+      vi.mocked(supabase.from).mockReturnValueOnce({ select: selectFn } as never)
+      useAuthStore().userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      expect(await store.loadLessonProgress()).toEqual(['pawn-basics', 'rook-and-bishop'])
+    })
+
+    it('returns [] on error (degrades to local cache)', async () => {
+      const selectFn = vi.fn().mockResolvedValueOnce({ data: null, error: { message: 'boom' } })
+      vi.mocked(supabase.from).mockReturnValueOnce({ select: selectFn } as never)
+      useAuthStore().userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      expect(await store.loadLessonProgress()).toEqual([])
+    })
+  })
+
+  describe('upsertLessonProgress', () => {
+    it('no-ops (false) when logged out', async () => {
+      const store = useDataSyncStore()
+      expect(await store.upsertLessonProgress(['pawn-basics'])).toBe(false)
+      expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('no-ops (false) for an empty id list', async () => {
+      useAuthStore().userId = 'uid-1'
+      const store = useDataSyncStore()
+      expect(await store.upsertLessonProgress([])).toBe(false)
+      expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('upserts user-scoped rows and returns true', async () => {
+      const upsertFn = vi.fn().mockResolvedValueOnce({ error: null })
+      vi.mocked(supabase.from).mockReturnValueOnce({ upsert: upsertFn } as never)
+      useAuthStore().userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      expect(await store.upsertLessonProgress(['pawn-basics'])).toBe(true)
+      const [rows] = upsertFn.mock.calls[0]
+      expect(rows).toEqual([{ user_id: 'uid-1', lesson_id: 'pawn-basics' }])
+    })
+  })
 })

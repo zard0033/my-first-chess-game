@@ -27,6 +27,8 @@ const props = defineProps<{
   boardRef?: HTMLElement | null
   /** Board pixel width — used to compute arrowhead geometry. */
   boardSizePx?: number
+  /** Multiplier on arrow shaft thickness (default 1). Lesson arrows use a thinner shaft. */
+  shaftScale?: number
 }>()
 
 // ---- Formula 4: rAF-coalesced resize throttle (TR-move-annotation-005) ----
@@ -84,7 +86,9 @@ function squareCenter(square: string): { x: number; y: number } | null {
 }
 
 // Arrow shaft width and head length scale with board size (Formula 2 of GDD)
-const shaftWidthPx = computed(() => Math.max(4, Math.min(20, squarePx.value * 0.16)))
+const shaftWidthPx = computed(() =>
+  Math.max(3, Math.min(20, squarePx.value * 0.16 * (props.shaftScale ?? 1))),
+)
 
 interface ArrowGeometry {
   x1: number; y1: number
