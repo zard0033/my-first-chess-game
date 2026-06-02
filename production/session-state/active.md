@@ -1,20 +1,21 @@
 <!-- STATUS -->
 Epic: tech-debt
 Feature: Sprint 11
-Task: S11 完成並 review 過；12 commit 未 push（Eason 暫緩）；功能方向待定
+Task: S11 完成、已 push（main @ ce1097e）；下個功能方向待 Eason 決定
 <!-- /STATUS -->
 
-> **新 session 交接（2026-06-30）**：S11 全部完成、12 個本地 commit **未 push**（Eason 決定先不 push）。
-> 下個功能方向 Eason 決定「都先不做」。lesson-system GDD 已 design-review **APPROVED**
+> **新 session 交接（2026-06-30）**：S11 全部完成並 **已 push 到 origin/main（`ce1097e`）**。
+> 下個功能方向 Eason 暫定「都先不做」，要做時再選。lesson-system GDD 已 design-review **APPROVED**
 > （見 `design/gdd/reviews/lesson-system-review-log.md`：0 blocking / 3 建議、無需新 ADR、scope M），
-> 若日後選它可直接 `/create-stories lesson-system`。接續工作前先讀本檔。
+> 選它可直接 `/create-stories lesson-system`；選 visual-identity 則需先 `/design-system` 補 GDD/ADR。
+> 接續工作前先讀本檔。
 
 # Active Session State
 
 **Last updated**: 2026-06-30
-**Tests**: 510/510 pass · **Build**: vue-tsc + vite ✅ green
+**Tests**: 512/512 pass · **Build**: vue-tsc + vite ✅ green
 **Engine**: Stockfish 18 Lite single-threaded（NNUE 內嵌，`stockfish@18.0.7`）— play+review+replay 共用
-**最新 main**: S11 共 9 個本地 commit（**尚未 push** — 等 Eason 確認）；已過 code review（修掉一個 buildPgn 持久化 regression）
+**最新 main**: `ce1097e`（S11 共 13 個 commit **已 push**）；已過 code review（修掉一個 buildPgn 持久化 regression）
 **Supabase**: 連線 OK，tables + RLS 已驗證
 
 ---
