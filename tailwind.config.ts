@@ -7,9 +7,21 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Sarasa UI TC', ...defaultTheme.fontFamily.sans],
-        // Display = same modern sans as body (no serif) — wordmark/headings stay clean and modern.
-        display: ['Sarasa UI TC', ...defaultTheme.fontFamily.sans],
+        // Sarasa UI TC covers the subset; explicit CJK sans fallbacks prevent SimSun/MingLiU
+        // (thin-stroke Ming/serif fonts) from rendering un-subsetted Chinese characters.
+        sans: [
+          'Sarasa UI TC',
+          'PingFang TC', 'PingFang SC',          // macOS / iOS
+          'Noto Sans CJK TC', 'Noto Sans TC',    // Linux / Android
+          'Microsoft JhengHei', 'Microsoft YaHei', // Windows Traditional / Simplified
+          ...defaultTheme.fontFamily.sans,
+        ],
+        display: [
+          'Sarasa UI TC',
+          'PingFang TC', 'PingFang SC',
+          'Microsoft JhengHei', 'Microsoft YaHei',
+          ...defaultTheme.fontFamily.sans,
+        ],
       },
       colors: {
         // Surface hierarchy — warm cream progression anchored to board palette

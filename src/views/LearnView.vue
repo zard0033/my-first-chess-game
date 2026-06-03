@@ -37,6 +37,8 @@ const pathNodes = computed<PathNode[]>(() =>
     id: l.id,
     title: l.title,
     tier: l.tier,
+    order: l.order,
+    isCapstone: l.id.includes('capstone'),
     piece: TIER_PIECE[l.tier],
     state: progress.isCompleted(l.id)
       ? 'done'
@@ -54,6 +56,7 @@ function onOpen(lessonId: string): void {
 </script>
 
 <template>
+  <div class="learn-page">
   <div class="mx-auto max-w-sm px-4 pb-16 pt-6">
     <!-- Header: progress + resume -->
     <Card class="mb-6 p-5">
@@ -83,4 +86,25 @@ function onOpen(lessonId: string): void {
     <!-- Serpentine learning path (chess.com / Duolingo style) -->
     <LearnPath :nodes="pathNodes" @open="onOpen" />
   </div>
+  </div>
 </template>
+
+<style scoped>
+/* Full-page chess-map parchment backdrop — sits behind ALL page content so
+   the path area and surrounding regions share the same texture (no visible seam). */
+.learn-page {
+  min-height: 100vh;
+  position: relative;
+}
+.learn-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url('/learn/bg.png');
+  background-size: 420px auto;
+  background-repeat: repeat;
+  opacity: 0.2;
+  pointer-events: none;
+}
+</style>

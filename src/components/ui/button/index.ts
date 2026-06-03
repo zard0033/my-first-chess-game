@@ -7,15 +7,25 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-fg shadow-button hover:bg-primary-dark',
-        secondary: 'bg-surface-card text-ink border border-line hover:bg-surface-hover',
-        danger: 'bg-danger text-danger-fg shadow-button hover:bg-danger-dark',
-        outline: 'border border-line bg-transparent text-ink hover:bg-surface-hover',
-        ghost: 'text-ink hover:bg-surface-hover',
+        default: [
+          'bg-[url(/ui/buttonLong_brown.png)] bg-[length:100%_100%]',
+          'text-[#fcf9f3] font-semibold !rounded-none !border-none !shadow-none',
+          'active:bg-[url(/ui/buttonLong_brown_pressed.png)]',
+          'hover:brightness-110',
+        ].join(' '),
+        secondary: [
+          'bg-[url(/ui/buttonLong_beige.png)] bg-[length:100%_100%]',
+          'text-ink font-semibold !rounded-none !border-none !shadow-none',
+          'active:bg-[url(/ui/buttonLong_beige_pressed.png)]',
+          'hover:brightness-105',
+        ].join(' '),
+        danger: 'bg-danger text-danger-fg shadow-button hover:bg-danger-dark rounded-btn',
+        outline: 'border border-line bg-transparent text-ink hover:bg-surface-hover rounded-btn',
+        ghost: 'text-ink hover:bg-surface-hover rounded-btn',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
-        default: 'min-h-[44px] px-5',
+        default: 'min-h-[49px] px-6',
         sm: 'min-h-[36px] px-3 text-sm',
         lg: 'min-h-[52px] px-8 text-lg',
         icon: 'h-11 w-11',
