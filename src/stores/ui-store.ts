@@ -7,11 +7,20 @@ import { ref, watch } from 'vue'
  * labels, future board theme override, sidebar state, etc.).
  */
 const COORDS_KEY = 'ui:showCoordinates'
+const BEATEN_KEY = 'ui:highestBeatenLevel'
 
 function loadBool(key: string, fallback: boolean): boolean {
   if (typeof localStorage === 'undefined') return fallback
   const raw = localStorage.getItem(key)
   return raw === null ? fallback : raw === 'true'
+}
+
+function loadIntOrNull(key: string): number | null {
+  if (typeof localStorage === 'undefined') return null
+  const raw = localStorage.getItem(key)
+  if (raw === null) return null
+  const n = Number.parseInt(raw, 10)
+  return Number.isNaN(n) ? null : n
 }
 
 export const useUiStore = defineStore('ui', () => {
@@ -26,5 +35,21 @@ export const useUiStore = defineStore('ui', () => {
     showCoordinates.value = !showCoordinates.value
   }
 
-  return { showCoordinates, toggleCoordinates }
+  // Highest Stockfish Skill Level (0–20) the player has beaten — drives the
+  // "you cleared this last time, try the next one" hint in the play-setup modal.
+  const highestBeatenLevel = ref<number | null>(loadIntOrNull(BEATEN_KEY))
+
+  watch(highestBeatenLevel, (value) => {
+    if (typeof localStorage === 'undefined') return
+    if (value === null) localStorage.removeItem(BEATEN_KEY)
+    else localStorage.setItem(BEATEN_KEY, String(value))
+  })
+
+  function recordWin(level: number): void {
+    if (highestBeatenLevel.value === null || level > highestBeatenLevel.value) {
+      highestBeatenLevel.value = level
+    }
+  }
+
+  return { showCoordinates, toggleCoordinates, highestBeatenLevel, recordWin }
 })

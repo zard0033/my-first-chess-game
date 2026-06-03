@@ -1,17 +1,14 @@
 /**
- * 和茶系 Board Theme — Earthy Japanese Tea Palette
- * Light squares: #e8dcc8 (warm cream) / Dark squares: #8b6f5c (warm umber)
- * White pieces: #f4ead8 fill / #3d2210 stroke
- * Black pieces: #3d2210 fill / #f4ead8 stroke
- * Contrast light vs dark: ~3.5:1 (passes WCAG 3:1 non-text)
+ * Wood12 Board Theme — full-board wood texture (caderek, CC0) from sharechess.
+ * The 8×8 squares are baked into the image, so cg-board just stretches it 1:1.
+ * Paired with the Gioco Wood piece set (CC BY-NC-SA 4.0) — see public/CREDITS.md.
  */
 
-/* ---- Board square colors ---- */
+/* ---- Board surface: full wood texture ---- */
 cg-board {
-  background-color: #e8dcc8;
-  /* 2x2 checkerboard tile: dark umber on alternate squares */
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 2 2'%3E%3Crect width='1' height='1' fill='%238b6f5c'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%238b6f5c'/%3E%3C/svg%3E");
-  background-size: 25% 25%;
+  background-image: url('/board/wood12.jpg');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 /* ---- Coordinate labels (a–h / 1–8) ----
@@ -62,3 +59,12 @@ cg-board {
 .cg-wrap piece.rook.black   { background-image: url('/pieces/bR.svg'); }
 .cg-wrap piece.queen.black  { background-image: url('/pieces/bQ.svg'); }
 .cg-wrap piece.king.black   { background-image: url('/pieces/bK.svg'); }
+
+/* ---- Black-piece brightness tuning ----
+   Gioco Wood's dark pieces carry their colour as an embedded raster texture, so
+   tint can't be changed by a hex. Lighten the whole piece with a filter instead.
+   1.0 = original; raise for brighter black pieces. Applies to the live board
+   (chessground) and to <img> piece previews (Home board, etc.). */
+:root { --piece-dark-brightness: 1.2; }
+.cg-wrap piece.black,
+img[src*='/pieces/b'] { filter: brightness(var(--piece-dark-brightness)); }

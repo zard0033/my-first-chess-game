@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import ChessBoard from '@/components/chess-board.vue'
+import PlaySetupModal from '@/components/play-setup-modal.vue'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import { useGameLifecycle } from '@/modules/game-lifecycle/use-game-lifecycle'
 import { usePlayEngine } from '@/modules/chess-engine/play-engine'
 import { useGameStore } from '@/stores/game-store'
+import { useUiStore } from '@/stores/ui-store'
 import { createLeaveGuard, useNavigationGuards } from '@/composables/use-navigation-guards'
 
 const router = useRouter()
 const gameStore = useGameStore()
+const uiStore = useUiStore()
 const { isGameInProgress } = storeToRefs(gameStore)
 
 // NOTE: router is NOT passed to useGameLifecycle intentionally.
@@ -23,12 +26,17 @@ const { phase, playerColor, fen, terminal } = lifecycle
 
 const engine = usePlayEngine()
 
+// Show the pre-game setup modal (strength + side) before any game starts (Lichess pattern).
+const showSetup = ref(true)
+// Skill Level (0–20) chosen for the current game — used for engine.play and win-recording.
+const chosenLevel = ref(3)
+
 onBeforeRouteLeave(createLeaveGuard(() => gameStore.isGameInProgress))
 useNavigationGuards(isGameInProgress, (path) => router.push(path))
 
-// Board is disabled while AI is thinking or game is over
+// Board is disabled during setup, while AI is thinking, or when the game is over.
 const boardDisabled = computed(() =>
-  phase.value === 'AI_THINKING' || phase.value === 'GAME_OVER'
+  showSetup.value || phase.value === 'AI_THINKING' || phase.value === 'GAME_OVER'
 )
 
 onMounted(async () => {
@@ -37,8 +45,31 @@ onMounted(async () => {
   } catch {
     console.warn('Stockfish unavailable — playing without AI')
   }
-  lifecycle.startGame('white', 10)
 })
+
+/** Ask the engine for a move from the current position and apply it. */
+async function requestAiMove(): Promise<void> {
+  if (engine.state.value !== 'IDLE') return
+  try {
+    const engineResult = await engine.play({ fen: fen.value, skillLevel: chosenLevel.value, movetimeMs: 3000 })
+    if (!engineResult.bestMove || engineResult.bestMove === '(none)' || engineResult.bestMove === '0000') {
+      lifecycle.handleAiMove('0000')
+      return
+    }
+    lifecycle.handleAiMove(engineResult.bestMove)
+  } catch {
+    // Engine error — treat as AI resignation so the board doesn't stay permanently disabled
+    lifecycle.handleAiMove('0000')
+  }
+}
+
+function handleStart(payload: { color: 'white' | 'black'; level: number }): void {
+  chosenLevel.value = payload.level
+  showSetup.value = false
+  lifecycle.startGame(payload.color, payload.level)
+  // Player chose black → engine moves first.
+  if (lifecycle.phase.value === 'AI_THINKING') void requestAiMove()
+}
 
 async function handleMoveMade(payload: MoveMadePayload): Promise<void> {
   gameStore.setGameInProgress(true)
@@ -48,23 +79,13 @@ async function handleMoveMade(payload: MoveMadePayload): Promise<void> {
 
   // Non-terminal: wait for piece animation, then get AI move
   await payload.animationDoneAt
-
-  if (engine.state.value !== 'IDLE') return
-
-  try {
-    const engineResult = await engine.play({ fen: fen.value, skillLevel: 10, movetimeMs: 3000 })
-    if (!engineResult.bestMove || engineResult.bestMove === '(none)' || engineResult.bestMove === '0000') return
-    lifecycle.handleAiMove(engineResult.bestMove)
-  } catch {
-    // Engine error — treat as AI resignation so the board doesn't stay permanently disabled
-    lifecycle.handleAiMove('0000')
-  }
+  void requestAiMove()
 }
 
 function handleNewGame(): void {
   lifecycle.resetToSetup()
   gameStore.clearCompletedGame()
-  lifecycle.startGame('white', 10)
+  showSetup.value = true   // re-open setup so strength/side can be re-picked
 }
 
 function handleReview(): void {
@@ -75,23 +96,35 @@ function handleReview(): void {
 
 // ---- Result display helpers ----
 
-const resultLabel = computed(() => {
+const playerWon = computed(() => {
   const r = terminal.value?.result
-  if (!r) return ''
-  return r === '1-0' ? 'White wins' : r === '0-1' ? 'Black wins' : 'Draw'
+  if (!r || r === '1/2-1/2') return false
+  return (r === '1-0' && playerColor.value === 'white') || (r === '0-1' && playerColor.value === 'black')
+})
+
+const isDraw = computed(() => terminal.value?.result === '1/2-1/2')
+
+const resultLabel = computed(() => {
+  if (!terminal.value) return ''
+  return isDraw.value ? '和局' : playerWon.value ? '你贏了！' : '你輸了'
 })
 
 const endReasonLabel = computed(() => {
   const map: Record<string, string> = {
-    checkmate: 'by checkmate',
-    stalemate: 'by stalemate',
-    threefold: 'by threefold repetition',
-    'insufficient-material': 'by insufficient material',
-    'fifty-move': 'by 50-move rule',
-    resignation: 'by resignation',
+    checkmate: '將死',
+    stalemate: '逼和',
+    threefold: '三次重複局面',
+    'insufficient-material': '子力不足',
+    'fifty-move': '五十步和棋',
+    resignation: '認輸',
   }
   const reason = terminal.value?.endReason
   return reason ? (map[reason] ?? reason) : ''
+})
+
+// Record a win at the chosen Skill Level so the setup modal can nudge to the next rung.
+watch(terminal, (t) => {
+  if (t && playerWon.value) uiStore.recordWin(chosenLevel.value)
 })
 
 // ---- DEV: FEN injection tool ----
@@ -107,7 +140,14 @@ function injectFen(): void {
 
 <template>
   <div class="flex flex-col items-center p-4">
-    <h1 class="font-display text-2xl font-semibold mb-4 text-ink">Play</h1>
+    <h1 class="font-display text-2xl font-semibold mb-4 text-ink" tabindex="-1">對局</h1>
+
+    <!-- Pre-game setup: strength + side. Confirming starts the game. -->
+    <PlaySetupModal
+      v-if="showSetup"
+      :beaten-level="uiStore.highestBeatenLevel"
+      @start="handleStart"
+    />
 
     <!-- Board + GAME_OVER overlay container -->
     <div class="relative">
@@ -121,14 +161,14 @@ function injectFen(): void {
       <!-- GAME_OVER overlay — covers board area -->
       <div
         v-if="phase === 'GAME_OVER'"
-        class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/60 rounded"
+        class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-ink/60 rounded"
       >
         <div class="card p-6 shadow-card-hover text-center min-w-[240px] z-50">
           <p class="font-display text-xl font-semibold mb-1 text-ink">{{ resultLabel }}</p>
           <p class="text-sm text-ink-muted mb-5">{{ endReasonLabel }}</p>
           <div class="flex gap-3 justify-center">
-            <button class="btn btn-primary" @click="handleNewGame">New Game</button>
-            <button class="btn btn-secondary" @click="handleReview">Review</button>
+            <button class="btn btn-primary" @click="handleNewGame">再來一局</button>
+            <button class="btn btn-secondary" @click="handleReview">複盤</button>
           </div>
         </div>
       </div>

@@ -15,9 +15,9 @@ for (let row = 0; row < 8; row++) {
 }
 
 const features = [
-  { to: '/learn', icon: '♟', title: '學習課程', desc: '從規則到戰術，跟教練貝絲一步步看懂棋盤。' },
-  { to: '/play', icon: '♞', title: '對局練習', desc: '與沉著的引擎對弈，壓力來自局面本身。' },
-  { to: '/history', icon: '♜', title: '棋局複盤', desc: '回顧走過的每一步，看清當時真正發生了什麼。' },
+  { to: '/learn', piece: 'wP', title: '學習課程', desc: '從規則到戰術，跟教練貝絲一步步看懂棋盤。' },
+  { to: '/play', piece: 'wN', title: '對局練習', desc: '與沉著的引擎對弈，壓力來自局面本身。' },
+  { to: '/history', piece: 'wR', title: '棋局複盤', desc: '回顧走過的每一步，看清當時真正發生了什麼。' },
 ]
 </script>
 
@@ -44,14 +44,14 @@ const features = [
       <!-- Decorative board -->
       <div class="order-1 lg:order-2 flex justify-center">
         <div
-          class="grid grid-cols-8 w-full max-w-[22rem] aspect-square rounded-card overflow-hidden shadow-card ring-1 ring-line-strong/40"
+          class="grid grid-cols-8 w-full max-w-[22rem] aspect-square rounded-card overflow-hidden shadow-card ring-1 ring-line-strong/40 bg-cover"
+          style="background-image: url('/board/wood12.jpg'); background-size: 100% 100%"
           aria-hidden="true"
         >
           <div
             v-for="(cell, i) in board"
             :key="i"
             class="relative"
-            :style="{ backgroundColor: cell.light ? '#e8dcc8' : '#8b6f5c' }"
           >
             <img
               v-if="cell.piece"
@@ -73,7 +73,9 @@ const features = [
         :to="f.to"
         class="card-interactive p-6 flex flex-col gap-2 min-h-[44px]"
       >
-        <span class="text-3xl text-primary leading-none" aria-hidden="true">{{ f.icon }}</span>
+        <span class="w-10 h-10 rounded-card bg-surface-raised border border-line flex items-center justify-center" aria-hidden="true">
+          <img :src="`/pieces/${f.piece}.svg`" alt="" class="w-6 h-6" draggable="false" />
+        </span>
         <span class="font-display font-semibold text-lg text-ink mt-1">{{ f.title }}</span>
         <span class="text-sm text-ink-muted leading-relaxed">{{ f.desc }}</span>
       </RouterLink>
