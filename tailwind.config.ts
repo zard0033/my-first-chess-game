@@ -1,5 +1,6 @@
 import type { Config } from 'tailwindcss'
 import defaultTheme from 'tailwindcss/defaultTheme'
+import animate from 'tailwindcss-animate'
 
 export default {
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
@@ -33,6 +34,7 @@ export default {
           DEFAULT: '#8b6f5c',
           dark: '#6f5645',
           fg: '#fcf9f3',
+          foreground: 'hsl(var(--primary-foreground))', // shadcn alias
         },
         success: {
           DEFAULT: '#4a7c59',
@@ -55,10 +57,41 @@ export default {
         },
         // Navigation bar — deep walnut, same family as the board's dark squares
         nav: {
-          bg: '#47351f',
-          text: '#dcc6a4',
-          active: '#fbf5ec',
+          bg: '#8b6f5c',  // matches board dark-square colour (was too-dark walnut)
+          text: '#f4ead8',
+          active: '#ffffff',
         },
+        // shadcn-vue semantic colors → CSS variables (warm-mapped in main.css :root).
+        // Coexist with the warm tokens above; do not replace them.
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
+        },
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
       },
       boxShadow: {
         // Warm brown-tinted shadows (not pure black) — refined, low, dignified
@@ -70,6 +103,10 @@ export default {
         btn: '0.5rem',
         card: '0.75rem',
         'lg-card': '1rem',
+        // shadcn-vue radius scale derived from --radius (not used elsewhere — safe)
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
       },
       fontSize: {
         display: ['2.75rem', { lineHeight: '1.15', letterSpacing: '-0.01em' }],
@@ -77,5 +114,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [animate],
 } satisfies Config

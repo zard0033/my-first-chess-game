@@ -5,6 +5,9 @@ import { onBeforeRouteLeave } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import ChessBoard from '@/components/chess-board.vue'
 import PlaySetupModal from '@/components/play-setup-modal.vue'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import { useGameLifecycle } from '@/modules/game-lifecycle/use-game-lifecycle'
 import { usePlayEngine } from '@/modules/chess-engine/play-engine'
@@ -169,14 +172,14 @@ function injectFen(): void {
         v-if="phase === 'GAME_OVER'"
         class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-ink/60 rounded"
       >
-        <div class="card p-6 shadow-card-hover text-center min-w-[240px] z-50">
-          <p class="font-display text-xl font-semibold mb-1 text-ink">{{ resultLabel }}</p>
-          <p class="text-sm text-ink-muted mb-5">{{ endReasonLabel }}</p>
-          <div class="flex gap-3 justify-center">
-            <button class="btn btn-primary" @click="handleNewGame">再來一局</button>
-            <button class="btn btn-secondary" @click="handleReview">複盤</button>
+        <Card class="z-50 min-w-[240px] p-6 text-center shadow-card-hover">
+          <p class="mb-1 font-display text-xl font-semibold text-ink">{{ resultLabel }}</p>
+          <p class="mb-5 text-sm text-ink-muted">{{ endReasonLabel }}</p>
+          <div class="flex justify-center gap-3">
+            <Button @click="handleNewGame">再來一局</Button>
+            <Button variant="secondary" @click="handleReview">複盤</Button>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
 
@@ -186,18 +189,19 @@ function injectFen(): void {
       class="mt-4 p-3 bg-yellow-100 border border-yellow-400 rounded text-sm flex items-center gap-2"
     >
       <span class="font-mono font-bold text-yellow-800">DEV</span>
-      <input
+      <Input
         v-model="devFenInput"
-        class="border border-yellow-400 px-2 py-1 w-80 font-mono text-xs rounded"
+        class="min-h-0 w-80 border-yellow-400 bg-white py-1 font-mono text-xs"
         placeholder="Paste FEN to inject board position…"
         @keyup.enter="injectFen"
       />
-      <button
-        class="px-3 py-1 bg-yellow-400 hover:bg-yellow-500 rounded font-semibold"
+      <Button
+        size="sm"
+        class="bg-yellow-400 text-yellow-900 shadow-none hover:bg-yellow-500"
         @click="injectFen"
       >
         Set FEN
-      </button>
+      </Button>
     </div>
   </div>
 </template>

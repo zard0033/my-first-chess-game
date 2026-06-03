@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch } from 'vue'
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 type Side = 'white' | 'black' | 'random'
 
@@ -13,12 +15,11 @@ const emit = defineEmits<{
   close: []
 }>()
 
-// Esc closes the dialog (matches the × button).
-function onKeydown(e: KeyboardEvent): void {
-  if (e.key === 'Escape') emit('close')
-}
-onMounted(() => document.addEventListener('keydown', onKeydown))
-onUnmounted(() => document.removeEventListener('keydown', onKeydown))
+// Dialog owns overlay click / Esc / × close. Any close gesture flips open → emit('close').
+const open = ref(true)
+watch(open, (v) => {
+  if (!v) emit('close')
+})
 
 // Stockfish 18 "Skill Level" UCI option: 0–20 (21 levels). Passed straight through as skillLevel.
 const LEVELS = Array.from({ length: 21 }, (_, i) => i)
@@ -39,29 +40,25 @@ const SIDES: { value: Side; label: string; piece: string }[] = [
 function start(): void {
   const color: 'white' | 'black' =
     selectedSide.value === 'random'
-      ? (Math.random() < 0.5 ? 'white' : 'black')
+      ? Math.random() < 0.5
+        ? 'white'
+        : 'black'
       : selectedSide.value
   emit('start', { color, level: selectedLevel.value })
 }
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40" @click.self="emit('close')">
-    <div class="card relative w-full max-w-sm p-6 shadow-card-hover" role="dialog" aria-modal="true" aria-labelledby="setup-title">
-      <button
-        type="button"
-        class="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors"
-        aria-label="關閉"
-        @click="emit('close')"
-      >
-        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
-      </button>
-      <h2 id="setup-title" class="font-display font-semibold text-xl text-ink text-center mb-1">對局設定</h2>
-      <p class="text-sm text-ink-muted text-center mb-6">與引擎對弈 · 無限思考時間</p>
+  <Dialog v-model:open="open">
+    <DialogContent class="max-w-sm">
+      <div class="text-center">
+        <DialogTitle class="text-xl">對局設定</DialogTitle>
+        <DialogDescription class="mt-1">與引擎對弈 · 無限思考時間</DialogDescription>
+      </div>
 
       <!-- Strength — Stockfish Skill Level 0–20 -->
-      <fieldset class="mb-6">
-        <div class="flex items-baseline justify-between mb-2">
+      <fieldset>
+        <div class="mb-2 flex items-baseline justify-between">
           <legend class="text-xs font-medium uppercase tracking-wider text-ink-faint">電腦強度</legend>
           <span class="text-xs text-ink-faint">Skill Level {{ selectedLevel }} / 20</span>
         </div>
@@ -71,11 +68,13 @@ function start(): void {
             :key="lvl"
             type="button"
             class="relative h-10 rounded-btn text-sm font-semibold tabular-nums transition-colors"
-            :class="selectedLevel === lvl
-              ? 'bg-primary text-primary-fg shadow-button'
-              : beatenLevel !== null && lvl <= beatenLevel
-                ? 'bg-success/15 text-success-dark hover:bg-success/25'
-                : 'bg-surface-raised text-ink-muted hover:bg-surface-hover'"
+            :class="
+              selectedLevel === lvl
+                ? 'bg-primary text-primary-fg shadow-button'
+                : beatenLevel !== null && lvl <= beatenLevel
+                  ? 'bg-success/15 text-success-dark hover:bg-success/25'
+                  : 'bg-surface-raised text-ink-muted hover:bg-surface-hover'
+            "
             :aria-pressed="selectedLevel === lvl"
             :aria-label="beatenLevel !== null && lvl <= beatenLevel ? `等級 ${lvl}（已戰勝）` : `等級 ${lvl}`"
             @click="selectedLevel = lvl"
@@ -83,38 +82,47 @@ function start(): void {
             {{ lvl }}
             <span
               v-if="beatenLevel !== null && lvl <= beatenLevel"
-              class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-success text-success-fg text-[8px] leading-[14px] text-center"
+              class="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-success text-center text-[8px] leading-[14px] text-success-fg"
               aria-hidden="true"
-            >✓</span>
+              >✓</span
+            >
           </button>
         </div>
-        <p v-if="beatenLevel !== null" class="text-xs text-ink-muted mt-2">
+        <p v-if="beatenLevel !== null" class="mt-2 text-xs text-ink-muted">
           上次戰勝 Lv {{ beatenLevel }}<template v-if="beatenLevel < 20">，挑戰 Lv {{ beatenLevel + 1 }} 看看？</template>
         </p>
       </fieldset>
 
       <!-- Side -->
-      <fieldset class="mb-7">
-        <legend class="text-xs font-medium uppercase tracking-wider text-ink-faint mb-2">執子方</legend>
+      <fieldset>
+        <legend class="mb-2 text-xs font-medium uppercase tracking-wider text-ink-faint">執子方</legend>
         <div class="grid grid-cols-3 gap-2">
           <button
             v-for="side in SIDES"
             :key="side.value"
             type="button"
-            class="flex flex-col items-center gap-1.5 py-3 rounded-card border transition-colors"
-            :class="selectedSide === side.value
-              ? 'border-primary bg-primary/10 text-ink'
-              : 'border-line bg-surface-raised text-ink-muted hover:bg-surface-hover'"
+            class="flex flex-col items-center gap-1.5 rounded-card border py-3 transition-colors"
+            :class="
+              selectedSide === side.value
+                ? 'border-primary bg-primary/10 text-ink'
+                : 'border-line bg-surface-raised text-ink-muted hover:bg-surface-hover'
+            "
             :aria-pressed="selectedSide === side.value"
             @click="selectedSide = side.value"
           >
-            <img :src="`/pieces/${side.piece}.svg`" alt="" class="w-7 h-7" :class="{ 'opacity-60': side.value === 'random' }" draggable="false" />
+            <img
+              :src="`/pieces/${side.piece}.svg`"
+              alt=""
+              class="h-7 w-7"
+              :class="{ 'opacity-60': side.value === 'random' }"
+              draggable="false"
+            />
             <span class="text-sm font-medium">{{ side.label }}</span>
           </button>
         </div>
       </fieldset>
 
-      <button type="button" class="btn btn-primary w-full text-base" @click="start">開始對局</button>
-    </div>
-  </div>
+      <Button size="lg" class="w-full" @click="start">開始對局</Button>
+    </DialogContent>
+  </Dialog>
 </template>

@@ -53,7 +53,7 @@ const bodySpans = computed(() => {
       :role="card ? 'button' : undefined"
       :tabindex="card ? 0 : undefined"
       :aria-expanded="card ? isExpanded : undefined"
-      class="text-sm text-center text-gray-700"
+      class="text-center text-sm text-ink-muted"
       :class="{ 'cursor-pointer select-none': card }"
       @click="card ? toggle() : undefined"
       @keydown="card ? handleKeydown($event) : undefined"
@@ -61,7 +61,7 @@ const bodySpans = computed(() => {
       {{ headerText }}
       <span
         v-if="card"
-        class="ml-1 text-xs text-gray-400"
+        class="ml-1 text-xs text-ink-faint"
         aria-hidden="true"
       >{{ isExpanded ? '▲' : '▼' }}</span>
     </div>
@@ -70,8 +70,7 @@ const bodySpans = computed(() => {
     <div
       v-if="card && isExpanded"
       aria-live="polite"
-      class="mt-2 px-3 py-2 rounded text-sm text-gray-700 leading-relaxed"
-      style="background-color: #f4f0e8; border: 1px solid #d4c4aa;"
+      class="mt-2 rounded-card border border-line bg-surface-raised px-3 py-2 text-sm leading-relaxed text-ink-muted"
     >
       <span
         v-for="(span, idx) in bodySpans"

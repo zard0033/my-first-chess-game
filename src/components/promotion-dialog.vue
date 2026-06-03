@@ -81,7 +81,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleDocumentKeydown)
     role="dialog"
     aria-modal="true"
     aria-label="Promote pawn"
-    class="absolute z-20 flex flex-col shadow-lg rounded bg-white border border-gray-300"
+    class="absolute z-20 flex flex-col overflow-hidden rounded-card border border-line bg-surface-card shadow-card-hover"
     :style="{
       left: `${squareRect.x}px`,
       top: playerColor === 'white' ? `${squareRect.y}px` : `${squareRect.y - squareRect.height * 3}px`,
@@ -94,7 +94,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleDocumentKeydown)
       :key="piece.value"
       :data-piece="piece.value"
       :aria-label="piece.label"
-      class="flex flex-col items-center justify-center gap-0.5 select-none py-2"
+      class="flex select-none flex-col items-center justify-center gap-0.5 py-2 text-ink transition-colors hover:bg-surface-hover focus-visible:bg-surface-hover focus-visible:outline-none"
       style="min-width: 56px; min-height: 64px;"
       type="button"
       @click="emit('select', piece.value)"

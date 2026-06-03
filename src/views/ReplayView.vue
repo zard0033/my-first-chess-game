@@ -11,6 +11,9 @@ import { useReplayAnalysis } from '@/composables/use-replay-analysis'
 import { useReviewEngine } from '@/modules/chess-engine/review-engine'
 import { REVIEW_PREVIEW_DEPTH, REVIEW_PREVIEW_MOVE_TIME_MS } from '@/config/engine-tuning'
 import type { GameHistoryEntry } from '@/types/game-history'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Slider } from '@/components/ui/slider'
 
 const route = useRoute()
 const router = useRouter()
@@ -118,13 +121,13 @@ defineExpose({
 <template>
   <div v-if="game" class="max-w-4xl mx-auto px-4 py-6">
     <!-- Header -->
-    <header class="flex items-center justify-between mb-6">
-      <button
+    <header class="mb-6 flex items-center justify-between">
+      <Button
+        variant="ghost"
         aria-label="Go back to game history"
-        class="text-base p-2 rounded hover:bg-surface-hover text-ink min-h-[44px] min-w-[44px]"
         @click="goBack"
-      >← Back</button>
-      <h1 class="font-display text-2xl font-semibold flex-1 text-center text-ink">
+      >← Back</Button>
+      <h1 class="flex-1 text-center font-display text-2xl font-semibold text-ink">
         {{ game.openingDisplay }}
       </h1>
       <div class="w-12" />
@@ -142,12 +145,12 @@ defineExpose({
         />
       </div>
 
-      <div class="lg:w-56 text-sm">
-        <div class="card p-4 space-y-2">
+      <div class="text-sm lg:w-56">
+        <Card class="space-y-2 p-4">
           <div class="text-ink"><span class="text-ink-muted">Move:</span> {{ currentPly }} / {{ totalMoves }}</div>
           <div class="text-ink"><span class="text-ink-muted">Result:</span> {{ game.playerResult }}</div>
           <div class="text-ink"><span class="text-ink-muted">Difficulty:</span> {{ game.difficultyLabel }}</div>
-        </div>
+        </Card>
 
         <ReplayAnalysisOverlay
           class="mt-3"
@@ -161,39 +164,40 @@ defineExpose({
     </div>
 
     <!-- Controls -->
-    <div class="flex flex-wrap items-center gap-2 justify-center mb-4">
-      <button
-        class="btn btn-secondary text-sm"
+    <div class="mb-4 flex flex-wrap items-center justify-center gap-2">
+      <Button
+        variant="secondary"
+        class="text-sm"
         :disabled="!nav.canGoPrev.value"
         @click="nav.prevMove"
-      >← Prev</button>
+      >← Prev</Button>
 
-      <button
-        class="btn btn-primary text-sm"
+      <Button
+        class="text-sm"
         :class="{ 'bg-primary-dark': nav.isPlaying.value }"
         :disabled="!nav.canGoNext.value && !nav.isPlaying.value"
         @click="nav.togglePlay"
-      >{{ nav.isPlaying.value ? '⏸ Pause' : '▶ Play' }}</button>
+      >{{ nav.isPlaying.value ? '⏸ Pause' : '▶ Play' }}</Button>
 
-      <button
-        class="btn btn-secondary text-sm"
+      <Button
+        variant="secondary"
+        class="text-sm"
         :disabled="!nav.canGoNext.value"
         @click="nav.nextMove"
-      >Next →</button>
+      >Next →</Button>
     </div>
 
     <!-- Move slider -->
-    <div class="flex items-center gap-4 mb-6">
-      <input
-        type="range"
-        min="0"
+    <div class="mb-6 flex items-center gap-4">
+      <Slider
+        :model-value="[currentPly]"
+        :min="0"
         :max="totalMoves"
-        :value="currentPly"
         class="flex-1"
         aria-label="Jump to move"
-        @input="(e) => nav.jumpToMove(parseInt((e.target as HTMLInputElement).value))"
+        @update:model-value="(v) => nav.jumpToMove(v[0] ?? 0)"
       />
-      <span class="text-sm text-ink-muted w-12">{{ currentPly }}/{{ totalMoves }}</span>
+      <span class="w-12 text-sm text-ink-muted">{{ currentPly }}/{{ totalMoves }}</span>
     </div>
 
     <GameReplayRating :game-id="gameId" />

@@ -4,6 +4,9 @@ import { RouterLink } from 'vue-router'
 import { useGameHistoryStore } from '@/stores/game-history'
 import HistoryRow from '@/components/history-row.vue'
 import { HISTORY_SKELETON_ROWS } from '@/config/history-config'
+import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 const store = useGameHistoryStore()
 
@@ -51,20 +54,22 @@ onMounted(() => {
   <div class="max-w-2xl mx-auto px-4 py-6">
     <header class="flex items-center justify-between mb-4">
       <h1 class="font-display text-2xl font-semibold text-ink" tabindex="-1">Game History</h1>
-      <button
+      <Button
         v-if="showRefresh"
+        variant="ghost"
+        size="icon"
         aria-label="Refresh game history"
-        class="text-xl p-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-btn hover:bg-surface-hover text-ink"
+        class="text-xl"
         @click="onRefresh"
-      >↻</button>
+      >↻</Button>
     </header>
 
     <!-- Loading -->
     <div v-if="store.isLoading" role="list" aria-busy="true">
-      <div
+      <Skeleton
         v-for="n in HISTORY_SKELETON_ROWS"
         :key="n"
-        class="h-[44px] mb-1 rounded bg-surface-hover animate-pulse"
+        class="mb-1 h-[44px] rounded"
         aria-hidden="true"
         style="pointer-events: none"
       />
@@ -72,28 +77,28 @@ onMounted(() => {
     </div>
 
     <!-- Error (initial load, no cached data) -->
-    <div v-else-if="store.error && store.entries.length === 0" class="text-center py-12">
-      <p class="text-ink mb-4">{{ errorMessage }}</p>
-      <button class="btn btn-primary" @click="onRetry">Try again</button>
+    <div v-else-if="store.error && store.entries.length === 0" class="py-12 text-center">
+      <p class="mb-4 text-ink">{{ errorMessage }}</p>
+      <Button @click="onRetry">Try again</Button>
     </div>
 
     <!-- Empty -->
-    <div v-else-if="store.entries.length === 0" class="text-center py-12">
-      <p class="text-ink-muted mb-4">No games recorded yet.</p>
-      <RouterLink to="/play" class="btn btn-primary">Play a game →</RouterLink>
+    <div v-else-if="store.entries.length === 0" class="py-12 text-center">
+      <p class="mb-4 text-ink-muted">No games recorded yet.</p>
+      <Button as-child><RouterLink to="/play">Play a game →</RouterLink></Button>
     </div>
 
     <!-- List -->
     <template v-else>
       <!-- Error banner above cached list (refresh failure) -->
-      <div
+      <Alert
         v-if="store.error"
-        class="mb-3 px-3 py-2 bg-danger-light border border-danger rounded text-sm text-danger flex items-center justify-between"
-        role="alert"
+        variant="danger"
+        class="mb-3 flex items-center justify-between py-2.5"
       >
-        <span>{{ errorMessage }}</span>
-        <button class="ml-3 underline min-h-[44px] px-2" @click="onRetry">Try again</button>
-      </div>
+        <AlertDescription class="text-danger">{{ errorMessage }}</AlertDescription>
+        <Button variant="link" class="ml-3 text-danger" @click="onRetry">Try again</Button>
+      </Alert>
 
       <div role="list">
         <HistoryRow
@@ -105,17 +110,18 @@ onMounted(() => {
       </div>
 
       <div v-if="store.hasMore || store.isLoadingMore" class="mt-4 text-center">
-        <button
+        <Button
           v-if="!store.isLoadingMore"
           data-testid="load-more-button"
-          class="btn btn-secondary text-sm"
+          variant="secondary"
+          class="text-sm"
           @click="onLoadMore"
-        >Load more</button>
+        >Load more</Button>
         <div
           v-else
           role="status"
           aria-label="Loading more games"
-          class="inline-block w-6 h-6 border-2 border-line border-t-primary rounded-full animate-spin"
+          class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-line border-t-primary"
         />
       </div>
 

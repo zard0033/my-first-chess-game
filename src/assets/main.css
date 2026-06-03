@@ -5,6 +5,31 @@
 @tailwind utilities;
 
 @layer base {
+  /* shadcn-vue semantic tokens — HSL triplets mapped to the existing warm palette
+     so Reka UI components are born warm, never the default cool theme. */
+  :root {
+    --background: 36 50% 96%; /* surface.base #faf6f0 */
+    --foreground: 24 58% 15%; /* ink #3d2210 */
+    --card: 40 56% 97%; /* surface.card #fcf9f3 */
+    --card-foreground: 24 58% 15%;
+    --popover: 40 56% 97%;
+    --popover-foreground: 24 58% 15%;
+    --primary: 24 20% 45%; /* primary umber #8b6f5c */
+    --primary-foreground: 40 56% 97%; /* primary.fg #fcf9f3 */
+    --secondary: 38 56% 90%; /* surface.raised #f4ead8 */
+    --secondary-foreground: 24 58% 15%;
+    --muted: 37 48% 88%; /* surface.hover #efe4d2 */
+    --muted-foreground: 27 28% 37%; /* ink.muted #7a5c44 */
+    --accent: 38 56% 90%; /* surface.raised */
+    --accent-foreground: 24 58% 15%;
+    --destructive: 12 52% 47%; /* danger #b8533a */
+    --destructive-foreground: 40 56% 97%;
+    --border: 38 36% 81%; /* line #e0d3bd */
+    --input: 38 36% 81%;
+    --ring: 24 20% 45%; /* primary */
+    --radius: 0.625rem; /* modernization: slightly larger base radius */
+  }
+
   body {
     background-color: #faf6f0;
     font-family: theme('fontFamily.sans');

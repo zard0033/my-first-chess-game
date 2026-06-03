@@ -1,21 +1,109 @@
 <!-- STATUS -->
-Epic: UI 重新設計 → 完成
-Feature: 殿堂美學（深度、字型、英雄版面）
-Task: 完成，等 commit
+Epic: UI 現代化 + 學習地圖
+Feature: shadcn-vue 全站整合 + 學習地圖 chess.com 風格
+Task: 完成並 commit+push
 <!-- /STATUS -->
 
-> **新 session 交接（UI 精修完成）**：lesson-system + UI 整體精修均已完成。設計系統 token 建立完畢，全 app chess.com 深棕 nav + 和茶系暖色。**整批變更仍未 commit/push。**
-
-> **新 session 交接（2026-06-02）**：lesson-system 開發中。**內容 v1（Tier 1 基礎規則 + Tier 2 基本戰術）已完成並驗證**
-> （523/523 測試綠）。GDD 已大幅改版定案。**下一步是把 UI 做出來讓 Eason 親手玩一課** →
-> S12-02（進度 store）→ S12-03（課程清單）→ S12-04（LessonView，含漸進式燈泡提示）+ 路由。
-> 接手前先讀本檔、GDD、EPIC，再讀下方「S12-04 整合筆記」。**注意：未 commit、未 push。**
+> **新 session 交接（2026-06-03 第三輪，最新，先讀這段）**
+> **全站 shadcn-vue 整合 + 學習地圖 chess.com 風格** 已完成並 commit+push（main 與 origin 同步、工作區乾淨）。
+> 驗證：`npm test` 536/536 綠、build 綠、src typecheck 0 錯。
+>
+> ## ✅ 本輪完成（2026-06-03）
+>
+> ### A. shadcn-vue / Reka UI 全站整合
+> - **基礎**：`src/lib/utils.ts`（cn()）、`main.css :root` HSL 暖色對映、`tailwind.config.ts` 加語意色 + radius + animate plugin。
+> - **核心元件** `src/components/ui/`：Button / Card / Dialog / Badge / Alert / Progress / Input / Label / Checkbox / Slider / Skeleton / Tooltip（暖色 token；Button class prop 用 `HTMLAttributes['class']`）。
+> - **全站遷移**：play-setup-modal→Dialog；promotion-dialog 改暖色；Lesson/Play/Review/History/Replay/SignIn/NotFound 全換 shadcn 元件；opening-knowledge-card/history-row/replay-analysis-overlay 冷灰改暖。
+> - **Lesson 回饋**：只換視覺外殼，dots/rings/✗✓角標/走錯重試/進度同步邏輯 + 測試不動。
+> - **測試改動**：`replay-view.test.ts` 1 處 `input[type=range]` → `[role="slider"]`（reka-ui Slider）。
+>
+> ### B. LessonView 布局重構
+> - 棋盤撐滿手機全寬（移除 px-4）。
+> - 座標預設常開（移除開關 + ui-store `showCoordinates`）。
+> - 功能鈕移至 sticky 底欄（`bottom-14` 避免被 tab bar 遮住）。
+>
+> ### C. app-nav 顏色現代化
+> - 漸層由 `rgba(40,27,15,0.74)` 調為 `rgba(80,55,30,0.58)`，`nav.bg` 對齊棋盤深色格 `#8b6f5c`。
+>
+> ### D. 學習地圖重做（PixiJS → chess.com 菱形磚）
+> - **棄 PixiJS**，移除 `learn-board.vue` 與 `pixi.js` 依賴（CSP 不需動，`wasm-unsafe-eval` 是 Stockfish 用的）。
+> - **新元件** `src/components/learn-path.vue`：chess.com 風格菱形（`rotate(45deg)`）、兩欄交錯、底到頂漸進（node[0] = 第一課在最底）、auto-scroll 至當前課程。
+> - **視覺架構**：課程磚（亮色 tier + `6px 8px` 斜向等角陰影 + inset highlight）、裝飾磚（暗色平面同排搭配）、串接磚（亮色小菱形串接相鄰課程磚）、棋子圖坐在裝飾磚上。
+> - TILE=76、STEP=113（確保同欄磚不重疊，gap≈6px）、CONN=40（幾何緊鄰課程磚）。
+>
+> ## 護欄（本輪完全不動）
+> 棋盤與棋子（board-theme.css / chessground / 棋子圖）是整站暖色錨點，一字未改。
+>
+> ## 待辦 backlog（依優先序）
+> 1. **Puzzles 闖關**（net-new，最高優先）。
+> 2. **Profile 成長頁**（目前空殼）。
+> 3. **Learn Tier3/4 內容**（目前 v1=Tier1+2，14 課；Tier3 只有 1 課種子）。
+> 4. 技術債：game-replay QA 未過（S10-04/05）；iOS Magic Link 實機補測。
+>
+> 底下舊交接（第一/二輪 UI 精修 / lesson-system）已過時，保留供追溯。
 
 # Active Session State
 
-**Last updated**: 2026-06-02
-**Tests**: 523/523 pass（含新增 `tests/unit/data/lessons.test.ts` 11 項）· **Build**: 未重跑（僅改 data/types/docs，未動既有程式）
-**未 commit**：本次 lesson-system 全部變更都還在工作區，尚未 git add/commit/push。
+**Last updated**: 2026-06-03
+**HEAD**: `a847c0e`（feat(ui): 介面現代化 + Pixi 等角學習地圖）· 工作區乾淨、已 push
+**Tests**: 536/536 pass · **Build**: 綠 · **typecheck**: src 0 錯
+
+---
+
+## ✅ 本次 session 完成（2026-06-03，已 commit `a847c0e`）
+
+**導覽列**（`src/components/app-nav.vue`）
+- wood12 木紋質感 + 暗色疊層 + 浮雕陰影；品牌 = Gambit + gioco_wood 皇后 icon；字型全改 **Sarasa UI TC**（tailwind `display` 字族指向 Sarasa，棄用 Noto Serif 宋體）。
+- 手機底部 tab bar / 桌機頂部；第 4 格「複盤」→「紀錄」(/history)。
+
+**首頁**（`src/views/HomeView.vue`）
+- landing 改**個人儀表板**：繼續學習主卡（下一課 + summary 簡述 + 進度條）+ 對局/紀錄快速入口。
+
+**學習地圖（PixiJS，重點）**
+- 裝 `pixi.js@8`；新增 `src/components/learn-board.vue`：Pixi `Graphics` **程式化畫等角立體磚塊**（頂面 + 左右側面厚度 = CSS 做不到的 3D）。
+- `LearnView.vue` 算佈局：**3 欄等角格陣**（a∈{-1,0,1}、(a+b) 偶數的格子），課程走中央連續路徑、其餘填充地板格（checker 明暗），**由下而上**（lesson1 在底）。
+- 狀態：locked(暗棕+鎖)、unlocked(亮木)、current(金+脈動 glow)、done(綠+✓)；點 unlocked/current 格 → emit open 進課。
+- **無外框**直接攤在頁面；頂部資訊框顯示下一課標題 + summary（已移除地圖泡泡）。
+- ⚠️ **CSP**：index.html CSP 無 `unsafe-eval`，learn-board.vue 必須 `import 'pixi.js/unsafe-eval'`（已加），否則 WebGL renderer 報錯、canvas 不出現。
+- 響應式：ResizeObserver 寬度變化 rebuild。
+
+**對局**：`play-setup-modal.vue` 加 × 關閉鈕（+ Esc / 點外關閉），`PlayView` handleClose → 回首頁。
+
+**內容術語校正**：車→城堡、象→主教、馬→騎士、學象棋→學西洋棋（`src/data/lessons/*.ts` + `opening-knowledge-cards.ts`）。
+
+**素材授權**（`public/CREDITS.md`）：棋盤 wood12（CC0）、棋子 gioco_wood（**CC BY-NC-SA 4.0，僅限個人非商業，公開/商業化前必須換**）；來源 sharechess.github.io。黑棋色是嵌入 PNG，只能用 board-theme.css 的 `--piece-dark-brightness` 提亮，不能改 hex。
+
+---
+
+## ▶ 下一步：整合 shadcn-vue / Reka UI（第一優先，Eason 點名）
+
+**目標**：導入 shadcn-vue（底層 Reka UI）提升一般介面與互動元件質感，後續新功能（Puzzles/Profile/設定）都用它建。
+
+**前提**：Vue 3 + Vite 5 + **Tailwind v3** + TS。已有自訂暖色 token（surface/ink/primary/nav/success/danger/hint…）。**環境非互動式** → `npx shadcn-vue init` 的互動 prompt 可能卡住，多半要**手動鋪設**。
+
+**步驟**：
+1. 裝：`reka-ui`、`class-variance-authority`、`clsx`、`tailwind-merge`、`tailwindcss-animate`、`lucide-vue-next`。
+2. `src/lib/utils.ts` 加 `cn()`（clsx + tailwind-merge）。
+3. **主題對映**：shadcn 用 `--background/--foreground/--primary/--border/--ring…`（HSL）。把這些**對映到現有暖色**（primary=umber #8b6f5c、background=surface-base #faf6f0、foreground=ink #3d2210、border=line #e0d3bd…），讓 shadcn 元件天生暖色、不要引入它預設冷色。寫在 `src/assets/main.css` 的 `:root`。
+4. `tailwind.config.ts` 加 shadcn 語意色（指向 CSS 變數）+ borderRadius 變數 + `tailwindcss-animate` plugin；**與現有 surface/ink/primary token 並存、勿覆蓋**。
+5. 手寫核心元件（從 shadcn-vue 文件複製）放 `src/components/ui/`：Button、Card、Dialog（Play 設定 modal 可改）、Tabs、Tooltip。
+6. 先示範升級 1-2 處（`.btn`→Button、Play modal→Dialog），其餘漸進。
+
+**勿打壞**：剛 commit 的 nav/home/learn 已驗證好看，shadcn **並存**即可，別大改其視覺；Pixi 地圖與暖色 token 維持。
+
+---
+
+## 待辦 backlog（依優先序）
+1. **shadcn-vue/Reka 整合**（↑ 下一步，第一優先）。
+2. **Puzzles 闖關**（net-new，level-up 核心：題庫/計分/闖關地圖/連勝；建議 `/to-prd` 或開 epic 規格化）。
+3. **Profile 成長頁**（`ProfileView.vue` 目前空殼：連勝/謎題分/完成課程儀表板）。
+4. **Learn Tier 3+4 內容**（目前只有 v1=Tier1+2 共 14 課；Tier3 開局只 1 課種子、Tier4 殘局未寫）。
+5. 計時對局（Play 目前無限時間，先擱置）。
+- **技術債**：game-replay QA 未過（S10-04/05）；iOS Magic Link 實機補測（S8-06）。
+
+---
+
+<!-- 以下為 2026-06-02 lesson-system / UI 第一輪精修的歷史交接，已過時，保留供追溯 -->
 
 ---
 

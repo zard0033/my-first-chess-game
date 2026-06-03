@@ -3,6 +3,9 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { getLessonById } from '@/data/lessons'
 import { COACH } from '@/types/lesson'
 import type { LessonStep } from '@/types/lesson'
@@ -10,12 +13,10 @@ import type { Annotation } from '@/modules/move-annotation/annotation-types'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import type { Rect } from '@/utils/board-geometry'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
-import { useUiStore } from '@/stores/ui-store'
 
 const route = useRoute()
 const router = useRouter()
 const progress = useLessonProgressStore()
-const ui = useUiStore()
 
 const lesson = getLessonById(route.params.lessonId as string)
 
@@ -33,12 +34,10 @@ const isLastStep = computed(() => !!lesson && stepIndex.value >= lesson.steps.le
 
 // Per-step interaction state — reset whenever the step changes.
 const solved = ref(false)
-// The wrong-but-legal move currently displayed (piece left on the wrong square, marked red).
 const wrongMove = ref<{ from: string; to: string } | null>(null)
-const everWrong = ref(false) // a wrong attempt happened this step → emphasise the hint affordance
+const everWrong = ref(false)
 const hintShown = ref(false)
 const answerRevealed = ref(false)
-// Bumped to remount the board (fresh FEN on step change; reset position on retry).
 const boardNonce = ref(0)
 
 watch(stepIndex, () => {
@@ -52,9 +51,8 @@ watch(stepIndex, () => {
 const boardKey = computed(() => `${stepIndex.value}:${boardNonce.value}`)
 const boardDisabled = computed(() => !isInteractive.value || solved.value || !!wrongMove.value)
 
-// ChessBoard exposes boardRef (unwrapped) + squareToRect via defineExpose.
 const board = ref<{ boardRef: HTMLElement | null; squareToRect: (s: string) => Rect | null } | null>(null)
-const geomTick = ref(0) // forces offsetWidth / boardRef reads after the board lays out
+const geomTick = ref(0)
 const boardEl = computed<HTMLElement | null>(() => {
   void geomTick.value
   return board.value?.boardRef ?? null
@@ -77,8 +75,7 @@ watch(boardKey, async () => {
   geomTick.value++
 })
 
-// Highlights always show. The answer arrow is the opt-in "reveal" on interactive steps;
-// narration steps show their arrows immediately (GDD §3 Hint System).
+// Annotations: highlights always show; arrows only on narration steps or after answer revealed.
 const annotations = computed<Annotation[]>(() => {
   const step = currentStep.value
   if (!step) return []
@@ -95,7 +92,7 @@ const annotations = computed<Annotation[]>(() => {
   return out
 })
 
-// chess.com-style feedback: tint the from/to squares of the wrong move (no arrow).
+// Wrong-move square tint geometry.
 const wrongGeom = computed(() => {
   void geomTick.value
   const wm = wrongMove.value
@@ -105,14 +102,12 @@ const wrongGeom = computed(() => {
   return from && to ? { from, to } : null
 })
 
-// A corner ✗ / ✓ badge sits over the destination square the piece is now on.
 function cornerBadge(square: string | undefined) {
   void geomTick.value
   if (!square) return null
   const r = squareToRect(square)
   if (!r) return null
   const size = Math.max(18, r.width * 0.42)
-  // Straddling the square's top-right corner.
   return { left: r.x + r.width - size / 2, top: r.y - size / 2, size }
 }
 const wrongBadge = computed(() => (wrongMove.value ? cornerBadge(wrongMove.value.to) : null))
@@ -130,8 +125,6 @@ function handleMove(payload: MoveMadePayload): void {
   if (correct) {
     solved.value = true
   } else {
-    // chess.com-style: leave the piece on the wrong square, mark the path red,
-    // lock the board, and let the player read the feedback then retry.
     wrongMove.value = { from: payload.from, to: payload.to }
     everWrong.value = true
   }
@@ -139,7 +132,7 @@ function handleMove(payload: MoveMadePayload): void {
 
 function retry(): void {
   wrongMove.value = null
-  boardNonce.value++ // remount → snap the position back to the step FEN
+  boardNonce.value++
 }
 
 const canAdvance = computed(() => !isInteractive.value || solved.value)
@@ -161,38 +154,35 @@ function prev(): void {
 </script>
 
 <template>
-  <div v-if="lesson" class="max-w-5xl mx-auto px-4 py-6">
-    <header class="flex items-center gap-3 mb-5">
-      <button
-        class="text-base p-2 rounded hover:bg-surface-hover text-ink min-h-[44px] min-w-[44px]"
+  <!-- Full-height flex column — no outer horizontal padding so the board can go edge-to-edge -->
+  <div v-if="lesson" class="flex min-h-dvh flex-col pb-20 lg:pb-0">
+
+    <!-- Header: back + title + step counter -->
+    <header class="flex shrink-0 items-center gap-3 px-4 py-3">
+      <Button
+        variant="ghost"
+        size="icon"
         aria-label="返回課程清單"
         @click="router.push('/learn')"
-      >←</button>
-      <h1 class="font-display text-xl font-semibold flex-1 text-ink" tabindex="-1">{{ lesson.title }}</h1>
-      <label class="flex items-center gap-1.5 text-sm text-ink-muted cursor-pointer select-none min-h-[44px]">
-        <input
-          type="checkbox"
-          class="w-4 h-4 accent-[#8b6f5c]"
-          :checked="ui.showCoordinates"
-          @change="ui.toggleCoordinates"
-        />
-        座標
-      </label>
-      <span class="text-sm text-ink-faint tabular-nums">
+      >←</Button>
+      <h1 class="flex-1 font-display text-xl font-semibold text-ink" tabindex="-1">{{ lesson.title }}</h1>
+      <span class="shrink-0 text-sm tabular-nums text-ink-faint">
         {{ stepIndex + 1 }} / {{ lesson.steps.length }}
       </span>
     </header>
 
-    <div class="flex flex-col lg:flex-row gap-6">
-      <!-- Board + annotation overlay -->
-      <div class="relative w-fit mx-auto lg:mx-0">
+    <!-- Content area: board left, coach right on desktop -->
+    <div class="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-4">
+
+      <!-- Board: full width on mobile, auto on desktop -->
+      <div class="relative w-full lg:w-auto lg:shrink-0 lg:self-start">
         <ChessBoard
           :key="boardKey"
           ref="board"
           :fen="currentStep?.fen ?? ''"
           :player-color="playerColor"
           :disabled="boardDisabled"
-          :coordinates="ui.showCoordinates"
+          :coordinates="true"
           @move-made="handleMove"
         />
 
@@ -208,10 +198,10 @@ function prev(): void {
           :shaft-scale="0.5"
         />
 
-        <!-- Wrong-move square tint (no arrow — chess.com style) -->
+        <!-- Wrong-move square tint (no arrow) -->
         <svg
           v-if="wrongGeom"
-          class="absolute inset-0 w-full h-full pointer-events-none overflow-visible"
+          class="pointer-events-none absolute inset-0 h-full w-full overflow-visible"
           aria-hidden="true"
         >
           <rect
@@ -226,101 +216,154 @@ function prev(): void {
           />
         </svg>
 
-        <!-- Corner badges: ✗ on a wrong move, ✓ on the solved move -->
+        <!-- Corner badges: ✗ wrong / ✓ correct -->
         <div
           v-if="wrongBadge"
-          class="absolute z-10 pointer-events-none rounded-full bg-red-500 text-white flex items-center justify-center font-bold shadow"
+          class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-danger font-bold text-danger-fg shadow-button"
           :style="{ left: `${wrongBadge.left}px`, top: `${wrongBadge.top}px`, width: `${wrongBadge.size}px`, height: `${wrongBadge.size}px`, fontSize: `${wrongBadge.size * 0.6}px` }"
           aria-hidden="true"
         >✕</div>
         <div
           v-if="correctBadge"
-          class="absolute z-10 pointer-events-none rounded-full bg-green-500 text-white flex items-center justify-center font-bold shadow"
+          class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-success font-bold text-success-fg shadow-button"
           :style="{ left: `${correctBadge.left}px`, top: `${correctBadge.top}px`, width: `${correctBadge.size}px`, height: `${correctBadge.size}px`, fontSize: `${correctBadge.size * 0.6}px` }"
           aria-hidden="true"
         >✓</div>
       </div>
 
-      <!-- Coach panel -->
-      <div class="flex-1 min-w-0 card p-5 lg:p-6 self-start">
-        <div class="flex items-center gap-2.5 mb-4">
-          <span
-            class="w-8 h-8 rounded-full bg-primary text-primary-fg font-display flex items-center justify-center text-base leading-none shrink-0"
-            aria-hidden="true"
-          >貝</span>
-          <span class="text-sm font-medium text-ink">教練 · {{ COACH.name }}</span>
-        </div>
-
-        <p
-          v-if="stepIndex === 0 && lesson.scenario"
-          class="font-display text-base text-ink-muted italic mb-4 border-l-2 border-primary/40 pl-4 leading-relaxed"
-        >{{ lesson.scenario }}</p>
-
-        <p class="text-base text-ink leading-loose mb-5">{{ currentStep?.text }}</p>
-
-        <!-- Wrong move: red feedback + retry (chess.com-style) -->
-        <div
-          v-if="wrongMove"
-          class="mb-5 p-4 rounded-card bg-danger-light border border-danger/40"
-        >
-          <p class="text-sm font-semibold text-danger mb-1">這一步不是答案</p>
-          <p v-if="currentStep?.hint" class="text-sm text-ink leading-relaxed">{{ currentStep.hint }}</p>
-          <div class="mt-3 flex items-center gap-2">
-            <button class="btn btn-danger text-sm" @click="retry">↻ 重試</button>
-            <button
-              v-if="!answerRevealed"
-              class="btn btn-secondary text-sm"
-              @click="answerRevealed = true"
-            >揭曉答案</button>
+      <!-- Coach panel: scrollable content (no action buttons here on mobile) -->
+      <div class="flex-1 min-w-0 px-4 py-4 lg:px-0 lg:py-0">
+        <Card class="p-5 lg:p-6">
+          <!-- Coach avatar -->
+          <div class="mb-4 flex items-center gap-2.5">
+            <span
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-base leading-none text-primary-fg"
+              aria-hidden="true"
+            >貝</span>
+            <span class="text-sm font-medium text-ink">教練 · {{ COACH.name }}</span>
           </div>
-          <p v-if="answerRevealed" class="mt-2 text-sm text-hint">
-            答案箭頭已畫在棋盤上——點「重試」後照著走。
-          </p>
-        </div>
 
-        <!-- Interactive prompt + progressive hint (lightbulb), when not in a wrong state -->
-        <div v-else-if="isInteractive && !solved" class="mb-5">
-          <p class="text-sm text-ink-muted mb-3">輪到你了——在棋盤上走一步。</p>
+          <!-- Scenario (step 0 only) -->
+          <p
+            v-if="stepIndex === 0 && lesson.scenario"
+            class="mb-4 border-l-2 border-primary/40 pl-4 font-display text-base italic leading-relaxed text-ink-muted"
+          >{{ lesson.scenario }}</p>
 
-          <button
-            class="btn text-sm min-h-[44px] border border-hint-ring bg-hint-light text-hint-fg hover:bg-hint-ring"
-            :class="{ 'lightbulb-glow': lightbulbGlowing }"
-            @click="hintShown = true"
-          >
-            <span aria-hidden="true">💡</span> 提示
-          </button>
+          <!-- Step narration -->
+          <p class="mb-4 text-base leading-loose text-ink">{{ currentStep?.text }}</p>
 
-          <div v-if="hintShown" class="mt-3 p-4 rounded-card bg-hint-light border border-hint-ring/60">
-            <p class="text-sm text-hint-fg leading-relaxed">{{ currentStep?.hint }}</p>
-            <button
-              v-if="!answerRevealed"
-              class="btn text-sm mt-3 bg-hint-ring hover:bg-hint text-hint-fg"
-              @click="answerRevealed = true"
-            >揭曉答案</button>
-            <p v-else class="mt-3 text-sm text-hint">答案已畫在棋盤上——照著箭頭走走看。</p>
+          <!-- Wrong-move feedback (no buttons — they're in the sticky bar) -->
+          <Alert v-if="wrongMove" variant="danger" class="mb-4">
+            <AlertTitle class="text-danger">這一步不是答案</AlertTitle>
+            <AlertDescription v-if="currentStep?.hint" class="text-ink">{{ currentStep.hint }}</AlertDescription>
+            <p v-if="answerRevealed" class="mt-2 text-sm text-hint">
+              答案箭頭已畫在棋盤上——點「重試」後照著走。
+            </p>
+          </Alert>
+
+          <!-- Hint text (no reveal button — in sticky bar) -->
+          <div v-else-if="isInteractive && !solved">
+            <p class="mb-3 text-sm text-ink-muted">輪到你了——在棋盤上走一步。</p>
+            <Alert v-if="hintShown" variant="hint">
+              <AlertDescription class="text-hint-fg">{{ currentStep?.hint }}</AlertDescription>
+              <p v-if="answerRevealed" class="mt-2 text-sm text-hint">答案已畫在棋盤上——照著箭頭走走看。</p>
+            </Alert>
           </div>
-        </div>
 
-        <!-- Success -->
-        <p
-          v-if="solved && currentStep?.successText"
-          class="mb-5 p-4 rounded-card bg-success-light border border-success/40 text-sm text-success leading-relaxed"
-        >{{ currentStep.successText }}</p>
+          <!-- Success -->
+          <Alert v-if="solved && currentStep?.successText" variant="success" class="mb-4">
+            <AlertDescription class="text-success">{{ currentStep.successText }}</AlertDescription>
+          </Alert>
 
-        <!-- Navigation -->
-        <div class="flex items-center gap-2 pt-2">
-          <button
-            v-if="stepIndex > 0"
-            class="btn btn-secondary text-sm"
-            @click="prev"
-          >← 上一步</button>
-          <button
-            class="btn btn-primary text-sm"
-            :disabled="!canAdvance"
-            @click="next"
-          >{{ isLastStep ? '完成課程' : '下一步 →' }}</button>
-        </div>
+          <!-- Desktop-only inline action buttons (hidden on mobile — see sticky bar) -->
+          <div class="hidden items-center gap-2 pt-2 lg:flex">
+            <Button
+              v-if="wrongMove"
+              variant="danger"
+              class="text-sm"
+              @click="retry"
+            >↻ 重試</Button>
+            <Button
+              v-if="wrongMove && !answerRevealed"
+              variant="secondary"
+              class="text-sm"
+              @click="answerRevealed = true"
+            >揭曉答案</Button>
+            <Button
+              v-if="isInteractive && !solved && !wrongMove"
+              variant="outline"
+              class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
+              :class="{ 'lightbulb-glow': lightbulbGlowing }"
+              @click="hintShown = true"
+            >
+              <span aria-hidden="true">💡</span> 提示
+            </Button>
+            <Button
+              v-if="hintShown && !answerRevealed && !wrongMove"
+              class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
+              @click="answerRevealed = true"
+            >揭曉答案</Button>
+            <div class="flex-1" />
+            <Button
+              v-if="stepIndex > 0"
+              variant="secondary"
+              class="text-sm"
+              @click="prev"
+            >← 上一步</Button>
+            <Button
+              class="text-sm"
+              :disabled="!canAdvance"
+              @click="next"
+            >{{ isLastStep ? '完成課程' : '下一步 →' }}</Button>
+          </div>
+        </Card>
       </div>
+    </div>
+
+    <!-- Sticky bottom action bar — mobile only, positioned above the bottom tab nav (h≈56px) -->
+    <div class="sticky bottom-14 z-20 flex shrink-0 items-center gap-2 border-t border-line bg-surface-base px-4 py-3 lg:hidden">
+      <!-- Contextual: wrong-move state -->
+      <template v-if="wrongMove">
+        <Button variant="danger" class="text-sm" @click="retry">↻ 重試</Button>
+        <Button
+          v-if="!answerRevealed"
+          variant="secondary"
+          class="text-sm"
+          @click="answerRevealed = true"
+        >揭曉答案</Button>
+      </template>
+
+      <!-- Contextual: interactive hint state -->
+      <template v-else-if="isInteractive && !solved">
+        <Button
+          variant="outline"
+          class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
+          :class="{ 'lightbulb-glow': lightbulbGlowing }"
+          @click="hintShown = true"
+        >
+          <span aria-hidden="true">💡</span> 提示
+        </Button>
+        <Button
+          v-if="hintShown && !answerRevealed"
+          class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
+          @click="answerRevealed = true"
+        >揭曉答案</Button>
+      </template>
+
+      <div class="flex-1" />
+
+      <!-- Always: prev / next -->
+      <Button
+        v-if="stepIndex > 0"
+        variant="secondary"
+        class="text-sm"
+        @click="prev"
+      >← 上一步</Button>
+      <Button
+        class="text-sm"
+        :disabled="!canAdvance"
+        @click="next"
+      >{{ isLastStep ? '完成課程' : '下一步 →' }}</Button>
     </div>
   </div>
 </template>

@@ -78,7 +78,9 @@ describe('ReplayView', () => {
   it('test_replay_view_renders_board_overlay_controls_when_game_exists', async () => {
     const wrapper = await mountReplay()
     expect(wrapper.find('.pgn-stub').exists()).toBe(true)
-    expect(wrapper.find('input[type="range"]').exists()).toBe(true)
+    // Move slider migrated from native <input type="range"> to the shadcn Slider
+    // (reka-ui), which exposes a [role="slider"] thumb instead of a range input.
+    expect(wrapper.find('[role="slider"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Italian Game')
     wrapper.unmount()
   })

@@ -88,7 +88,7 @@ const evalDisplay = computed(() => {
 <style scoped>
 .replay-analysis-overlay {
   padding: 0.5rem 0;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e0d3bd;
 }
 
 .eval-bar-container {
@@ -99,7 +99,7 @@ const evalDisplay = computed(() => {
 
 .eval-label {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #7a5c44;
   font-weight: 500;
   width: 2.5rem;
 }
@@ -107,10 +107,10 @@ const evalDisplay = computed(() => {
 .eval-bar-background {
   flex: 1;
   height: 1.5rem;
-  background-color: #f3f4f6;
-  border-radius: 0.25rem;
+  background-color: #efe4d2;
+  border-radius: 0.375rem;
   overflow: hidden;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e0d3bd;
 }
 
 .eval-bar-fill {
@@ -131,7 +131,7 @@ const evalDisplay = computed(() => {
   justify-content: space-between;
   margin-top: 0.25rem;
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #7a5c44;
 }
 
 .best-move {
@@ -141,7 +141,7 @@ const evalDisplay = computed(() => {
 .analysing-hint,
 .no-eval-hint {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: #7a5c44;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -150,8 +150,8 @@ const evalDisplay = computed(() => {
 .spinner {
   width: 0.75rem;
   height: 0.75rem;
-  border: 2px solid #d1d5db;
-  border-top-color: #6b7280;
+  border: 2px solid #e0d3bd;
+  border-top-color: #8b6f5c;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
 }

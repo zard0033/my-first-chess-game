@@ -10,6 +10,9 @@ import type { Annotation, EvaluationInput } from '@/modules/move-annotation/anno
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import OpeningKnowledgeCard from '@/components/opening-knowledge-card.vue'
 import { useDataSyncStore } from '@/stores/data-sync'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Alert } from '@/components/ui/alert'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -211,8 +214,8 @@ function handleExit(): void {
 <template>
   <div class="flex flex-col items-center p-4 min-h-screen">
     <!-- Header row -->
-    <div class="w-full max-w-md flex items-center justify-between mb-3">
-      <button class="btn btn-secondary" @click="handleExit">← Back</button>
+    <div class="mb-3 flex w-full max-w-md items-center justify-between">
+      <Button variant="secondary" @click="handleExit">← Back</Button>
       <h1 class="font-display text-xl font-semibold text-ink">Review</h1>
       <div class="w-16" />
     </div>
@@ -224,20 +227,16 @@ function handleExit(): void {
     />
 
     <!-- Sync status badge (SUPA-AC-13, AC-S7-02~05) -->
-    <div
+    <Badge
       v-if="syncStatus !== 'idle'"
-      class="text-xs px-2 py-1 rounded-full inline-flex items-center gap-1 mb-2"
-      :class="{
-        'bg-hint-light text-hint-fg': syncStatus === 'syncing',
-        'bg-success-light text-success': syncStatus === 'synced',
-        'bg-danger-light text-danger': syncStatus === 'error',
-      }"
+      :variant="syncStatus === 'syncing' ? 'hint' : syncStatus === 'synced' ? 'success' : 'danger'"
+      class="mb-2"
       aria-live="polite"
     >
       <span v-if="syncStatus === 'syncing'">Saving…</span>
       <span v-if="syncStatus === 'synced'">Saved</span>
       <span v-if="syncStatus === 'error'">Not saved</span>
-    </div>
+    </Badge>
 
     <!-- Progress indicator (Rule 12, AC-16) -->
     <div
@@ -284,24 +283,24 @@ function handleExit(): void {
     </div>
 
     <!-- Navigation row (Rules 15-17, AC-11, AC-12) -->
-    <div class="flex gap-4 items-center mb-4">
-      <button
-        class="btn btn-secondary"
+    <div class="mb-4 flex items-center gap-4">
+      <Button
+        variant="secondary"
         :disabled="!review.canGoPrev.value"
         @click="review.goPrev()"
       >
         ←
-      </button>
+      </Button>
       <span class="text-sm text-ink-muted">
         {{ review.cursor.value }} / {{ review.totalPositions.value }}
       </span>
-      <button
-        class="btn btn-secondary"
+      <Button
+        variant="secondary"
         :disabled="!review.canGoNext.value"
         @click="review.goNext()"
       >
         →
-      </button>
+      </Button>
     </div>
 
     <!-- Jump to biggest swing (Rules 31-32, AC-24) -->
@@ -309,12 +308,12 @@ function handleExit(): void {
       v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor !== null"
       class="mb-3"
     >
-      <button
-        class="btn text-sm bg-hint text-hint-fg hover:bg-hint-dark"
+      <Button
+        class="bg-hint text-sm text-hint-fg hover:bg-hint-dark"
         @click="jumpToBiggestSwing"
       >
         Jump to biggest swing
-      </button>
+      </Button>
     </div>
 
     <!-- No big swings empty state (Rule 32) -->
@@ -326,14 +325,15 @@ function handleExit(): void {
     </div>
 
     <!-- Engine error state (AC-30 / Visual Requirements §Error State) -->
-    <div
+    <Alert
       v-if="review.phase.value === 'COMPLETE' && review.totalPositions.value > 0 && review.analysisResults.value.every(r => r === null)"
-      class="w-full max-w-md mt-4 p-4 bg-danger-light border border-danger/40 rounded-card text-center"
+      variant="danger"
+      class="mt-4 w-full max-w-md text-center"
     >
-      <p class="text-sm font-semibold text-danger mb-3">Couldn't analyze this game</p>
-      <div class="flex gap-3 justify-center">
-        <button class="btn btn-danger text-sm" @click="handleExit">Exit</button>
+      <p class="mb-3 text-sm font-semibold text-danger">Couldn't analyze this game</p>
+      <div class="flex justify-center gap-3">
+        <Button variant="danger" class="text-sm" @click="handleExit">Exit</Button>
       </div>
-    </div>
+    </Alert>
   </div>
 </template>

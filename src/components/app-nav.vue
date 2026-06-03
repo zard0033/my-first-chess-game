@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   <!-- Top app bar — same wood as the board, with a dark wash + bevel for depth -->
   <header
     class="sticky top-0 z-30 border-b border-black/30 bg-nav-bg bg-cover bg-center shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_3px_12px_rgba(0,0,0,0.30)]"
-    style="background-image: linear-gradient(rgba(40,27,15,0.74), rgba(33,22,12,0.82)), url('/board/wood12_bg.jpg')"
+    style="background-image: linear-gradient(rgba(80,55,30,0.58), rgba(65,42,20,0.68)), url('/board/wood12_bg.jpg')"
   >
     <div class="max-w-6xl mx-auto flex items-center gap-1 px-4 h-14">
       <RouterLink to="/" class="flex items-center gap-2 mr-3" aria-label="Gambit 首頁">
@@ -67,7 +67,7 @@ const NAV_ITEMS = [
   <!-- Mobile bottom tab bar -->
   <nav
     class="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-black/30 bg-nav-bg bg-cover bg-center shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_-3px_12px_rgba(0,0,0,0.30)] pb-[env(safe-area-inset-bottom)]"
-    style="background-image: linear-gradient(rgba(40,27,15,0.74), rgba(33,22,12,0.82)), url('/board/wood12_bg.jpg')"
+    style="background-image: linear-gradient(rgba(80,55,30,0.58), rgba(65,42,20,0.68)), url('/board/wood12_bg.jpg')"
     aria-label="主要導覽"
   >
     <div class="flex">
