@@ -2,146 +2,95 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { lessons } from '@/data/lessons'
-import { LESSON_TIERS, LESSON_TIER_LABELS, COACH } from '@/types/lesson'
-import type { Lesson, LessonTier } from '@/types/lesson'
+import { LESSON_TIER_LABELS, COACH } from '@/types/lesson'
+import type { LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
+import LearnBoard, { type BoardTile } from '@/components/learn-board.vue'
 
 const router = useRouter()
 const progress = useLessonProgressStore()
 
-const DIFFICULTY_LABELS: Record<Lesson['difficulty'], string> = {
-  beginner: '入門',
-  intermediate: '進階',
-  advanced: '高階',
-}
+const TIER_PIECE: Record<LessonTier, string> = { 1: 'wP', 2: 'wN', 3: 'wR', 4: 'wK' }
 
-// Each tier (= category) gets a chess-piece emblem for the themed map header.
-const TIER_PIECE: Record<LessonTier, string> = {
-  1: 'wP', // 基礎規則
-  2: 'wN', // 基本戰術
-  3: 'wR', // 開局原則
-  4: 'wK', // 殘局技術
-}
+const trail = computed(() => [...lessons].reverse())
+const nextLesson = computed(() =>
+  [...lessons].find((l) => progress.isUnlocked(l) && !progress.isCompleted(l.id)) ?? null,
+)
 
-// Tiers that actually have lessons in the catalog, in ascending order.
-const tiers = computed<LessonTier[]>(() => {
-  const present = new Set(lessons.map((l) => l.tier))
-  return (Object.values(LESSON_TIERS) as LessonTier[])
-    .filter((t, i, arr) => arr.indexOf(t) === i && present.has(t))
-    .sort((a, b) => a - b)
+// 3-column isometric quilt
+const HX = 46
+const HY = 26
+const PATHI = [0, 1, 0, -1]
+const PAD = 38
+
+// Fill the whole iso lattice (cells where a+b is even) so tiles touch edge-to-edge into
+// one continuous quilt. Lessons walk the centre path; every other cell is a filler tile
+// (outer ones carry a decorative piece), so there are no gaps — chess.com style.
+const board = computed<{ tiles: BoardTile[]; height: number }>(() => {
+  const tiles: BoardTile[] = []
+  const tr = trail.value
+  const N = tr.length
+  for (let b = 0; b < N; b++) {
+    const lesson = tr[b]
+    const pathA = PATHI[b % 4]
+    for (let a = -1; a <= 1; a++) {
+      if (((a + b) & 1) !== 0) continue // cell exists only where (a+b) is even
+      const x = a * HX
+      const y = PAD + b * HY
+      if (a === pathA) {
+        const state = progress.isCompleted(lesson.id)
+          ? 'done'
+          : lesson.id === nextLesson.value?.id
+            ? 'current'
+            : progress.isUnlocked(lesson)
+              ? 'unlocked'
+              : 'locked'
+        tiles.push({ key: lesson.id, kind: 'lesson', x, y, state, lessonId: lesson.id })
+      } else {
+        tiles.push({ key: `d-${a}-${b}`, kind: 'deco', x, y, shade: (((a + b) / 2) & 1) as 0 | 1 })
+      }
+    }
+  }
+  const height = PAD + (N - 1) * HY + 54 / 2 + 14 + 28
+  return { tiles, height }
 })
 
-function lessonsInTier(tier: LessonTier): Lesson[] {
-  return lessons.filter((l) => l.tier === tier)
-}
-
-function tierDone(tier: LessonTier): number {
-  return lessonsInTier(tier).filter((l) => progress.isCompleted(l.id)).length
-}
-
-// The single "continue here" lesson: first unlocked, not-yet-completed lesson by order.
-const currentLessonId = computed<string | null>(() => {
-  const next = [...lessons].find((l) => progress.isUnlocked(l) && !progress.isCompleted(l.id))
-  return next?.id ?? null
-})
-
-function open(lesson: Lesson): void {
-  if (!progress.isUnlocked(lesson)) return
-  router.push(`/learn/${lesson.id}`)
+function onOpen(lessonId: string): void {
+  router.push(`/learn/${lessonId}`)
 }
 </script>
 
 <template>
-  <div class="max-w-3xl mx-auto px-4 py-8">
-    <!-- Progress banner -->
-    <header class="card p-6 mb-10">
+  <div class="max-w-sm mx-auto px-4 pt-6 pb-16">
+    <!-- Header: progress + resume -->
+    <header class="card p-5 mb-6">
       <p class="text-xs font-medium uppercase tracking-wider text-ink-faint mb-1">教練 · {{ COACH.name }}</p>
-      <h1 class="font-display font-semibold text-2xl text-ink mb-4" tabindex="-1">課程</h1>
-      <div class="flex items-center gap-4">
-        <div class="flex-1 h-1.5 bg-surface-hover rounded-full overflow-hidden">
-          <div
-            class="h-full bg-primary rounded-full transition-[width] duration-500"
-            :style="{ width: `${progress.progress * 100}%` }"
-          />
-        </div>
-        <span class="text-sm font-medium text-ink-muted tabular-nums shrink-0">
-          {{ progress.completedCount }} / {{ progress.totalCount }}
-        </span>
+      <div class="flex items-end justify-between gap-4">
+        <h1 class="font-display font-bold text-2xl text-ink" tabindex="-1">學習地圖</h1>
+        <span class="text-sm font-semibold text-ink-muted tabular-nums shrink-0">{{ progress.completedCount }} / {{ progress.totalCount }}</span>
       </div>
+      <div class="mt-3 h-2 bg-surface-hover rounded-full overflow-hidden">
+        <div class="h-full bg-primary rounded-full transition-[width] duration-500" :style="{ width: `${progress.progress * 100}%` }" />
+      </div>
+      <RouterLink
+        v-if="nextLesson"
+        :to="`/learn/${nextLesson.id}`"
+        class="mt-4 flex items-center gap-3 -mx-1 px-3 py-2.5 rounded-card hover:bg-surface-hover transition-colors"
+      >
+        <span class="shrink-0 w-10 h-10 rounded-card bg-primary/10 grid place-items-center">
+          <img :src="`/pieces/${TIER_PIECE[nextLesson.tier]}.svg`" alt="" class="w-6 h-6" draggable="false" />
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-[11px] font-medium uppercase tracking-wider text-ink-faint">下一課 · {{ LESSON_TIER_LABELS[nextLesson.tier] }}</span>
+          <span class="block font-semibold text-ink truncate">{{ nextLesson.title }}</span>
+          <span class="block text-xs text-ink-muted truncate">{{ nextLesson.summary }}</span>
+        </span>
+        <span class="shrink-0 inline-flex items-center h-9 px-4 rounded-full bg-primary text-primary-fg text-sm font-semibold">繼續</span>
+      </RouterLink>
     </header>
 
-    <section v-for="tier in tiers" :key="tier" class="mb-12">
-      <!-- Themed tier header: piece emblem + label + per-tier progress -->
-      <div class="flex items-center gap-3 mb-5">
-        <span class="shrink-0 w-11 h-11 rounded-card bg-surface-raised border border-line flex items-center justify-center">
-          <img :src="`/pieces/${TIER_PIECE[tier]}.svg`" alt="" class="w-7 h-7" draggable="false" />
-        </span>
-        <div class="min-w-0">
-          <h2 class="font-display font-semibold text-lg text-ink leading-tight">{{ LESSON_TIER_LABELS[tier] }}</h2>
-          <p class="text-xs text-ink-muted tabular-nums">{{ tierDone(tier) }} / {{ lessonsInTier(tier).length }} 完成</p>
-        </div>
-      </div>
-
-      <!-- Node path: connected lesson nodes with a vertical spine -->
-      <ul class="space-y-2.5">
-        <li
-          v-for="(lesson, i) in lessonsInTier(tier)"
-          :key="lesson.id"
-          class="relative pl-12"
-        >
-          <!-- spine connector (hidden under the last node) -->
-          <span
-            v-if="i < lessonsInTier(tier).length - 1"
-            class="absolute left-[19px] top-9 bottom-[-0.625rem] w-0.5 bg-line"
-            aria-hidden="true"
-          />
-          <!-- node circle -->
-          <span
-            class="absolute left-0 top-1 w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold z-10 ring-4 ring-surface-base"
-            :class="progress.isCompleted(lesson.id)
-              ? 'bg-success text-success-fg'
-              : lesson.id === currentLessonId
-                ? 'bg-primary text-primary-fg shadow-button'
-                : progress.isUnlocked(lesson)
-                  ? 'bg-surface-raised border-2 border-line-strong text-ink-muted'
-                  : 'bg-surface-hover text-ink-faint'"
-            aria-hidden="true"
-          >
-            <template v-if="progress.isCompleted(lesson.id)">✓</template>
-            <template v-else-if="!progress.isUnlocked(lesson)">
-              <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="1.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-            </template>
-            <template v-else>{{ i + 1 }}</template>
-          </span>
-
-          <button
-            type="button"
-            class="w-full text-left p-4 rounded-card min-h-[44px]"
-            :class="progress.isUnlocked(lesson)
-              ? lesson.id === currentLessonId
-                ? 'card-interactive cursor-pointer ring-2 ring-primary/40'
-                : 'card-interactive cursor-pointer'
-              : 'border border-line-subtle bg-surface-base/60 cursor-not-allowed opacity-70'"
-            :disabled="!progress.isUnlocked(lesson)"
-            :aria-label="progress.isUnlocked(lesson)
-              ? `${lesson.title}${progress.isCompleted(lesson.id) ? '（已完成）' : lesson.id === currentLessonId ? '（繼續）' : ''}`
-              : `${lesson.title}（未解鎖）`"
-            @click="open(lesson)"
-          >
-            <span class="flex items-center gap-2 flex-wrap">
-              <span class="font-semibold text-ink" :class="{ 'text-ink-faint': !progress.isUnlocked(lesson) }">{{ lesson.title }}</span>
-              <span
-                v-if="lesson.id === currentLessonId"
-                class="text-xs px-2 py-0.5 rounded-full bg-primary text-primary-fg shrink-0"
-              >繼續</span>
-              <span
-                class="text-xs px-2 py-0.5 rounded-full bg-surface-hover text-ink-muted shrink-0"
-              >{{ DIFFICULTY_LABELS[lesson.difficulty] }}</span>
-            </span>
-            <span class="block text-sm text-ink-muted mt-1 leading-relaxed">{{ lesson.summary }}</span>
-          </button>
-        </li>
-      </ul>
-    </section>
+    <!-- Pixi isometric board — sits directly on the page, no box -->
+    <LearnBoard :tiles="board.tiles" :height="board.height" @open="onOpen" />
+    <p class="text-center mt-2 text-xs font-medium tracking-wider uppercase text-ink-faint">起點</p>
   </div>
 </template>

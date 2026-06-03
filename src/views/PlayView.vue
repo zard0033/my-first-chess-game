@@ -71,6 +71,11 @@ function handleStart(payload: { color: 'white' | 'black'; level: number }): void
   if (lifecycle.phase.value === 'AI_THINKING') void requestAiMove()
 }
 
+// Dismissing the setup with no game started → leave the page (back to home).
+function handleClose(): void {
+  router.push('/')
+}
+
 async function handleMoveMade(payload: MoveMadePayload): Promise<void> {
   gameStore.setGameInProgress(true)
   const result = lifecycle.handlePlayerMove(payload.from, payload.to, payload.promotion)
@@ -147,6 +152,7 @@ function injectFen(): void {
       v-if="showSetup"
       :beaten-level="uiStore.highestBeatenLevel"
       @start="handleStart"
+      @close="handleClose"
     />
 
     <!-- Board + GAME_OVER overlay container -->

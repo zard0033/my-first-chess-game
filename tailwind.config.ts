@@ -7,7 +7,8 @@ export default {
     extend: {
       fontFamily: {
         sans: ['Sarasa UI TC', ...defaultTheme.fontFamily.sans],
-        display: ['Noto Serif TC', 'Georgia', ...defaultTheme.fontFamily.serif],
+        // Display = same modern sans as body (no serif) — wordmark/headings stay clean and modern.
+        display: ['Sarasa UI TC', ...defaultTheme.fontFamily.sans],
       },
       colors: {
         // Surface hierarchy — warm cream progression anchored to board palette
@@ -52,11 +53,11 @@ export default {
           ring: '#e3c186',
           fg: '#3d2210',
         },
-        // Navigation bar — deep brown anchor
+        // Navigation bar — deep walnut, same family as the board's dark squares
         nav: {
-          bg: '#2e1a0c',
-          text: '#cdb999',
-          active: '#fcf9f3',
+          bg: '#47351f',
+          text: '#dcc6a4',
+          active: '#fbf5ec',
         },
       },
       boxShadow: {

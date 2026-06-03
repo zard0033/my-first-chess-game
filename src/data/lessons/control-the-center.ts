@@ -18,7 +18,7 @@ export const controlTheCenter: Lesson = {
   order: 15,
   summary: '開局的第一原則：用兵佔據中心，再讓子力攻向中心。',
   scenario: '棋局剛開始，整盤都還沒動。貝絲會告訴你：別亂走，先想「我要爭什麼」。答案幾乎永遠是——中心。',
-  objectives: ['理解中心格 e4/d4/e5/d5 的重要性', '練習用 e4 佔據中心', '練習用馬發展並施壓中心'],
+  objectives: ['理解中心格 e4/d4/e5/d5 的重要性', '練習用 e4 佔據中心', '練習用騎士發展並施壓中心'],
   playerColor: 'white',
   steps: [
     {
@@ -43,8 +43,8 @@ export const controlTheCenter: Lesson = {
       text: '發展一個子，最好是「出子的同時還能施壓中心」的那一步。',
       arrows: [{ orig: 'g1', dest: 'f3' }],
       expectedMove: { from: 'g1', to: 'f3' },
-      hint: '找一匹還沒動過的馬，讓它跳到既能出來參戰、又順手攻擊黑方 e5 中心兵的位置。',
-      successText: '漂亮！馬一步兩用：發展了子力，又對黑方的中心兵施壓。',
+      hint: '找一個還沒動過的騎士，讓它跳到既能出來參戰、又順手攻擊黑方 e5 中心兵的位置。',
+      successText: '漂亮！騎士一步兩用：發展了子力，又對黑方的中心兵施壓。',
     },
     {
       fen: AFTER_NF3,

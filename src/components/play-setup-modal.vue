@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 type Side = 'white' | 'black' | 'random'
 
@@ -10,7 +10,15 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   start: [payload: { color: 'white' | 'black'; level: number }]
+  close: []
 }>()
+
+// Esc closes the dialog (matches the × button).
+function onKeydown(e: KeyboardEvent): void {
+  if (e.key === 'Escape') emit('close')
+}
+onMounted(() => document.addEventListener('keydown', onKeydown))
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
 // Stockfish 18 "Skill Level" UCI option: 0–20 (21 levels). Passed straight through as skillLevel.
 const LEVELS = Array.from({ length: 21 }, (_, i) => i)
@@ -38,8 +46,16 @@ function start(): void {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40">
-    <div class="card w-full max-w-sm p-6 shadow-card-hover" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-ink/40" @click.self="emit('close')">
+    <div class="card relative w-full max-w-sm p-6 shadow-card-hover" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+      <button
+        type="button"
+        class="absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full text-ink-muted hover:bg-surface-hover hover:text-ink transition-colors"
+        aria-label="關閉"
+        @click="emit('close')"
+      >
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+      </button>
       <h2 id="setup-title" class="font-display font-semibold text-xl text-ink text-center mb-1">對局設定</h2>
       <p class="text-sm text-ink-muted text-center mb-6">與引擎對弈 · 無限思考時間</p>
 
