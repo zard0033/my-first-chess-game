@@ -1,66 +1,53 @@
 <!-- STATUS -->
-Epic: UI 遊戲化 + 學習地圖重設計
-Feature: Kenney RPG UI 全站整合 + 菱形磚學習地圖
-Task: 完成並 commit+push
+Epic: 視覺設計系統重構（設計階段完成，待落地）
+Feature: Design System + Concept v2 + Claude Design 種子
+Task: 把最終設計落地到 code（Jade token → IA → 元件）
 <!-- /STATUS -->
 
-> **新 session 交接（2026-06-03 第四輪，最新，先讀這段）**
-> **RPG UI 全站遊戲化 + 菱形磚學習地圖（chess.com 風格）** 已完成並 commit+push。
-> 驗證：`npm test` 536/536 綠、build 綠、typecheck 0 錯、console 無錯。
->
-> ## ✅ 本輪完成（2026-06-03 第四輪）
->
-> ### A. Kenney RPG UI 全站整合（CC0 素材）
-> - **資產**：`public/ui/`（panel_beige、panelInset_beige、buttonLong_brown/beige 各 pressed、barYellow 分段）、`public/tiles/`（tileDirt_full、tileAutumn_full、tileStone_full 等 8 個磚塊）。
-> - **Card**（`src/components/ui/card/card.vue`）：改用 `::before` + `border-image: url('/ui/panel_beige.png') 18 fill` + `isolation: isolate`，所有 Card 自動換成棕色 RPG 面板框。
-> - **Button**（`src/components/ui/button/index.ts`）：default=buttonLong_brown（`bg-[length:100%_100%]`）、secondary=buttonLong_beige；`:active` 換 pressed 圖，視覺有按壓手感。
-> - **Progress**（`src/components/ui/progress/progress.vue`）：黃金漸層填充 `#c9872e→#e8b843`＋暖灰軌道，高度 h-3。
-> - **Dialog**（`src/components/ui/dialog/dialog-content.vue`）：同 Card 技法，改用 `panelInset_beige.png` 凹陷面板感。
->
-> ### B. 字型 fallback 修正（全站）
-> - `tailwind.config.ts` font stack 加 `'PingFang TC', 'Noto Sans CJK TC', 'Microsoft JhengHei', 'Microsoft YaHei'`。
-> - 修正 Sarasa UI TC subset 未收錄的字（擎、弈、考、設…）在 Windows 上 fallback 到細明體的問題。
->
-> ### C. 學習地圖：菱形磚版本（chess.com 風格）
-> - `src/components/learn-path.vue` 完整重寫（第 N 次，定版）。
-> - **菱形磚**（CSS `rotate(45deg)` 68px 正方形 → 96px 菱形視覺），socket + face 兩層 CSS 3D 深度。
-> - **左右鋸齒**（gi%2=0 左、gi%2=1 右），AMPLITUDE=60px，ROW_STEP=108px，磚間隙 12px，完全不疊。
-> - SVG 折線連接路徑：灰色虛線底軌＋金色已完成段落（stroke-dashoffset 描繪動畫）。
-> - 方向：由下往上（node[0]=第一課在最底）。
-> - Tier 段落標題卡繼承 RPG panel 樣式；current 金環脈動＋START pill；coach 立繪側站；capstone 放大圓角方。
-> - `LearnView.vue` 加 `.learn-page::before`（fixed，`/learn/bg.png` 0.2 opacity 全頁鋪底，無遮罩感）。
->
-> ### D. 素材壓縮
-> - `public/learn/bg.png` 161KB（原 2.5MB）、`coach.png` 105KB（原 1.7MB）、`trophy.png` 89KB（原 1.6MB）。
->
-> ### E. 歷史嘗試紀錄（給後來接手者）
-> - Kenney **等角六角磚**（hexagon-tiles.zip）曾試用為主磚，但等角柱體有 60% 側面牆，15 個疊起來全是牆看不到地面——已放棄，改回 CSS 菱形。
-> - 六角磚可考慮用於**背景地景裝飾**（路徑旁點綴），不適合當主路徑磚。
->
-> ## 護欄（本輪完全不動）
-> 棋盤 board-theme.css / chessground / lesson 內部邏輯 / 進度同步 / tests。
->
-> ## 待辦 backlog（依優先序）
-> 1. **Puzzles 闖關**（net-new，最高優先）。
-> 2. **Profile 成長頁**（`ProfileView.vue` 目前空殼）。
-> 3. **Learn Tier3/4 內容**（目前 v1=Tier1+2，14 課；Tier3 只有 1 課種子）。
-> 4. **學習地圖小優化**（可選）：路徑旁加 hex 磚背景裝飾、節點改在磚塊上方偏頂位置讓棋子更立體。
-> 5. 技術債：game-replay QA 未過（S10-04/05）；iOS Magic Link 實機補測。
+> **新 session 交接（2026-06-04 第五輪）— 視覺設計系統重構 + 概念 v2**
+> 本輪是**設計探索階段**：產出概念 v2、視覺設計系統、Claude Design 種子，並清掉 AI 生圖資產。
+> **尚未把最終 Jade 視覺落地到 production code**（中途的 emerald token 實驗已 revert）。HEAD 仍接續 30dc830。
+
+## ✅ 本輪完成
+
+### A. 概念重構 — `design/gdd/game-concept-v2.md`（新）
+- 定調從「平靜極簡 lichess 工具」→「**精緻有溫度的『棋之國度』學習遊戲**」（遊戲感 6–8、成熟不童趣）。
+- 新增 **Pillar 4 畢業導向**、輕敘事（導師＝**貝絲·哈蒙 Beth Harmon** persona 保留；視覺形象延後到 art-bible）。
+- 參考座標：Epic Seven、鳴潮、Chants of Sennaar、黑神話悟空。
+- **保留**：雙向連結 hook、累積、Nippon 標註角色色。`game-concept.md` 頂部加指引 banner（視覺/調性已被 v2 取代）。
+
+### B. 視覺設計系統 — `design/visual-design-system.md`（⚠️ 需校準）
+- 此檔是中途版（寫 emerald、缺最終 IA/徽章/eval）。**最終決策見下方，需回頭校準此檔**。
+
+### C. Claude Design 種子 — `design/`
+- `claude-design-brief.md`（一頁規格）＋ `claude-design-seed-mockup.png`（**4 頁做完 mockup**：首頁儀表板／學習地圖／對局／覆盤）。雙用：餵 Claude Design ＋ art-bible 骨架。
+
+### D. 資產清理（移除 AI 生圖）
+- 刪 `public/learn/coach.png`、`trophy.png`、`bg.png` ＋ `garden-gpt-image-2/`（gpt-image prompt）。
+- `learn-path.vue`：移除 coach 立繪＋trophy（capstone 改用 Crown lucide icon）。
+- `LearnView.vue`：移除 `bg.png` 貼圖背景（`.learn-page::before`）。
+
+### E. Token 實驗已 revert
+- 中途 Step 1 把 `primary` 改 emerald 的 `tailwind.config.ts` / `src/assets/main.css` **已還原**——設計最終定 **深青瓷 Jade**（非 emerald），token 留待正式落地一起做對。
+
+## 🎯 最終設計決策（落地的依據）
+- **色彩**：主色 **深青瓷 Jade**、accent **山吹金 #F8B500**（= 既有品牌金）、**真實木盤＋Gioco Wood 棋子不動**；**現代玻璃質感** finish；上下深青瓷細框、中間淺奶油。
+- **IA**：**首頁＝儀表板**（新對局深青瓷焦點卡 + 繼續學習 hero + 總覽含「即將推出」placeholder）、**學習＝地圖**（透視山徑、由下而上、章節 hero）、**對局**、**覆盤**。導覽＝**底部 tab**；上方 header 只放品牌＋設定齒輪（不重複 tab）。
+- **Hero 徽章**：右側**金邊翡翠錢幣**（白色棋子＋四方位刻點，**隨課程主角棋子變化**）。
+- **對局**：**無 eval**（保護心態）＋**輪流動態 badge**（輪到你／AI 思考中●●●）。
+- **覆盤**：**木色 eval**（吸棋子色：白子 #C2A37C／黑子 #4E3F36 ＋金線）、依**玩家視角**綠/紅判語「白方稍優 (+0.6)」、**關鍵一手**按鈕。
+- **棋盤**：加寬近滿版＋ **1–8 / a–h 座標**。
+- **用詞精簡**、卡片描述**一行不換行**。
+
+## 待辦 backlog（依優先序）
+1. **把最終設計落地 code**：Jade token（tailwind/main.css）→ header/nav/tab → 首頁儀表板 → 學習地圖（`rotate(45deg)`→`clip-path`/透視）→ 對局/覆盤 → 徽章/動態 badge/eval/座標。
+2. **校準 `visual-design-system.md`** 到最終決策（Jade、IA、徽章、eval、座標）。
+3. （可選）拿種子圖去 **Claude Design** 生成探索。
+4. 原 backlog：**Puzzles 闖關**（無 GDD，需規劃）、**Profile 成長頁**（空殼）、**Learn Tier3/4 內容**。
+5. 技術債：game-replay QA（S10-04/05）；iOS Magic Link 實機補測。
 
 # Active Session State
 
-**Last updated**: 2026-06-03
-**HEAD**: 待 push（工作區有未 commit 變更）
-**Tests**: 536/536 pass · **Build**: 綠 · **typecheck**: src 0 錯
-
----
-
-底下為歷史交接，保留供追溯。
-
----
-
-<!-- 以下為 2026-06-03 第三輪交接 -->
-
-> **新 session 交接（2026-06-03 第三輪）**
-> **全站 shadcn-vue 整合 + 學習地圖 chess.com 風格** 已完成並 commit+push（main 與 origin 同步、工作區乾淨）。
-> 驗證：`npm test` 536/536 綠、build 綠、src typecheck 0 錯。
+**Last updated**: 2026-06-04（第五輪 · 設計階段）
+**HEAD**: 接續 30dc830（本輪變更待 commit）
+**Tests**: 未跑（本輪未動 production 邏輯）· **Build**: 未驗（token 實驗已 revert）

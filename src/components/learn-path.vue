@@ -26,7 +26,7 @@ const TILE_VIS = Math.round(TILE * Math.SQRT2)  // 96px
 const AMPLITUDE = 60          // px left/right of container centre
 const ROW_STEP = 108          // vertical centre-to-centre (gap = 108-96 = 12px)
 const HEADER_H = 72
-const BOT_PAD = 130           // room for coach + pill
+const BOT_PAD = 130           // room for the CTA pill
 const TOP_PAD = 12
 
 // Tier colour ramp (warm RPG palette, used for socket + face gradient)
@@ -50,8 +50,6 @@ onMounted(() => {
 })
 onUnmounted(() => ro?.disconnect())
 
-const trophyError = ref(false)
-const coachError  = ref(false)
 
 // ── Group by tier ──────────────────────────────────────────────────────────────
 const groups = computed(() => {
@@ -126,20 +124,12 @@ const layout = computed(() => {
     ? pts.slice(0, progEnd + 1).map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ')
     : ''
 
-  // Current node info for coach + pill
+  // Current node info for the CTA pill
   const curNode = curIdx >= 0 ? nodes[curIdx] : null
-  const COACH_W = 82
-  const coachStyle = curNode ? (() => {
-    const col = curNode.gi % 2
-    const side = col === 0 ? 1 : -1   // coach on the opposite side
-    let x = curNode.x + side * (TILE_VIS / 2 + 36)
-    x = Math.max(COACH_W / 2 + 4, Math.min(W.value - COACH_W / 2 - 4, x))
-    return { left: `${x}px`, top: `${curNode.y + 10}px` }
-  })() : null
 
   return {
     nodes, headers, height, polyPts, progPts,
-    curNode, coachStyle,
+    curNode,
     ctaLabel: props.nodes.some(n => n.state === 'done') ? '繼續' : '開始',
   }
 })
@@ -231,17 +221,7 @@ function onActivate(node: PathNode) {
       <span class="tile__face">
         <span class="tile__inner">
           <Lock v-if="p.node.state === 'locked'" class="tile__icon tile__icon--lock" />
-          <template v-else-if="p.node.isCapstone">
-            <img
-              v-if="!trophyError"
-              :src="'/learn/trophy.png'"
-              class="tile__trophy"
-              alt=""
-              draggable="false"
-              @error="trophyError = true"
-            />
-            <Crown v-else class="tile__icon tile__icon--crown" />
-          </template>
+          <Crown v-else-if="p.node.isCapstone" class="tile__icon tile__icon--crown" />
           <img
             v-else
             :src="`/pieces/${p.node.piece}.svg`"
@@ -268,16 +248,6 @@ function onActivate(node: PathNode) {
       aria-hidden="true"
     >{{ layout.ctaLabel }}</span>
 
-    <!-- Coach standee -->
-    <img
-      v-if="layout.curNode && !coachError"
-      :src="'/learn/coach.png'"
-      class="coach"
-      alt=""
-      draggable="false"
-      :style="layout.coachStyle ?? {}"
-      @error="coachError = true"
-    />
   </div>
 </template>
 
@@ -447,7 +417,6 @@ function onActivate(node: PathNode) {
   place-items: center;
 }
 .tile__piece  { width: 100%; height: 100%; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.18)); }
-.tile__trophy { width: 100%; height: 100%; pointer-events: none; }
 .tile__icon         { width: 100%; height: 100%; }
 .tile__icon--lock   { color: #b09a82; }
 .tile__icon--crown  { color: #ffe9b0; }
@@ -529,18 +498,6 @@ function onActivate(node: PathNode) {
 @keyframes pill-bounce {
   0%, 100% { transform: translate(-50%, -100%); }
   50%       { transform: translate(-50%, calc(-100% - 6px)); }
-}
-
-/* ── Coach standee ── */
-.coach {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  width: 82px;
-  height: auto;
-  pointer-events: none;
-  mix-blend-mode: multiply;
-  filter: drop-shadow(0 4px 8px rgba(61, 34, 16, .22));
-  z-index: 150;
 }
 
 /* ── Reduced motion ── */

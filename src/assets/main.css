@@ -14,8 +14,8 @@
     --card-foreground: 24 58% 15%;
     --popover: 40 56% 97%;
     --popover-foreground: 24 58% 15%;
-    --primary: 24 20% 45%; /* primary umber #8b6f5c */
-    --primary-foreground: 40 56% 97%; /* primary.fg #fcf9f3 */
+    --primary: 164 60% 27%; /* primary jade #1c7059 */
+    --primary-foreground: 0 0% 100%; /* primary.fg #ffffff */
     --secondary: 38 56% 90%; /* surface.raised #f4ead8 */
     --secondary-foreground: 24 58% 15%;
     --muted: 37 48% 88%; /* surface.hover #efe4d2 */
@@ -26,7 +26,7 @@
     --destructive-foreground: 40 56% 97%;
     --border: 38 36% 81%; /* line #e0d3bd */
     --input: 38 36% 81%;
-    --ring: 24 20% 45%; /* primary */
+    --ring: 164 60% 27%; /* primary jade */
     --radius: 0.625rem; /* modernization: slightly larger base radius */
   }
 

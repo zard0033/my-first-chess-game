@@ -96,15 +96,4 @@ function onOpen(lessonId: string): void {
   min-height: 100vh;
   position: relative;
 }
-.learn-page::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: url('/learn/bg.png');
-  background-size: 420px auto;
-  background-repeat: repeat;
-  opacity: 0.2;
-  pointer-events: none;
-}
 </style>

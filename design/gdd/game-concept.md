@@ -3,6 +3,10 @@
 *Created: 2026-05-27*
 *Status: Draft*
 
+> ⚠️ **2026-06-04 — 調性／視覺識別／遊戲化已由 [`game-concept-v2.md`](./game-concept-v2.md) 修訂取代。**
+> 本文的 **Visual Identity Anchor §**（lichess-clean／calm-default／board-recedes）**作廢**，改採 v2 的「精緻有溫度的棋之國度」方向（深青瓷＋山吹金＋玻璃質感）。
+> 本文其餘營運細節（MVP、Core Loop、雙向連結 hook、風險、技術、棋盤標註的 Nippon 角色色）**仍有效**。
+
 ---
 
 ## Elevator Pitch

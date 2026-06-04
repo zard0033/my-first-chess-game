@@ -26,10 +26,12 @@ export default {
       colors: {
         // Surface hierarchy — warm cream progression anchored to board palette
         surface: {
-          base: '#faf6f0',   // page background
-          card: '#fcf9f3',   // card/panel — slightly lifted off the page
-          raised: '#f4ead8', // raised inner surface (= white piece fill)
-          hover: '#efe4d2',  // hover state
+          base: '#faf6f0',     // page background
+          card: '#fcf9f3',     // card/panel — slightly lifted off the page
+          raised: '#f4ead8',   // raised inner surface (= white piece fill)
+          hover: '#efe4d2',    // hover state
+          deep: '#103029',     // dark anchor: nav, immersive map world (jade)
+          'deep-2': '#18443a', // raised layer inside a deep-anchored region
         },
         line: {
           DEFAULT: '#e0d3bd', // hairline border / divider
@@ -37,15 +39,18 @@ export default {
           strong: '#cdb999',  // emphasized border
         },
         ink: {
-          DEFAULT: '#3d2210', // primary text (= dark piece stroke)
-          muted: '#7a5c44',   // secondary text
-          faint: '#a88c76',   // placeholder / tertiary
+          DEFAULT: '#3d2210',      // primary text (= dark piece stroke)
+          muted: '#7a5c44',        // secondary text
+          faint: '#a88c76',        // placeholder / tertiary
+          'on-deep': '#e7f1ec',    // text on a deep anchor (nav, map world)
+          'on-deep-dim': '#9bbdb1',// secondary text on a deep anchor
         },
-        // Primary action — warm umber (= dark board square)
+        // Primary action — 深青瓷 jade #1c7059
         primary: {
-          DEFAULT: '#8b6f5c',
-          dark: '#6f5645',
-          fg: '#fcf9f3',
+          DEFAULT: '#1c7059',
+          dark: '#155747',
+          soft: '#cfe9e0', // focus halo / low-intensity selected fill
+          fg: '#ffffff',
           foreground: 'hsl(var(--primary-foreground))', // shadcn alias
         },
         success: {
@@ -67,11 +72,36 @@ export default {
           ring: '#e3c186',
           fg: '#3d2210',
         },
-        // Navigation bar — deep walnut, same family as the board's dark squares
+        // Brand gold — 山吹色 yamabuki #f8b500 (= keySquare / eval peak; the one "moment" gold).
+        // Named `gold` because shadcn already owns `accent` (= surface.raised).
+        gold: {
+          DEFAULT: '#f8b500', // focus ring, progress, CTA gradient, nav indicator — fill/indicator only
+          light: '#ffc94d',   // CTA gradient top edge
+          dark: '#8f6200',    // the only gold allowed for text (on cream ≈ 4.95:1 AA)
+          ink: '#3a2408',     // dark text on a gold fill (≈ 8.1:1 AAA)
+        },
+        // Learning-map tile ramp (jade) + connector trail — the POP layer.
+        map: {
+          tile: {
+            top: '#46c7a3',
+            face: '#1f9e7a',
+            socket: '#0f6e54',
+            'lock-top': '#ebe2d2',
+            'lock-face': '#d8cdb9',
+            'lock-socket': '#b5a790',
+          },
+          trail: {
+            DEFAULT: '#f8b500', // unlocked path (= gold)
+            base: '#d4c5a2',    // locked path track
+          },
+        },
+        // Navigation bar — deep forest walnut (solid dark anchor, replaces wood photo)
         nav: {
-          bg: '#8b6f5c',  // matches board dark-square colour (was too-dark walnut)
-          text: '#f4ead8',
-          active: '#ffffff',
+          bg: '#103029',          // = surface.deep (jade anchor)
+          text: '#e7f1ec',        // default link text
+          dim: '#9bbdb1',         // inactive link text
+          'active-bg': '#18443a', // active pill background (= surface.deep-2)
+          active: '#ffffff',      // active link text
         },
         // shadcn-vue semantic colors → CSS variables (warm-mapped in main.css :root).
         // Coexist with the warm tokens above; do not replace them.
