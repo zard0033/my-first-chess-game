@@ -1,12 +1,12 @@
 <!-- STATUS -->
 Epic: 視覺設計系統重構（設計階段完成，待落地）
-Feature: Design System + Concept v2 + Claude Design 種子
+Feature: Design System 校準完成，品牌 Logo 待定
 Task: 把最終設計落地到 code（Jade token → IA → 元件）
 <!-- /STATUS -->
 
-> **新 session 交接（2026-06-04 第五輪）— 視覺設計系統重構 + 概念 v2**
-> 本輪是**設計探索階段**：產出概念 v2、視覺設計系統、Claude Design 種子，並清掉 AI 生圖資產。
-> **尚未把最終 Jade 視覺落地到 production code**（中途的 emerald token 實驗已 revert）。HEAD 仍接續 30dc830。
+> **新 session 交接（2026-06-04 第六輪）— VDS 校準 + Logo 探索**
+> 本輪完成 `visual-design-system.md` 校準（emerald → Jade），並初探品牌 logo（AI 工具限制，SVG 手刻效果不佳，暫停）。
+> **尚未把最終 Jade 視覺落地到 production code**。HEAD 仍接續 30dc830。
 
 ## ✅ 本輪完成
 
@@ -41,13 +41,14 @@ Task: 把最終設計落地到 code（Jade token → IA → 元件）
 
 ## 待辦 backlog（依優先序）
 1. **把最終設計落地 code**：Jade token（tailwind/main.css）→ header/nav/tab → 首頁儀表板 → 學習地圖（`rotate(45deg)`→`clip-path`/透視）→ 對局/覆盤 → 徽章/動態 badge/eval/座標。
-2. **校準 `visual-design-system.md`** 到最終決策（Jade、IA、徽章、eval、座標）。
+2. **品牌 Logo**：AI 工具（外部）繼續測試，或委外製作；需要 Jade 版 + 白色版各一。
 3. （可選）拿種子圖去 **Claude Design** 生成探索。
 4. 原 backlog：**Puzzles 闖關**（無 GDD，需規劃）、**Profile 成長頁**（空殼）、**Learn Tier3/4 內容**。
 5. 技術債：game-replay QA（S10-04/05）；iOS Magic Link 實機補測。
 
 # Active Session State
 
-**Last updated**: 2026-06-04（第五輪 · 設計階段）
+**Last updated**: 2026-06-04（第六輪 · VDS 校準）
 **HEAD**: 接續 30dc830（本輪變更待 commit）
-**Tests**: 未跑（本輪未動 production 邏輯）· **Build**: 未驗（token 實驗已 revert）
+**本輪變更檔案**: `design/visual-design-system.md`（校準完成）
+**Tests**: 未跑（本輪未動 production 邏輯）· **Build**: 未驗

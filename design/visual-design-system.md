@@ -5,7 +5,7 @@
 >
 > **適用平台**：PC Chrome/Edge + iPhone Safari（PWA）。
 > **技術**：Vue 3 + Tailwind v3（`tailwind.config.ts`）+ shadcn-vue HSL 變數（`src/assets/main.css`）。
-> **配色方向**：A 翡翠氈綠 + 金（Emerald Felt + Gold），accent 採既有品牌金 山吹色 `#F8B500`。
+> **配色方向**：深青瓷 Jade + 金，accent 採既有品牌金 山吹色 `#F8B500`。
 
 ---
 
@@ -73,8 +73,8 @@
 | `surface.card` | `#FCF9F3` | KEEP | 卡片/面板 |
 | `surface.raised` | `#F4EAD8` | KEEP | 抬升表面（白子色） |
 | `surface.hover` | `#EFE4D2` | KEEP | hover 態 |
-| `surface.deep` | `#1B2A20` | **NEW** | 深色錨：nav 底、地圖世界沉浸區底 |
-| `surface.deep-2` | `#233527` | **NEW** | 深色區內的抬升層（深區卡片） |
+| `surface.deep` | `#103029` | **NEW** | 深色錨：nav 底、地圖世界沉浸區底 |
+| `surface.deep-2` | `#18443A` | **NEW** | 深色區內的抬升層（深區卡片） |
 
 #### 文字 Ink（暖棕，與綠調和；維持高對比）
 
@@ -83,19 +83,19 @@
 | `ink.DEFAULT` | `#3D2210` | KEEP | ≈ 10:1 ✓ AAA |
 | `ink.muted` | `#7A5C44` | KEEP | ≈ 5.6:1 ✓ AA |
 | `ink.faint` | `#A88C76` | KEEP | 裝飾/placeholder（不作正文） |
-| `ink.on-deep` | `#EAF3EC` | **NEW** | 深色錨上的文字（on `surface.deep` ≈ 13:1 ✓ AAA） |
-| `ink.on-deep-dim` | `#9DB5A6` | **NEW** | 深色錨上的次級文字 |
+| `ink.on-deep` | `#E7F1EC` | **NEW** | 深色錨上的文字（on `surface.deep` ≈ 12:1 ✓ AAA） |
+| `ink.on-deep-dim` | `#9BBDB1` | **NEW** | 深色錨上的次級文字 |
 
-#### Primary（氈綠 — 取代原暖棕 `#8b6f5c`）
+#### Primary（深青瓷 Jade — 取代原暖棕 `#8b6f5c`）
 
 | Token | Hex | 狀態 | 備註 |
 | --- | --- | --- | --- |
-| `primary.DEFAULT` | `#15803D` | **CHANGE** | 主按鈕/連結/焦點。白字對比 ≈ 5.0:1 ✓ AA |
-| `primary.dark` | `#166534` | **CHANGE** | hover/pressed；小字白底用此（白字 ≈ 5.9:1） |
-| `primary.soft` | `#CDE7D6` | **NEW** | primary 的柔光環/低強度底（focus ring halo、selected 底） |
+| `primary.DEFAULT` | `#1C7059` | **CHANGE** | 主按鈕/連結/焦點。白字對比 ≈ 4.5:1 ✓ AA |
+| `primary.dark` | `#155747` | **CHANGE** | hover/pressed；小字白底用此（白字 ≈ 5.2:1） |
+| `primary.soft` | `#CFE9E0` | **NEW** | primary 的柔光環/低強度底（focus ring halo、selected 底） |
 | `primary.fg` | `#FFFFFF` | **CHANGE** | primary 上的前景（原 `#fcf9f3`，改純白拉高對比） |
 
-> shadcn HSL 同步（`src/assets/main.css`）：`--primary: 142 72% 29%;`（#15803D）、`--primary-foreground: 0 0% 100%;`、`--ring: 142 72% 29%;`。
+> shadcn HSL 同步（`src/assets/main.css`）：`--primary: 164 60% 28%;`（#1C7059）、`--primary-foreground: 0 0% 100%;`、`--ring: 164 60% 28%;`。
 
 #### Accent（山吹金 — 對齊既有品牌色，非新造）
 
@@ -134,9 +134,9 @@
 
 | Token | Hex | 用途 |
 | --- | --- | --- |
-| `map.tile.top` | `#3FD083` | 磚塊頂面高光（漸層上緣） |
-| `map.tile.face` | `#1E9E5A` | 磚塊主面（對 `surface.base` 對比 ≈ 3.2:1，明顯跳出） |
-| `map.tile.socket` | `#0F6B3C` | 磚塊底座/陰影面（漸層下緣 + 下沉層） |
+| `map.tile.top` | `#46C7A3` | 磚塊頂面高光（漸層上緣） |
+| `map.tile.face` | `#1F9E7A` | 磚塊主面（對 `surface.base` 對比 ≈ 3.2:1，明顯跳出） |
+| `map.tile.socket` | `#0F6E54` | 磚塊底座/陰影面（漸層下緣 + 下沉層） |
 | `map.tile.lock.top` | `#EBE2D2` | 鎖定磚 top（去飽和） |
 | `map.tile.lock.face` | `#D8CDB9` | 鎖定磚 face |
 | `map.tile.lock.socket` | `#B5A790` | 鎖定磚 socket |
@@ -203,15 +203,21 @@ Fallback stack 維持 `tailwind.config.ts` 既有設定（PingFang TC → Noto S
 
 ## 5. Nav Bar 設計方向
 
-**移除木紋照片底，改純色深氈綠**（`surface.deep #1B2A20`），active 用實心 pill + accent 指示條 + 字重提升取代 `bg-white/10`。檔案：`src/components/app-nav.vue`。
+### 5.0 Header + Tab 結構
+
+- **頂部 header**：只放品牌 logo（Gambit 字標）+ 右側設定齒輪圖示。**不放**任何導覽項目，不重複底部 tab。底色 `surface.deep #103029`，高度 48px（含安全區）。
+- **主導覽**：**底部 tab bar**（4 項：學習 / 對弈 / 闖關 / 我的）；加 `pb-[env(safe-area-inset-bottom)]` 避免 iPhone home indicator 遮蓋。
+- 桌面寬螢幕（≥ 768px）可改為左側 sidebar，但 token 與狀態規格相同。
+
+**移除木紋照片底，改純色深青瓷 Jade**（`surface.deep #103029`），active 用實心 pill + accent 指示條 + 字重提升取代 `bg-white/10`。檔案：`src/components/app-nav.vue`。
 
 ### 5.1 四態規範
 
 | 態 | 樣式 |
 | --- | --- |
-| default | 文字 `ink.on-deep-dim #9DB5A6`，weight 500，透明底 |
-| hover | 文字提亮至 `ink.on-deep #EAF3EC`，底 `white/8`，150ms transition |
-| **active** | 文字 `#FFFFFF` weight 700 + 實心 pill 底 `#2E5A3E`（白字對比 ≈ 7.9:1 ✓ AAA）+ **底部 3px `accent` 指示條** + 內陰影微光 |
+| default | 文字 `ink.on-deep-dim #9BBDB1`，weight 500，透明底 |
+| hover | 文字提亮至 `ink.on-deep #E7F1EC`，底 `white/8`，150ms transition |
+| **active** | 文字 `#FFFFFF` weight 700 + 實心 pill 底 `#1C7059`（= `primary.DEFAULT`，白字對比 ≈ 4.5:1 ✓ AA）+ **底部 3px `accent` 指示條** + 內陰影微光 |
 | focus-visible | 2px `accent` 外環（鍵盤導覽用，不可移除） |
 
 ### 5.2 規範
@@ -224,9 +230,22 @@ Fallback stack 維持 `tailwind.config.ts` 既有設定（PingFang TC → Noto S
 
 ## 6. 棋盤與棋子（維持現有配置）
 
-**不更動**。棋盤 = `/board/wood12.jpg` 整張木紋貼圖（格子烤進圖）；棋子 = Gioco Wood SVG set（`/pieces/*.svg`）；黑子維持 `--piece-dark-brightness: 1.2` filter。座標維持 `#3d2210` + 奶油 text-stroke。
+**不更動**。棋盤 = `/board/wood12.jpg` 整張木紋貼圖（格子烤進圖）；棋子 = Gioco Wood SVG set（`/pieces/*.svg`）；黑子維持 `--piece-dark-brightness: 1.2` filter。
 
 設計系統**只**規範疊加在棋盤上的互動高亮（§3.3）——確保金/綠高亮在木紋上讀得清楚，與全站 accent/primary 一致。`src/assets/board-theme.css` 本體不動。
+
+### 6.1 棋盤顯示規格（校準新增）
+
+- **寬度**：加寬至近滿版——左右 padding 縮至最小（手機 ≤ 8px），棋盤佔主視覺。桌面側欄（棋譜/控制）與棋盤並排，不壓縮棋盤。
+- **座標**：顯示 1–8（左側/右側）＋ a–h（上方/下方）。
+  - 字型：`notation`（7–8px，`tabular-nums`，weight 500）
+  - 色：`#3D2210`（= `ink.DEFAULT`）+ 1px 奶油 text-stroke 確保在深色棋格上可讀
+- **對局畫面**：**不顯示 eval 條**（保護心態，無 eval）
+- **覆盤畫面**：顯示 eval 條，採**木色**而非標準黑白——
+  - 白方優勢色：`#C2A37C`（吸白子木色）
+  - 黑方優勢色：`#4E3F36`（吸黑子木色）
+  - 分界金線：`#F8B500`（= `accent`）
+  - eval 條寬度：8px，貼棋盤左側
 
 ---
 
@@ -245,7 +264,45 @@ Fallback stack 維持 `tailwind.config.ts` 既有設定（PingFang TC → Noto S
 
 ---
 
-## 8. Elevation / Shadow / Radius / Spacing（沿用既有）
+## 8. 各頁面視覺補充規格
+
+### 8.1 首頁（儀表板）
+
+- **Hero greeting card**：全幅 glass 面板，底色 `surface.deep #103029`，`backdrop-blur: 10px`，`border: 1px solid rgba(255,255,255,.16)`。文字用 `ink.on-deep`；次要用 `ink.on-deep-dim`。
+- **greeting 文字**：`h2`（Noto Serif TC 700），如「今天好，一帆？」
+- **焦點 CTA 卡**（新對局）：放大版 glass 卡，按鈕用 `primary.DEFAULT #1C7059` + accent 金邊。
+- **繼續學習 hero**：奶油底（`surface.base`）區，卡片 `surface.card`，進度條用 `primary.DEFAULT`。
+- **總覽 / 即將推出 placeholder**：靜態卡，鎖定態用 `map.tile.lock.*` 去飽和配色，文字 `ink.muted`。
+
+### 8.2 對局畫面（輪流動態 badge）
+
+棋盤上方（或下方）顯示當前回合狀態，**不顯示 eval 條**：
+
+| 狀態 | 樣式 |
+| --- | --- |
+| **輪到你** | jade 實心膠囊 `primary.DEFAULT`，白字「輪到你」，weight 700，無動效 |
+| **AI 思考中** | 深底 `surface.deep` 玻璃膠囊，文字 `ink.on-deep-dim`「AI 思考中」＋ 3 點動效 `●●●`（`opacity` 淡入淡出，250ms stagger，reduced-motion 下靜態顯示「●●●」） |
+
+### 8.3 覆盤畫面
+
+- **木色 eval 條**：見 §6.1，貼棋盤左側 8px 寬條。
+- **玩家視角判語**：以白方/黑方為主詞，正優勢顯示綠色標籤（`success.DEFAULT`），負優勢顯示暖紅（`danger.DEFAULT`）。格式：「白方稍優（+0.6）」「黑方佔優（−1.4）」。
+- **關鍵一手按鈕**：accent 金 CTA（`linear-gradient(180deg, accent.light, accent)`），文字 `accent.ink`，icon = Lucide `Zap`（閃電），表示最大轉折點跳轉。
+
+### 8.4 Hero 徽章（學習地圖 header 右側）
+
+顯示當前章節的主角棋子，強化「棋之國度」儀式感：
+
+- **形狀**：圓形幣章，直徑 56px（手機）/ 72px（桌面）
+- **邊框**：2px 山吹金 `#F8B500`，外圍微光 `0 0 10px rgba(248,181,0,.4)`
+- **底色**：`primary.DEFAULT #1C7059`（翡翠底）
+- **棋子圖示**：白色 SVG，居中，高 60%。**隨章節主角棋子變化**（兵 / 馬 / 車 / 象 / 后 / 王）
+- **四方位刻點**：上下左右各 1 顆 4px 圓點，色 `#F8B500`，距邊 6px
+- **無文字**（純圖形，不放數字或章節名）
+
+---
+
+## 9. Elevation / Shadow / Radius / Spacing（沿用既有）
 
 - **Shadow**（KEEP，暖棕柔陰影）：`shadow.card`、`shadow.card-hover`、`shadow.button`。新增深色錨內的卡片用 `surface.deep-2` 抬升（深區不靠陰影靠明度）。
 - **Radius**（KEEP）：`btn 0.5rem`、`card 0.75rem`、`lg-card 1rem`、shadcn `--radius 0.625rem`。
@@ -254,7 +311,7 @@ Fallback stack 維持 `tailwind.config.ts` 既有設定（PingFang TC → Noto S
 
 ---
 
-## 9. Anti-patterns（應避開）
+## 10. Anti-patterns（應避開）
 
 - ❌ 同色系、同明度堆疊（現況病灶）——任何畫面缺少深色錨點就會回到「灰撲撲」。
 - ❌ 照片材質（木紋 jpg）當大面積 UI 底——噪點高、吃對比、active 態被吞。
@@ -268,7 +325,7 @@ Fallback stack 維持 `tailwind.config.ts` 既有設定（PingFang TC → Noto S
 
 ---
 
-## 10. Pre-delivery Checklist
+## 11. Pre-delivery Checklist
 
 ### 視覺品質
 - [ ] 每個畫面有明確深色錨點（nav / 地圖世界 / 棋盤），不全是中明度暖棕。
@@ -300,15 +357,18 @@ Fallback stack 維持 `tailwind.config.ts` 既有設定（PingFang TC → Noto S
 
 ---
 
-## 11. 落地對照表（實作時照此改）
+## 12. 落地對照表（實作時照此改）
 
 | 檔案 | 改什麼 |
 | --- | --- |
-| `tailwind.config.ts` | `primary.*` 改綠（§3.1）；新增 `accent.*`（= 山吹金 `#F8B500` 家族）、`surface.deep/-2`、`ink.on-deep/-dim`、`map.*`（§3.2）。`nav.bg` 改 `#1B2A20`、`nav.active` 機制改 pill（§5）。其餘 KEEP。 |
-| `src/assets/main.css` | shadcn HSL 同步：`--primary`、`--primary-foreground`、`--ring` 改綠值（§3.1）。 |
+| `tailwind.config.ts` | `primary.*` 改 Jade `#1C7059`（§3.1）；新增 `accent.*`（= 山吹金 `#F8B500` 家族）、`surface.deep #103029`、`surface.deep-2 #18443A`、`ink.on-deep #E7F1EC`、`ink.on-deep-dim #9BBDB1`、`map.*`（§3.2）。`nav.bg` 改 `#103029`、`nav.active` 機制改 pill `#1C7059`（§5）。其餘 KEEP。 |
+| `src/assets/main.css` | shadcn HSL 同步：`--primary: 164 60% 28%`、`--primary-foreground: 0 0% 100%`、`--ring: 164 60% 28%`（§3.1）。 |
 | `src/assets/fonts.css` | **不動**（字型維持）。 |
-| `src/components/app-nav.vue` | 移除 `wood12_bg.jpg` 背景，改 `surface.deep` 純色；active 改實心 pill + accent 指示條（§5）。 |
-| `src/components/learn-path.vue` | `rotate(45deg)` → `clip-path`；磚塊色改 `map.*`；CTA/trail 改 accent 山吹金；當前磚呼吸動效改 `transform/opacity`（§7）。 |
+| `src/components/app-nav.vue` | 移除 `wood12_bg.jpg` 背景，改 `surface.deep #103029` 純色；active 改實心 pill `#1C7059` + accent 指示條；加頂部 header（brand + gear）（§5）。 |
+| `src/views/HomeView.vue`（或首頁元件） | 改為儀表板 IA：greeting glass card + 繼續學習 hero + 總覽（§8.1）。 |
+| `src/views/GameView.vue`（或對局元件） | 加輪流動態 badge（§8.2）；移除 eval 條（§6.1）。 |
+| `src/views/ReviewView.vue`（或覆盤元件） | 加木色 eval 條（§6.1）；判語文字（§8.3）；關鍵一手按鈕（§8.3）。 |
+| `src/components/learn-path.vue` | `rotate(45deg)` → `clip-path`；磚塊色改 `map.*`；CTA/trail 改 accent 山吹金；當前磚呼吸動效改 `transform/opacity`；加 Hero 徽章（§8）。 |
 | `src/assets/board-theme.css`、move-annotation 系統 | **不動**（棋盤/棋子/標註/評估條由上游管轄，§3.3）。 |
 
 > 本任務只交付本文件。實際改 code 為後續獨立任務。
