@@ -1,8 +1,13 @@
 /**
  * Self-hosted fonts (CSP font-src 'self' compatible).
- * Body/UI: Sarasa UI TC (更紗黑體) — Iosevka Latin + Source Han Sans CJK in one
- * consistent family. Display headings: Noto Serif TC (明體襯線, 殿堂/莊嚴 gravitas).
- * All subsetted to the ~900 glyphs used in the app; font-display: swap (no FOIT).
+ * 字型角色（依 Gambit Design System / visual-design-system §4）：
+ *   - Body / UI:      Sarasa UI TC（更紗黑體）400 / 700
+ *   - Display / 標題: BIZ UDPMincho（日文 UD 明朝，殿堂感）600–700；繁中缺字 fallback Noto Serif TC
+ *   - 課程內文:       LXGW WenKai TC（霞鶩文楷，溫暖楷體）400
+ *   - 數字 / 棋譜:     Cubic 11（11px 點陣像素字）
+ *   - 品牌字標:       Cinzel（GAMBIT wordmark）
+ * CJK 字型一律自架並 subset（繁中常用區 + ASCII + 數字 + 標點全形符號，不靠掃描文案）。
+ * 全部 font-display: swap（避免 FOIT）。
  */
 
 /* ---- Sarasa UI TC (body + UI, Latin + Chinese) ---- */
@@ -21,11 +26,49 @@
   src: url('/fonts/sarasa-ui-tc-700.woff2') format('woff2');
 }
 
-/* ---- Noto Serif TC (display headings — 殿堂/莊嚴 gravitas) ---- */
+/* ---- BIZ UDPMincho (display 標題 — 殿堂/莊嚴 gravitas) ----
+   日文 UD 明朝；繁中特有字（臺/灣等）若缺，由 fallback stack 的 Noto Serif TC 補上。
+   標題層只用 600–700（SoT §4.3：襯線不排內文）。 */
+@font-face {
+  font-family: 'BIZ UDPMincho';
+  font-style: normal;
+  font-weight: 600 700;
+  font-display: swap;
+  src: url('/fonts/biz-udpmincho-700.woff2') format('woff2');
+}
+
+/* ---- Noto Serif TC (BIZ 繁中缺字的襯線 fallback) ---- */
 @font-face {
   font-family: 'Noto Serif TC';
   font-style: normal;
   font-weight: 600 700;
   font-display: swap;
   src: url('/fonts/noto-serif-tc-600.woff2') format('woff2');
+}
+
+/* ---- LXGW WenKai TC (課程內文 — 溫暖楷體) ---- */
+@font-face {
+  font-family: 'LXGW WenKai TC';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/lxgw-wenkai-tc-400.woff2') format('woff2');
+}
+
+/* ---- Cubic 11 (數字 / 棋譜 / 評分 — 點陣像素字) ---- */
+@font-face {
+  font-family: 'Cubic 11';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/cubic-11.woff2') format('woff2');
+}
+
+/* ---- Cinzel (GAMBIT 品牌字標 — 拉丁 serif) ---- */
+@font-face {
+  font-family: 'Cinzel';
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+  src: url('/fonts/cinzel-wordmark.woff2') format('woff2');
 }

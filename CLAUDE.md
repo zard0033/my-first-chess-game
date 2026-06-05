@@ -75,6 +75,22 @@ See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 > **First session?** If the project has no engine configured and no game concept,
 > run `/start` to begin the guided onboarding flow.
 
+## Visual Design System (Gambit)
+
+**全站視覺 SoT = `design/gambit-design-system/`**。
+實作任何 UI 前先讀其 `README.md` + `colors_and_type.css`。以下為非協商鐵則：
+
+- **色彩**：每屏都要 deep-jade 錨 `#103029`；品牌金 `#F8B500` 只用於 focus / reward 的
+  fill / indicator，**絕不當內文**（內文金用 `#8F6200` 且限大字）；內容區 warm cream；陰影暖棕非純黑。
+- **字型（Tailwind family）**：標題 `font-display`（BIZ UDPMincho 明朝）、內文 `font-sans`（Sarasa）、
+  課程內文 `font-lesson`（LXGW WenKai）、數字 / 棋譜 `font-num`（Cubic 11, tabular）、品牌字標
+  `font-brand`（Cinzel）。內文最小 16px（避免 iOS auto-zoom）。
+- **Icon**：Lucide line icons 單一字族；**絕不用 emoji 當功能 icon**。
+- **導覽**：底部 tab 為主導覽；頂部 header 只放品牌 + 設定齒輪。
+- **動效**：150–300ms，只動 transform / opacity（box-shadow 動畫禁止）；尊重 `prefers-reduced-motion`。
+- **觸控目標 ≥ 44×44px**。棋盤 / 棋子 / 標註 / eval 為上游所有，**不重新上色**。
+- **繁中語氣**：成熟、平靜、低壓力，稱呼「你」；無 streak / timer / leaderboard。
+
 ## Coding Standards
 
 @.claude/docs/coding-standards.md

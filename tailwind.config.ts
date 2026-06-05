@@ -16,12 +16,27 @@ export default {
           'Microsoft JhengHei', 'Microsoft YaHei', // Windows Traditional / Simplified
           ...defaultTheme.fontFamily.sans,
         ],
+        // 標題 — BIZ UDPMincho 明朝（殿堂感）；繁中缺字 fallback Noto Serif TC
         display: [
-          'Sarasa UI TC',
-          'PingFang TC', 'PingFang SC',
-          'Microsoft JhengHei', 'Microsoft YaHei',
-          ...defaultTheme.fontFamily.sans,
+          'BIZ UDPMincho', 'Noto Serif TC',
+          'PingFang TC', 'Songti TC',
+          'Microsoft JhengHei',
+          ...defaultTheme.fontFamily.serif,
         ],
+        // 課程內文 — LXGW WenKai TC 楷體（溫暖閱讀）
+        lesson: [
+          'LXGW WenKai TC', 'Noto Serif TC',
+          'PingFang TC', 'Songti TC',
+          'Microsoft JhengHei',
+          ...defaultTheme.fontFamily.serif,
+        ],
+        // 數字 / 棋譜 / 評分 — Cubic 11 點陣像素字（tabular fallback Sarasa）
+        num: [
+          'Cubic 11', 'Sarasa UI TC',
+          ...defaultTheme.fontFamily.mono,
+        ],
+        // GAMBIT 品牌字標
+        brand: ['Cinzel', 'BIZ UDPMincho', 'Noto Serif TC', 'serif'],
       },
       colors: {
         // Surface hierarchy — warm cream progression anchored to board palette

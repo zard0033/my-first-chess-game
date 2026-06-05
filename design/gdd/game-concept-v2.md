@@ -122,7 +122,7 @@ v1 的「看著一棵樹長大」仍成立；v2 補上**情感層**：打開 App
 箭頭／keySquare／eval 的 Nippon 角色色（青磁/利休鼠/淺蔥/紅鬱金/山吹/胡粉/桑染）**繼續沿用**——「對局當下不評判、不羞辱每一手」這個原則即使在有遊戲感的外殼下依然正確。權威：ADR-0006 + control-manifest。
 
 ### 權威與優先序（沿用）
-**accessibility-requirements.md** 仍 takes precedence（對比、reduced-motion、box-shadow 動畫禁令、forced-colors）。棋盤/標註/eval 子系統由 game-concept（本 §）＋ ADR-0006 ＋ control-manifest 管轄。app chrome 由 `design/visual-design-system.md` 管轄（**待把主色從翡翠 #15803D 校準為 Jade**）。
+**accessibility-requirements.md** 仍 takes precedence（對比、reduced-motion、box-shadow 動畫禁令、forced-colors）。棋盤/標註/eval 子系統由 game-concept（本 §）＋ ADR-0006 ＋ control-manifest 管轄。app chrome 由 `design/gambit-design-system/` 管轄（視覺重構新 SoT；主色 Jade + 玻璃質感已定案）。
 
 ---
 
@@ -143,7 +143,7 @@ v1 的「看著一棵樹長大」仍成立；v2 補上**情感層**：打開 App
 
 ## 下游影響（待辦，非本文範圍）
 - v1 `game-concept.md` 的「Visual Identity Anchor」§ → 以本文取代（已於 v1 頂部加指引）。
-- `design/visual-design-system.md` → 主色翡翠 **改 Jade**、補玻璃質感規範。
+- ✅ 視覺系統 → 已由 `design/gambit-design-system/` 取代（Jade 主色 + 玻璃質感定案、5 字型自架）。
 - `learn-path.vue` 等實作 → tone 落地（後續 Step 2–4）。
 - 既有 GDD 若引用舊「calm/board-recedes」調性，逐份輕校（不急、不連鎖打掉）。
 

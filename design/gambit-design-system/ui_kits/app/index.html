@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>Gambit — App UI Kit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@900&family=BIZ+UDPMincho:wght@400;700&family=Cubic+11&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/lxgwwenkai-regular.css">
+<link rel="stylesheet" href="colors_and_type.css">
+<style>
+  html, body { margin: 0; -webkit-font-smoothing: antialiased; }
+  body {
+    background: radial-gradient(120% 90% at 50% 0%, #f6f0e6 0%, #e8e0d3 70%);
+  }
+  /* press feedback — transform/opacity only (a11y) */
+  .g-press { transition: transform var(--duration-fast) var(--ease-standard),
+                          opacity  var(--duration-fast) var(--ease-standard); }
+  .g-press:active { transform: scale(0.97); opacity: 0.92; }
+  /* breathe: current quest-map node */
+  @keyframes gBreathe { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+  @keyframes gDots    { 0%,100% { opacity: 1; } 50% { opacity: 0.3;  } }
+  .g-breathe { animation: gBreathe 2s ease-in-out infinite; }
+  .g-dots    { animation: gDots 1.1s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .g-breathe, .g-press { animation: none; transition: none; }
+    .g-dots { animation: none; letter-spacing: normal; }
+    .g-dots::after { content: '…'; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="Chessboard.jsx"></script>
+<script type="text/babel" src="SignInScreen.jsx"></script>
+<script type="text/babel" src="HomeScreen.jsx"></script>
+<script type="text/babel" src="LearnScreen.jsx?v=2"></script>
+<script type="text/babel" src="LessonScreen.jsx"></script>
+<script type="text/babel" src="GameScreen.jsx"></script>
+<script type="text/babel" src="ReviewScreen.jsx"></script>
+<script type="text/babel" src="HistoryScreen.jsx"></script>
+<script type="text/babel" src="ProfileScreen.jsx"></script>
+<script type="text/babel" src="ReplayScreen.jsx"></script>
+<script type="text/babel" src="NotFoundScreen.jsx"></script>
+<script type="text/babel" src="DungeonScreen.jsx?v=2"></script>
+<script type="text/babel" src="GameSetupModal.jsx?v=2"></script>
+<script type="text/babel" src="App.jsx?v=2"></script>
+</body>
+</html>

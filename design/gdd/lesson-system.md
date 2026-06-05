@@ -95,7 +95,10 @@ Show position + question (no answer shown)
 - The board only commits the `expectedMove`. A wrong-but-legal move is rejected (board snaps back), treated as an incorrect attempt.
 - Illegal moves are rejected by chess.js as usual and are not counted as attempts.
 
-### Hint System (light bulb 💡) — opt-in, two stages
+### Hint System (light bulb — Lucide `lightbulb` icon) — opt-in, two stages
+
+> **Icon 規範**：本節的 💡（提示）／👁（揭曉答案）在 UI 中一律以 Lucide line icon
+> （`lightbulb`／`eye`）呈現，**非 emoji 字元**（依 Gambit 視覺鐵則：絕不用 emoji 當功能 icon）。
 
 Hints are **never shown automatically** — the player must opt in. This serves understanding over memorisation: those who want to think it through are never spoon-fed, and nobody can jump straight to the answer without first passing through the Socratic hint.
 
