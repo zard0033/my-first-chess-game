@@ -1,1 +1,0 @@
-import{e as r}from"./index-D-fiTAqu.js";import{l as o,L as t,i as n,y as l,a2 as c,R as p}from"./chess-board-CKnImvKx.js";const _=o({__name:"alert-description",props:{class:{}},setup(e){const s=e;return(a,i)=>(t(),n("div",{class:l(c(r)("text-sm [&_p]:leading-relaxed",s.class))},[p(a.$slots,"default")],2))}});export{_};
