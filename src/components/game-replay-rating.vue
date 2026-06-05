@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { Star } from 'lucide-vue-next'
 
 interface Props {
   gameId: string
@@ -60,45 +61,44 @@ watch(() => props.gameId, () => {
 </script>
 
 <template>
-  <div class="game-replay-rating border-t border-gray-200 pt-4 mt-4">
-    <!-- Rating -->
+  <div class="mt-4 rounded-card border border-line-subtle bg-surface-card p-4">
+    <!-- 評分 -->
     <div class="mb-4">
-      <label class="block text-sm font-medium text-gray-700 mb-2">How did you feel about this game?</label>
-      <div class="flex gap-2">
+      <label class="mb-2 block font-sans text-sm font-medium text-ink">這盤棋感覺如何？</label>
+      <div class="flex gap-1">
         <button
           v-for="star in 5"
           :key="star"
+          type="button"
           :aria-pressed="rating === star"
-          class="text-2xl p-1 rounded min-h-[44px] min-w-[44px]"
-          :class="rating === star ? 'bg-yellow-100' : 'hover:bg-gray-100'"
+          :aria-label="`${star} 星`"
+          class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-btn transition-colors hover:bg-surface-hover"
           @click="setRating(star)"
         >
-          {{ rating && rating >= star ? '⭐' : '☆' }}
+          <Star
+            :size="24"
+            :stroke-width="1.8"
+            :class="rating && rating >= star ? 'fill-gold text-gold' : 'text-ink-faint'"
+          />
         </button>
       </div>
     </div>
 
-    <!-- Notes -->
+    <!-- 筆記 -->
     <div>
-      <label for="replay-notes" class="block text-sm font-medium text-gray-700 mb-2">Notes (optional, max 200 chars)</label>
+      <label for="replay-notes" class="mb-2 block font-sans text-sm font-medium text-ink">
+        筆記（選填，最多 200 字）
+      </label>
       <textarea
         id="replay-notes"
         v-model="notes"
         maxlength="200"
-        class="w-full px-3 py-2 border border-gray-300 rounded text-sm"
-        placeholder="e.g., Could have defended better on move 15..."
+        class="w-full rounded-card border border-line bg-surface-base px-3 py-2 font-sans text-sm text-ink placeholder:text-ink-faint focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        placeholder="例如：第 15 手可以守得更好…"
         rows="3"
         @blur="onNotesBlur"
       />
-      <div class="text-xs text-gray-500 mt-1">{{ notes.length }}/200</div>
+      <div class="mt-1 font-num text-xs tabular-nums text-ink-faint">{{ notes.length }}/200</div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.game-replay-rating {
-  background: #f9fafb;
-  padding: 1rem;
-  border-radius: 0.375rem;
-}
-</style>

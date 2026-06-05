@@ -13,10 +13,10 @@ const emit = defineEmits<{
 }>()
 
 const PIECES: Array<{ value: 'q' | 'r' | 'b' | 'n'; label: string; symbol: string; name: string }> = [
-  { value: 'q', label: 'Promote to queen',  symbol: props.playerColor === 'white' ? '♕' : '♛', name: 'Queen' },
-  { value: 'r', label: 'Promote to rook',   symbol: props.playerColor === 'white' ? '♖' : '♜', name: 'Rook' },
-  { value: 'b', label: 'Promote to bishop', symbol: props.playerColor === 'white' ? '♗' : '♝', name: 'Bishop' },
-  { value: 'n', label: 'Promote to knight', symbol: props.playerColor === 'white' ? '♘' : '♞', name: 'Knight' },
+  { value: 'q', label: '升變為后', symbol: props.playerColor === 'white' ? '♕' : '♛', name: '后' },
+  { value: 'r', label: '升變為城堡', symbol: props.playerColor === 'white' ? '♖' : '♜', name: '城堡' },
+  { value: 'b', label: '升變為主教', symbol: props.playerColor === 'white' ? '♗' : '♝', name: '主教' },
+  { value: 'n', label: '升變為騎士', symbol: props.playerColor === 'white' ? '♘' : '♞', name: '騎士' },
 ]
 
 const dialogEl = ref<HTMLElement | null>(null)
@@ -25,7 +25,7 @@ const dialogEl = ref<HTMLElement | null>(null)
 const announcement = ref('')
 
 onMounted(() => {
-  announcement.value = 'Promote pawn — choose Queen, Rook, Bishop, or Knight'
+  announcement.value = '兵升變 — 選擇后、城堡、主教或騎士'
   dialogEl.value?.querySelector<HTMLButtonElement>('[data-piece="q"]')?.focus()
 })
 
@@ -80,7 +80,7 @@ onUnmounted(() => document.removeEventListener('keydown', handleDocumentKeydown)
     ref="dialogEl"
     role="dialog"
     aria-modal="true"
-    aria-label="Promote pawn"
+    aria-label="兵升變"
     class="absolute z-20 flex flex-col overflow-hidden rounded-card border border-line bg-surface-card shadow-card-hover"
     :style="{
       left: `${squareRect.x}px`,

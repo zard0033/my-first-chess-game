@@ -61,8 +61,8 @@ const evalDisplay = computed(() => {
   <div class="replay-analysis-overlay">
     <template v-if="hasEval">
       <div class="eval-bar-container">
-        <div class="eval-label">Eval</div>
-        <div class="eval-bar-background" role="img" :aria-label="`Evaluation ${evalDisplay}`">
+        <div class="eval-label">評估</div>
+        <div class="eval-bar-background" role="img" :aria-label="`評估 ${evalDisplay}`">
           <div
             class="eval-bar-fill"
             :style="{ width: `${fillPercentage}%`, backgroundColor: barColor }"
@@ -72,16 +72,16 @@ const evalDisplay = computed(() => {
       </div>
 
       <div class="meta-row">
-        <span v-if="bestMove" class="best-move">Best: {{ bestMove }}</span>
-        <span v-if="depth != null" class="depth-indicator">depth {{ depth }}</span>
+        <span v-if="bestMove" class="best-move">最佳：{{ bestMove }}</span>
+        <span v-if="depth != null" class="depth-indicator">深度 {{ depth }}</span>
       </div>
     </template>
 
     <!-- No eval yet: show spinner while analysing, otherwise stay quiet (EC-04) -->
     <div v-else-if="analysing" class="analysing-hint">
-      <span class="spinner" aria-hidden="true" /> Analysing…
+      <span class="spinner" aria-hidden="true" /> 分析中…
     </div>
-    <div v-else class="no-eval-hint">No analysis</div>
+    <div v-else class="no-eval-hint">尚無分析</div>
   </div>
 </template>
 
