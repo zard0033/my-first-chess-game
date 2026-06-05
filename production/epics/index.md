@@ -31,7 +31,7 @@
 | Epic | Layer | Module | GDD | ADR Coverage | Stories | Status |
 |------|-------|--------|-----|--------------|---------|--------|
 | [game-replay](game-replay/EPIC.md) | Feature (Phase 2) | ReplayView + review-engine | game-replay.md | ADR-0001/0003/0005 (no new ADR) | 5 stories | **In Progress** (S10 — S10-01/02/03 done; S10-04/05 implemented, pending QA) |
-| [lesson-system](lesson-system/EPIC.md) | Feature (Phase 2) | LessonsView + LessonView + useLessonProgressStore | lesson-system.md | ADR-0005 (no new ADR for v0) | 5 stories | **Designed** (scheduled S12 — 0% build) |
+| [lesson-system](lesson-system/EPIC.md) | Feature (Phase 2) | LearnView + LessonView + useLessonProgressStore | lesson-system.md | ADR-0005 (no new ADR for v0) | 5 stories | **Built** (S01–04 shipped + tested：LearnView/LessonView/progress store/lessons data；S05 內容撰寫 ongoing) |
 
 ## Process Epics
 
@@ -44,9 +44,9 @@
 
 - **Feature/system epics**: 14 (10 v0 + 2 MVP + 2 Phase 2)
 - **Shipped**: 11 (9 v0 + supabase + game-history)
-- **In Progress**: 1 (game-replay — S10)
-- **Designed (not built)**: 1 (lesson-system — S12)
-- **Backlog**: 1 (visual-identity — GDD + ADR pending)
+- **In Progress**: 1 (game-replay — S10，S05 動畫 polish deferred)
+- **Built**: lesson-system（S01–04 已實作 + 測試；S05 內容撰寫 ongoing）
+- **Backlog**: 1 (visual-identity — 棋盤主題 GDD + ADR pending)
 - **Total TR-IDs**: 89 (49 v0 + 13 MVP supabase + 27 MVP game-history) + Phase 2 TRs (game-replay / lesson-system, in GDDs)
 - **ADRs**: 11 Accepted/Proposed (ADR-0001…0011; ADR-0011 supabase → Accepted pending S8-06 iOS 補測)
 
@@ -82,7 +82,15 @@ the 2026-06-02 spec↔code drift audit: S11-01 move-annotation eval-bar GDD alig
 S11-02 game-export assembler aligned to the GDD "Coach" template + PGN tags; S11-03 `game_sessions.pgn`
 now stores real PGN; S11-04 removed the dead `Use NNUE` no-op. 510 unit tests pass, build green.
 
-Deferred (need Eason): **lesson-system (S12 prep) vs visual-identity** feature choice; SF16→SF18
-historical-docs reconciliation (forward-reference notes, S11-05); iPhone on-device QA.
+Deferred (need Eason): **下一個 Phase 2 feature** — 試煉/Dungeon 謎題模式（藍圖 `DungeonScreen.jsx` 已備）
+／開局資料庫／成就勳章 三選一（推薦試煉優先）；visual-identity（棋盤主題）優先度低；SF16→SF18
+historical-docs reconciliation (S11-05)；iPhone on-device QA。
 
-**Last Updated**: 2026-06-30
+### 視覺重構（Gambit Design System，非 epic，記於此）
+
+- **2026-06-05 完成**：`design/gambit-design-system/` 為新視覺 SoT，全 10 個 view + app-chrome 元件
+  （app-nav / history-row / play-setup-modal / promotion-dialog / game-replay-rating /
+  replay-analysis-overlay）已套 Gambit；LearnView 改章節卡片；SignIn 全屏；清 18 個 RPG 貼圖孤兒。
+  棋盤/棋子/標註/eval 上游所有未動。536 unit tests 全過。commit 93e48f7 / ef781f9。
+
+**Last Updated**: 2026-06-05
