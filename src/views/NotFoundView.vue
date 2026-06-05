@@ -1,12 +1,27 @@
 <script setup lang="ts">
+import { Home } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 </script>
 
 <template>
-  <div class="flex flex-col items-center p-8">
-    <h1 class="mb-4 font-display text-3xl font-semibold text-ink" tabindex="-1">Page Not Found</h1>
-    <Button variant="link" as-child>
-      <RouterLink to="/">Back to Home</RouterLink>
+  <!-- 傾倒的國王：「這一盤結束了，找路回去」 -->
+  <div class="flex min-h-[calc(100vh-49px)] flex-col items-center justify-center px-8 py-12 text-center">
+    <div
+      class="mb-7 flex h-[88px] w-[88px] rotate-90 items-center justify-center rounded-full bg-surface-raised border border-line shadow-card text-[50px] text-ink-faint"
+      aria-hidden="true"
+    >
+      ♚
+    </div>
+    <div class="mb-2.5 font-num text-[56px] font-bold leading-none text-ink-faint">404</div>
+    <h1 class="mb-2 font-display text-xl font-bold text-ink" tabindex="-1">找不到這個頁面</h1>
+    <p class="mb-9 max-w-[240px] font-sans text-sm leading-relaxed text-ink-muted">
+      看來這一步走到了棋盤之外。
+    </p>
+    <Button as-child class="gap-2">
+      <RouterLink to="/"><Home :size="16" /> 返回首頁</RouterLink>
+    </Button>
+    <Button variant="link" as-child class="mt-3.5 text-[13px] font-semibold text-primary">
+      <RouterLink to="/learn">繼續學習之路</RouterLink>
     </Button>
   </div>
 </template>

@@ -1,85 +1,111 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowRight, Target, BookOpen, Library } from 'lucide-vue-next'
 import { lessons } from '@/data/lessons'
 import { LESSON_TIER_LABELS } from '@/types/lesson'
 import type { LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { DarkPanel, ChapterBadge, StatCard, SectionLabel, ProgressBar } from '@/components/ui/gambit'
 
+const router = useRouter()
 const progress = useLessonProgressStore()
 
-const TIER_PIECE: Record<LessonTier, string> = { 1: 'wP', 2: 'wN', 3: 'wR', 4: 'wK' }
+// 棋子剪影：依課程 tier 變化（呼應 hero 徽章「隨主角棋子變化」）
+const TIER_GLYPH: Record<LessonTier, string> = { 1: '♟', 2: '♞', 3: '♜', 4: '♚' }
 
-// The lesson to resume: first unlocked, not-yet-completed.
-const nextLesson = computed(() =>
-  [...lessons].find((l) => progress.isUnlocked(l) && !progress.isCompleted(l.id)) ?? null,
+// 時間感問候
+const greeting = computed(() => {
+  const h = new Date().getHours()
+  if (h < 6) return '夜深了'
+  if (h < 12) return '早安'
+  if (h < 18) return '午安'
+  return '晚安'
+})
+
+// 要續學的課：第一個已解鎖、未完成
+const nextLesson = computed(
+  () => [...lessons].find((l) => progress.isUnlocked(l) && !progress.isCompleted(l.id)) ?? null,
 )
+const lessonOrdinal = computed(() => progress.completedCount + 1)
 
-const quickActions = [
-  { to: '/play', piece: 'wN', title: '對局', desc: '與電腦對弈，自選強度' },
-  { to: '/history', piece: 'wR', title: '紀錄', desc: '回顧每一盤，逐步複盤' },
-]
+function startGame() {
+  router.push('/play')
+}
+function continueLearning() {
+  router.push(nextLesson.value ? `/learn/${nextLesson.value.id}` : '/learn')
+}
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-4 py-8 space-y-6">
-    <!-- Greeting -->
-    <div>
-      <p class="text-sm text-ink-muted">歡迎回到 Gambit</p>
-      <h1 class="font-display font-bold text-3xl text-ink tracking-tight mt-0.5" tabindex="-1">繼續你的棋路</h1>
-    </div>
+  <div class="max-w-2xl mx-auto px-[18px] pt-[18px] pb-6">
+    <!-- 問候 -->
+    <p class="font-sans text-[13px] font-medium text-ink-muted">{{ greeting }}</p>
+    <h1 class="font-display font-bold text-[26px] leading-tight text-ink mt-0.5" tabindex="-1">
+      今天想下一盤嗎？
+    </h1>
 
-    <!-- Continue-learning hero -->
-    <RouterLink
-      :to="nextLesson ? `/learn/${nextLesson.id}` : '/learn'"
-      class="group relative block overflow-hidden rounded-lg-card bg-primary text-primary-fg shadow-card transition-shadow hover:shadow-card-hover"
-    >
-      <!-- watermark emblem -->
-      <img
-        v-if="nextLesson"
-        :src="`/pieces/${TIER_PIECE[nextLesson.tier]}.svg`"
-        alt=""
-        class="pointer-events-none absolute -right-4 -bottom-6 w-36 h-36 opacity-15"
-        draggable="false"
-      />
-      <div class="relative p-6">
-        <template v-if="nextLesson">
-          <p class="text-xs font-medium uppercase tracking-wider opacity-80">繼續學習 · {{ LESSON_TIER_LABELS[nextLesson.tier] }}</p>
-          <h2 class="font-display font-bold text-2xl mt-1 leading-tight">{{ nextLesson.title }}</h2>
-          <p class="text-sm opacity-90 mt-1.5 max-w-md leading-relaxed">{{ nextLesson.summary }}</p>
-        </template>
-        <template v-else>
-          <p class="text-xs font-medium uppercase tracking-wider opacity-80">學習地圖</p>
-          <h2 class="font-display font-bold text-2xl mt-1">你已完成所有課程 🎉</h2>
-          <p class="text-sm opacity-90 mt-1.5">回到地圖複習任何一課。</p>
-        </template>
-
-        <div class="mt-5 flex items-center gap-3">
-          <span class="inline-flex items-center gap-1.5 px-4 h-10 rounded-full bg-primary-fg text-primary font-semibold text-sm group-hover:gap-2.5 transition-[gap]">
-            {{ nextLesson ? '開始這一課' : '回到地圖' }} →
-          </span>
-          <span class="text-sm font-medium opacity-90 tabular-nums">已完成 {{ progress.completedCount }} / {{ progress.totalCount }} 課</span>
+    <!-- 新對局 — 深青瓷焦點卡 -->
+    <DarkPanel class="mt-4 cursor-pointer" @click="startGame">
+      <div class="flex items-center gap-3.5">
+        <div class="flex-1 min-w-0">
+          <p class="font-sans text-[11px] font-bold tracking-[0.12em] text-gold">NEW GAME</p>
+          <p class="font-display font-bold text-[22px] text-ink-on-deep mt-1.5">開始新對局</p>
+          <p class="font-sans text-[13px] text-ink-on-deep-dim mt-1">自選強度與執子</p>
+          <Button variant="gold" size="sm" class="mt-3.5" @click.stop="startGame">
+            開始對局 <ArrowRight :size="16" />
+          </Button>
         </div>
-
-        <div class="mt-3 h-1.5 bg-primary-fg/25 rounded-full overflow-hidden">
-          <div class="h-full bg-primary-fg rounded-full transition-[width] duration-500" :style="{ width: `${progress.progress * 100}%` }" />
-        </div>
+        <ChapterBadge glyph="♚" :size="62" />
       </div>
-    </RouterLink>
+    </DarkPanel>
 
-    <!-- Quick actions -->
-    <div class="grid grid-cols-2 gap-4">
-      <RouterLink
-        v-for="a in quickActions"
-        :key="a.to"
-        :to="a.to"
-        class="card-interactive p-5 flex flex-col gap-2"
-      >
-        <span class="w-11 h-11 rounded-card bg-surface-raised border border-line flex items-center justify-center" aria-hidden="true">
-          <img :src="`/pieces/${a.piece}.svg`" alt="" class="w-7 h-7" draggable="false" />
-        </span>
-        <span class="font-display font-semibold text-lg text-ink mt-1">{{ a.title }}</span>
-        <span class="text-sm text-ink-muted leading-relaxed">{{ a.desc }}</span>
-      </RouterLink>
+    <!-- 繼續學習 — cream accent 卡 -->
+    <SectionLabel>繼續學習</SectionLabel>
+    <Card accent class="p-4 cursor-pointer" @click="continueLearning">
+      <template v-if="nextLesson">
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="font-sans text-xs font-bold text-primary-dark">
+              {{ LESSON_TIER_LABELS[nextLesson.tier] }}
+            </p>
+            <p class="font-display font-bold text-xl text-ink mt-1">{{ nextLesson.title }}</p>
+            <Button size="sm" class="mt-3" @click.stop="continueLearning">
+              繼續 · 第 {{ lessonOrdinal }} 課 <ArrowRight :size="15" />
+            </Button>
+          </div>
+          <ChapterBadge :glyph="TIER_GLYPH[nextLesson.tier]" :size="52" />
+        </div>
+        <div class="mt-3.5">
+          <ProgressBar :value="progress.completedCount" :total="progress.totalCount" />
+        </div>
+      </template>
+      <template v-else>
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0">
+            <p class="font-sans text-xs font-bold text-primary-dark">學習地圖</p>
+            <p class="font-display font-bold text-xl text-ink mt-1">你已完成所有課程</p>
+            <Button size="sm" class="mt-3" @click.stop="continueLearning">
+              回到地圖 <ArrowRight :size="15" />
+            </Button>
+          </div>
+          <ChapterBadge glyph="♚" :size="52" />
+        </div>
+      </template>
+    </Card>
+
+    <!-- 總覽 -->
+    <SectionLabel>總覽</SectionLabel>
+    <div class="flex gap-2.5">
+      <StatCard
+        :icon="BookOpen"
+        label="學習進度"
+        :value="`${progress.completedCount}/${progress.totalCount}`"
+      />
+      <StatCard :icon="Target" label="今日謎題" value="即將推出" locked />
+      <StatCard :icon="Library" label="開局庫" value="即將推出" locked />
     </div>
   </div>
 </template>
