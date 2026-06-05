@@ -7,6 +7,7 @@ import { useReviewEngine } from '@/modules/chess-engine/review-engine'
 import { identifyOpening } from '@/modules/opening-id/opening-index'
 import type { OpeningResult } from '@/modules/opening-id/opening-index'
 import type { Annotation, EvaluationInput } from '@/modules/move-annotation/annotation-types'
+import { ArrowLeft, ChevronLeft, ChevronRight, Zap } from 'lucide-vue-next'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import OpeningKnowledgeCard from '@/components/opening-knowledge-card.vue'
 import { useDataSyncStore } from '@/stores/data-sync'
@@ -37,7 +38,7 @@ const openingHeader = computed<string | null>(() => {
   const bp = or.bookExitPly
   if (bp !== null && bp < n && review.cursor.value >= bp) {
     const moveNum = Math.ceil(bp / 2)
-    header += ` — left book at move ${moveNum}`
+    header += ` — 第 ${moveNum} 手離開開局庫`
   }
   return header
 })
@@ -57,8 +58,8 @@ function getMateLabel(i: number): string | null {
   const hadMate = currIsMate && curr.evalMate! > 0
   const nowMated = nextIsMate && next.evalMate! > 0
 
-  if (hadMate && !nowMated) return 'Missed forced mate'
-  if (!hadMate && nowMated) return 'Allowed forced mate'
+  if (hadMate && !nowMated) return '錯過殺著'
+  if (!hadMate && nowMated) return '放任被將死'
   // Both stay in same state — no swing to report
   return null
 }
@@ -119,9 +120,9 @@ const progressLabel = computed<string | null>(() => {
   const n = review.totalPositions.value
   const count = review.progressCount.value
   if (review.progressPass.value === 'preview') {
-    return `Analyzing… ${count}/${n}`
+    return `分析中… ${count}/${n}`
   }
-  return `Refining… ${count}/${n}`
+  return `深入分析… ${count}/${n}`
 })
 
 // ---- Mobile calm default (S4-06, TR-post-game-review-006) ----
@@ -215,8 +216,10 @@ function handleExit(): void {
   <div class="flex flex-col items-center p-4 min-h-screen">
     <!-- Header row -->
     <div class="mb-3 flex w-full max-w-md items-center justify-between">
-      <Button variant="secondary" @click="handleExit">← Back</Button>
-      <h1 class="font-display text-xl font-semibold text-ink">Review</h1>
+      <Button variant="secondary" size="sm" @click="handleExit">
+        <ArrowLeft :size="16" :stroke-width="1.8" /> 返回
+      </Button>
+      <h1 class="font-display text-xl font-bold text-ink" tabindex="-1">複盤</h1>
       <div class="w-16" />
     </div>
 
@@ -233,9 +236,9 @@ function handleExit(): void {
       class="mb-2"
       aria-live="polite"
     >
-      <span v-if="syncStatus === 'syncing'">Saving…</span>
-      <span v-if="syncStatus === 'synced'">Saved</span>
-      <span v-if="syncStatus === 'error'">Not saved</span>
+      <span v-if="syncStatus === 'syncing'">儲存中…</span>
+      <span v-if="syncStatus === 'synced'">已儲存</span>
+      <span v-if="syncStatus === 'error'">未儲存</span>
     </Badge>
 
     <!-- Progress indicator (Rule 12, AC-16) -->
@@ -263,7 +266,7 @@ function handleExit(): void {
       <template v-if="!cpLossDisplay.omit">
         <span
           :class="[
-            'text-sm font-mono px-2 py-1 rounded',
+            'font-num text-sm tabular-nums px-2 py-1 rounded',
             cpLossDisplay.text === '—' || cpLossDisplay.text === '…'
               ? 'text-ink-faint'
               : cpLossDisplay.preliminary
@@ -277,7 +280,7 @@ function handleExit(): void {
           v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor === review.cursor.value"
           class="ml-2 text-xs text-hint font-semibold"
         >
-          Biggest swing
+          最大轉折
         </span>
       </template>
     </div>
@@ -286,20 +289,24 @@ function handleExit(): void {
     <div class="mb-4 flex items-center gap-4">
       <Button
         variant="secondary"
+        size="icon"
+        aria-label="上一步"
         :disabled="!review.canGoPrev.value"
         @click="review.goPrev()"
       >
-        ←
+        <ChevronLeft :size="18" :stroke-width="1.8" />
       </Button>
-      <span class="text-sm text-ink-muted">
+      <span class="font-num text-sm tabular-nums text-ink-muted">
         {{ review.cursor.value }} / {{ review.totalPositions.value }}
       </span>
       <Button
         variant="secondary"
+        size="icon"
+        aria-label="下一步"
         :disabled="!review.canGoNext.value"
         @click="review.goNext()"
       >
-        →
+        <ChevronRight :size="18" :stroke-width="1.8" />
       </Button>
     </div>
 
@@ -312,7 +319,7 @@ function handleExit(): void {
         class="bg-hint text-sm text-hint-fg hover:bg-hint-dark"
         @click="jumpToBiggestSwing"
       >
-        Jump to biggest swing
+        <Zap :size="15" :stroke-width="1.8" /> 跳到最大轉折
       </Button>
     </div>
 
@@ -321,7 +328,7 @@ function handleExit(): void {
       v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor === null && review.totalPositions.value > 0"
       class="text-sm text-ink-muted text-center"
     >
-      No big swings this game — steady throughout
+      這盤沒有大轉折 — 全程穩定
     </div>
 
     <!-- Engine error state (AC-30 / Visual Requirements §Error State) -->
@@ -330,9 +337,9 @@ function handleExit(): void {
       variant="danger"
       class="mt-4 w-full max-w-md text-center"
     >
-      <p class="mb-3 text-sm font-semibold text-danger">Couldn't analyze this game</p>
+      <p class="mb-3 text-sm font-semibold text-danger">無法分析這盤棋</p>
       <div class="flex justify-center gap-3">
-        <Button variant="danger" class="text-sm" @click="handleExit">Exit</Button>
+        <Button variant="danger" class="text-sm" @click="handleExit">離開</Button>
       </div>
     </Alert>
   </div>

@@ -11,6 +11,7 @@ import { useReplayAnalysis } from '@/composables/use-replay-analysis'
 import { useReviewEngine } from '@/modules/chess-engine/review-engine'
 import { REVIEW_PREVIEW_DEPTH, REVIEW_PREVIEW_MOVE_TIME_MS } from '@/config/engine-tuning'
 import type { GameHistoryEntry } from '@/types/game-history'
+import { ArrowLeft, ChevronLeft, ChevronRight, Play, Pause } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Slider } from '@/components/ui/slider'
@@ -24,6 +25,9 @@ const gameId = route.params.gameId as string
 const game = computed<GameHistoryEntry | null>(
   () => historyStore.entries.find((e) => e.id === gameId) ?? null,
 )
+
+const RESULT_LABEL: Record<string, string> = { Win: '勝', Loss: '負', Draw: '和', Unknown: '—' }
+const resultLabel = computed(() => RESULT_LABEL[game.value?.playerResult ?? 'Unknown'] ?? '—')
 
 const positions = computed(() => buildReplayPositions(game.value?.pgn ?? ''))
 const totalMoves = computed(() => positions.value.length - 1)
@@ -124,9 +128,10 @@ defineExpose({
     <header class="mb-6 flex items-center justify-between">
       <Button
         variant="ghost"
-        aria-label="Go back to game history"
+        size="sm"
+        aria-label="返回對局紀錄"
         @click="goBack"
-      >← Back</Button>
+      ><ArrowLeft :size="16" :stroke-width="1.8" /> 返回</Button>
       <h1 class="flex-1 text-center font-display text-2xl font-semibold text-ink">
         {{ game.openingDisplay }}
       </h1>
@@ -147,9 +152,9 @@ defineExpose({
 
       <div class="text-sm lg:w-56">
         <Card class="space-y-2 p-4">
-          <div class="text-ink"><span class="text-ink-muted">Move:</span> {{ currentPly }} / {{ totalMoves }}</div>
-          <div class="text-ink"><span class="text-ink-muted">Result:</span> {{ game.playerResult }}</div>
-          <div class="text-ink"><span class="text-ink-muted">Difficulty:</span> {{ game.difficultyLabel }}</div>
+          <div class="text-ink"><span class="text-ink-muted">手數：</span><span class="font-num tabular-nums">{{ currentPly }} / {{ totalMoves }}</span></div>
+          <div class="text-ink"><span class="text-ink-muted">結果：</span>{{ resultLabel }}</div>
+          <div class="text-ink"><span class="text-ink-muted">難度：</span>{{ game.difficultyLabel }}</div>
         </Card>
 
         <ReplayAnalysisOverlay
@@ -170,21 +175,24 @@ defineExpose({
         class="text-sm"
         :disabled="!nav.canGoPrev.value"
         @click="nav.prevMove"
-      >← Prev</Button>
+      ><ChevronLeft :size="16" :stroke-width="1.8" /> 上一步</Button>
 
       <Button
         class="text-sm"
         :class="{ 'bg-primary-dark': nav.isPlaying.value }"
         :disabled="!nav.canGoNext.value && !nav.isPlaying.value"
         @click="nav.togglePlay"
-      >{{ nav.isPlaying.value ? '⏸ Pause' : '▶ Play' }}</Button>
+      >
+        <template v-if="nav.isPlaying.value"><Pause :size="15" :stroke-width="1.8" /> 暫停</template>
+        <template v-else><Play :size="15" :stroke-width="1.8" /> 播放</template>
+      </Button>
 
       <Button
         variant="secondary"
         class="text-sm"
         :disabled="!nav.canGoNext.value"
         @click="nav.nextMove"
-      >Next →</Button>
+      >下一步 <ChevronRight :size="16" :stroke-width="1.8" /></Button>
     </div>
 
     <!-- Move slider -->
@@ -194,16 +202,16 @@ defineExpose({
         :min="0"
         :max="totalMoves"
         class="flex-1"
-        aria-label="Jump to move"
+        aria-label="跳到指定手數"
         @update:model-value="(v) => nav.jumpToMove(v[0] ?? 0)"
       />
-      <span class="w-12 text-sm text-ink-muted">{{ currentPly }}/{{ totalMoves }}</span>
+      <span class="w-12 font-num text-sm tabular-nums text-ink-muted">{{ currentPly }}/{{ totalMoves }}</span>
     </div>
 
     <GameReplayRating :game-id="gameId" />
   </div>
 
   <div v-else class="text-center py-12">
-    <p class="text-ink-muted mb-4">Game not found.</p>
+    <p class="text-ink-muted mb-4">找不到這盤棋。</p>
   </div>
 </template>

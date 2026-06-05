@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { Check, ArrowRight } from 'lucide-vue-next'
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
@@ -82,10 +83,9 @@ function start(): void {
             {{ lvl }}
             <span
               v-if="beatenLevel !== null && lvl <= beatenLevel"
-              class="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-success text-center text-[8px] leading-[14px] text-success-fg"
+              class="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-success text-success-fg"
               aria-hidden="true"
-              >✓</span
-            >
+            ><Check :size="9" :stroke-width="3.5" /></span>
           </button>
         </div>
         <p v-if="beatenLevel !== null" class="mt-2 text-xs text-ink-muted">
@@ -122,7 +122,9 @@ function start(): void {
         </div>
       </fieldset>
 
-      <Button size="lg" class="w-full" @click="start">開始對局</Button>
+      <Button variant="gold" size="lg" class="w-full" @click="start">
+        開始對局 <ArrowRight :size="16" :stroke-width="2" />
+      </Button>
     </DialogContent>
   </Dialog>
 </template>

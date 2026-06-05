@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ChevronRight } from 'lucide-vue-next'
 import type { GameHistoryEntry } from '@/types/game-history'
 
 const props = defineProps<{
@@ -10,8 +12,17 @@ const props = defineProps<{
 const router = useRouter()
 let touchStartY = 0
 
+const RESULT = {
+  Win: { label: '勝', ink: 'text-success-dark', bg: 'bg-success-light' },
+  Loss: { label: '負', ink: 'text-danger-dark', bg: 'bg-danger-light' },
+  Draw: { label: '和', ink: 'text-ink-muted', bg: 'bg-surface-raised' },
+  Unknown: { label: '?', ink: 'text-ink-faint', bg: 'bg-surface-raised' },
+} as const
+
+const result = computed(() => RESULT[props.entry.playerResult])
+const colorLabel = computed(() => (props.entry.playerColor === 'white' ? '執白' : '執黑'))
+
 function onRowClick() {
-  // Navigate to replay view on row click
   router.push({ name: 'replay', params: { gameId: props.entry.id } })
 }
 
@@ -29,7 +40,7 @@ function onTouchEnd(e: TouchEvent) {
 
 <template>
   <div
-    class="flex cursor-pointer select-none flex-col rounded-md border-b border-line transition-colors hover:bg-surface-hover"
+    class="cursor-pointer select-none rounded-card border border-line border-t-white/70 border-b-line-subtle bg-surface-card shadow-card transition-colors hover:bg-surface-hover"
     data-testid="history-row"
     role="listitem"
     :aria-expanded="props.isExpanded"
@@ -37,27 +48,42 @@ function onTouchEnd(e: TouchEvent) {
     @touchstart.passive="onTouchStart"
     @touchend.prevent="onTouchEnd"
   >
-    <!-- Collapsed row: 3-column grid -->
-    <div class="grid min-h-[44px] items-center px-4 py-2"
-         style="grid-template-columns: 4em 96px 1fr">
-      <!-- Col 1: prefix + result (monospace, no colour coding, weight 400) -->
-      <span class="font-mono text-sm font-normal tabular-nums text-ink">
-        {{ props.entry.playerResultPrefix }} {{ props.entry.playerResult }}
-      </span>
+    <!-- Collapsed row -->
+    <div class="flex min-h-[56px] items-center gap-3 px-3.5 py-3">
+      <!-- 結果徽章 -->
+      <div
+        class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-[10px]"
+        :class="result.bg"
+      >
+        <span class="font-num text-base font-bold" :class="result.ink">{{ result.label }}</span>
+      </div>
 
-      <!-- Col 2: date -->
-      <span class="truncate text-sm text-ink-muted">{{ props.entry.displayDate }}</span>
+      <!-- 開局 + 手數 -->
+      <div class="min-w-0 flex-1">
+        <p class="truncate font-sans text-sm font-bold text-ink">
+          {{ props.entry.openingDisplay }}
+        </p>
+        <p class="mt-0.5 font-sans text-xs text-ink-muted">
+          {{ colorLabel }} · {{ props.entry.moveCount }} 手
+        </p>
+      </div>
 
-      <!-- Col 3: opening (ellipsis) -->
-      <span class="truncate text-right text-sm text-ink">{{ props.entry.openingDisplay }}</span>
+      <!-- 日期 + 箭頭 -->
+      <div class="flex shrink-0 flex-col items-end gap-1">
+        <span class="font-sans text-[11px] text-ink-faint">{{ props.entry.displayDate }}</span>
+        <ChevronRight :size="14" class="text-ink-faint" :stroke-width="1.8" />
+      </div>
     </div>
 
-    <!-- Expanded panel (AC-12) -->
-    <div v-if="props.isExpanded" class="space-y-1 px-4 pb-3 text-sm text-ink-muted">
-      <div><span class="text-ink-faint">Moves:</span> {{ props.entry.moveCount }}</div>
-      <div><span class="text-ink-faint">Result:</span> {{ props.entry.endReasonDisplay }}</div>
-      <div><span class="text-ink-faint">Difficulty:</span> {{ props.entry.difficultyLabel }}</div>
-      <div><span class="text-ink-faint">Played as:</span> {{ props.entry.playerColor }}</div>
+    <!-- 展開面板 (AC-12) -->
+    <div
+      v-if="props.isExpanded"
+      class="space-y-1 border-t border-line-subtle px-3.5 py-3 text-sm text-ink-muted"
+    >
+      <div><span class="text-ink-faint">手數：</span>{{ props.entry.moveCount }}</div>
+      <div><span class="text-ink-faint">結果：</span>{{ props.entry.endReasonDisplay }}</div>
+      <div><span class="text-ink-faint">難度：</span>{{ props.entry.difficultyLabel }}</div>
+      <div><span class="text-ink-faint">執子：</span>{{ props.entry.playerColor }}</div>
     </div>
   </div>
 </template>

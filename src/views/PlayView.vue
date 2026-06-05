@@ -8,6 +8,7 @@ import PlaySetupModal from '@/components/play-setup-modal.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Pill } from '@/components/ui/gambit'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import { useGameLifecycle } from '@/modules/game-lifecycle/use-game-lifecycle'
 import { usePlayEngine } from '@/modules/chess-engine/play-engine'
@@ -148,7 +149,22 @@ function injectFen(): void {
 
 <template>
   <div class="flex flex-col items-center p-4">
-    <h1 class="font-display text-2xl font-semibold mb-4 text-ink" tabindex="-1">對局</h1>
+    <h1 class="sr-only" tabindex="-1">對局</h1>
+
+    <!-- 回合徽章 -->
+    <div
+      v-if="phase === 'PLAYER_TURN' || phase === 'AI_THINKING'"
+      class="mb-3 flex justify-center"
+    >
+      <Pill v-if="phase === 'PLAYER_TURN'" tone="jade">
+        <span class="h-[7px] w-[7px] rounded-full bg-white" aria-hidden="true" />
+        輪到你
+      </Pill>
+      <span
+        v-else
+        class="inline-flex items-center gap-2 rounded-full border-t border-white/10 bg-[linear-gradient(180deg,#1E5043,#183E35)] px-4 py-2 font-num text-[13px] text-ink-on-deep-dim shadow-[inset_0_1px_0_rgba(255,255,255,0.10)]"
+      >AI 思考中 <span class="thinking-dots tracking-[2px]" aria-hidden="true">●●●</span></span>
+    </div>
 
     <!-- Pre-game setup: strength + side. Confirming starts the game. -->
     <PlaySetupModal
@@ -172,11 +188,14 @@ function injectFen(): void {
         v-if="phase === 'GAME_OVER'"
         class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-ink/60 rounded"
       >
-        <Card class="z-50 min-w-[240px] p-6 text-center shadow-card-hover">
-          <p class="mb-1 font-display text-xl font-semibold text-ink">{{ resultLabel }}</p>
+        <Card :accent="playerWon" class="z-50 min-w-[240px] p-6 text-center shadow-card-hover">
+          <p
+            class="mb-1 font-display text-xl font-bold"
+            :class="playerWon ? 'text-gold-dark' : 'text-ink'"
+          >{{ resultLabel }}</p>
           <p class="mb-5 text-sm text-ink-muted">{{ endReasonLabel }}</p>
           <div class="flex justify-center gap-3">
-            <Button @click="handleNewGame">再來一局</Button>
+            <Button :variant="playerWon ? 'gold' : 'default'" @click="handleNewGame">再來一局</Button>
             <Button variant="secondary" @click="handleReview">複盤</Button>
           </div>
         </Card>
@@ -205,3 +224,18 @@ function injectFen(): void {
     </div>
   </div>
 </template>
+
+<style scoped>
+@keyframes thinking-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+.thinking-dots {
+  animation: thinking-pulse 1.2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .thinking-dots {
+    animation: none;
+  }
+}
+</style>

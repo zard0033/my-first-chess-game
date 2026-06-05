@@ -89,7 +89,7 @@ describe('ReplayView', () => {
     t.entries = [] // EC-03
     const wrapper = await mountReplay()
     expect(t.routerPush).toHaveBeenCalledWith('/history')
-    expect(wrapper.text()).toContain('Game not found')
+    expect(wrapper.text()).toContain('找不到這盤棋')
     wrapper.unmount()
   })
 
@@ -139,8 +139,8 @@ describe('ReplayView', () => {
     const vm = wrapper.vm as unknown as { totalMoves: number }
     expect(vm.totalMoves).toBe(0)
     const buttons = wrapper.findAll('button')
-    const prev = buttons.find((b) => b.text().includes('Prev'))!
-    const next = buttons.find((b) => b.text().includes('Next'))!
+    const prev = buttons.find((b) => b.text().includes('上一步'))!
+    const next = buttons.find((b) => b.text().includes('下一步'))!
     expect(prev.attributes('disabled')).toBeDefined()
     expect(next.attributes('disabled')).toBeDefined()
     wrapper.unmount()

@@ -15,7 +15,7 @@ async function handleSubmit() {
 <template>
   <!-- 全屏深青瓷沉浸：棋局即道場 -->
   <div
-    class="flex min-h-[calc(100vh-49px)] flex-col bg-[linear-gradient(175deg,#0C2318_0%,#103029_42%,#0A1F18_100%)]"
+    class="flex min-h-dvh flex-col bg-[linear-gradient(175deg,#0C2318_0%,#103029_42%,#0A1F18_100%)]"
   >
     <div class="flex flex-1 flex-col items-center justify-center px-9">
       <!-- 金徽 -->

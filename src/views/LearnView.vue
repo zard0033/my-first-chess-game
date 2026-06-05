@@ -1,99 +1,230 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { Check, Lock, ChevronRight } from 'lucide-vue-next'
 import { lessons } from '@/data/lessons'
 import { LESSON_TIER_LABELS, COACH } from '@/types/lesson'
-import type { LessonTier } from '@/types/lesson'
+import type { Lesson, LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
-import { onMounted } from 'vue'
-import LearnPath, { type PathNode } from '@/components/learn-path.vue'
-import { Card } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
+import { DarkPanel, ChapterBadge } from '@/components/ui/gambit'
 
 const router = useRouter()
 const progress = useLessonProgressStore()
 
-// Scroll to the current (or first unlocked) lesson tile on mount so the user
-// sees their progress position rather than the advanced locked lessons at top.
-onMounted(() => {
-  // Use a short delay so the absolutely-positioned path tiles have rendered.
-  setTimeout(() => {
-    const el =
-      document.querySelector<HTMLElement>('[aria-current="step"]') ??
-      document.querySelector<HTMLElement>('.path button:not([disabled])')
-    if (el) el.scrollIntoView({ behavior: 'instant', block: 'center' })
-  }, 60)
+const TIER_GLYPH: Record<LessonTier, string> = { 1: '♜', 2: '♝', 3: '♛', 4: '♞' }
+const TIER_NUM: Record<LessonTier, string> = { 1: '一', 2: '二', 3: '三', 4: '四' }
+const TIER_SUB: Record<LessonTier, string> = {
+  1: '棋子走法 · 基本規則',
+  2: '戰術組合 · 棋子配合',
+  3: '控制中心 · 快速發展',
+  4: '殘局技巧 · 王兵協同',
+}
+
+const nextLesson = computed(
+  () => [...lessons].find((l) => progress.isUnlocked(l) && !progress.isCompleted(l.id)) ?? null,
+)
+
+interface Chapter {
+  tier: LessonTier
+  lessons: Lesson[]
+  done: number
+  total: number
+}
+
+const chapters = computed<Chapter[]>(() => {
+  const map = new Map<LessonTier, Lesson[]>()
+  for (const l of lessons) {
+    const arr = map.get(l.tier) ?? []
+    arr.push(l)
+    map.set(l.tier, arr)
+  }
+  return [...map.entries()].map(([tier, ls]) => ({
+    tier,
+    lessons: ls,
+    done: ls.filter((l) => progress.isCompleted(l.id)).length,
+    total: ls.length,
+  }))
 })
 
-const TIER_PIECE: Record<LessonTier, string> = { 1: 'wP', 2: 'wN', 3: 'wR', 4: 'wK' }
-
-const nextLesson = computed(() =>
-  [...lessons].find((l) => progress.isUnlocked(l) && !progress.isCompleted(l.id)) ?? null,
+// 作用中章節 = 含「下一課」的章節；全部完成時取最後一章
+const activeTier = computed<LessonTier>(
+  () => nextLesson.value?.tier ?? chapters.value[chapters.value.length - 1].tier,
 )
 
-// Lessons are pre-sorted by order — first = top of the path, last = bottom.
-const pathNodes = computed<PathNode[]>(() =>
-  lessons.map((l) => ({
-    id: l.id,
-    title: l.title,
-    tier: l.tier,
-    order: l.order,
-    isCapstone: l.id.includes('capstone'),
-    piece: TIER_PIECE[l.tier],
-    state: progress.isCompleted(l.id)
-      ? 'done'
-      : l.id === nextLesson.value?.id
-        ? 'current'
-        : progress.isUnlocked(l)
-          ? 'unlocked'
-          : 'locked',
-  })),
-)
+function chapterStatus(c: Chapter): 'active' | 'done' | 'locked' {
+  if (c.tier === activeTier.value) return 'active'
+  return c.tier < activeTier.value ? 'done' : 'locked'
+}
 
-function onOpen(lessonId: string): void {
-  router.push(`/learn/${lessonId}`)
+function lessonState(l: Lesson): 'done' | 'current' | 'locked' {
+  if (progress.isCompleted(l.id)) return 'done'
+  if (l.id === nextLesson.value?.id) return 'current'
+  return 'locked'
+}
+
+function openLesson(l: Lesson): void {
+  if (lessonState(l) !== 'locked') router.push(`/learn/${l.id}`)
+}
+
+function openChapter(c: Chapter): void {
+  // 已完成章節：回顧第一課
+  if (chapterStatus(c) === 'done') router.push(`/learn/${c.lessons[0].id}`)
 }
 </script>
 
 <template>
-  <div class="learn-page">
-  <div class="mx-auto max-w-sm px-4 pb-16 pt-6">
-    <!-- Header: progress + resume -->
-    <Card class="mb-6 p-5">
-      <p class="mb-1 text-xs font-medium uppercase tracking-wider text-ink-faint">教練 · {{ COACH.name }}</p>
-      <div class="flex items-end justify-between gap-4">
-        <h1 class="font-display text-2xl font-bold text-ink" tabindex="-1">學習地圖</h1>
-        <span class="shrink-0 text-sm font-semibold tabular-nums text-ink-muted">{{ progress.completedCount }} / {{ progress.totalCount }}</span>
+  <div class="mx-auto max-w-md pb-8">
+    <!-- 總進度標頭 -->
+    <header class="border-b border-line-subtle px-[18px] pb-3 pt-5">
+      <p class="mb-0.5 font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-ink-faint">
+        教練 · {{ COACH.name }}
+      </p>
+      <div class="flex items-baseline justify-between gap-3">
+        <h1 class="font-display text-2xl font-bold text-ink" tabindex="-1">棋藝課程</h1>
+        <span class="shrink-0 font-num text-sm tabular-nums text-ink-muted">
+          {{ progress.completedCount }} / {{ progress.totalCount }} 課
+        </span>
       </div>
-      <Progress :model-value="progress.progress * 100" class="mt-3" />
-      <RouterLink
-        v-if="nextLesson"
-        :to="`/learn/${nextLesson.id}`"
-        class="-mx-1 mt-4 flex items-center gap-3 rounded-card px-3 py-2.5 transition-colors hover:bg-surface-hover"
-      >
-        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-card bg-primary/10">
-          <img :src="`/pieces/${TIER_PIECE[nextLesson.tier]}.svg`" alt="" class="h-6 w-6" draggable="false" />
-        </span>
-        <span class="min-w-0 flex-1">
-          <span class="block text-[11px] font-medium uppercase tracking-wider text-ink-faint">下一課 · {{ LESSON_TIER_LABELS[nextLesson.tier] }}</span>
-          <span class="block truncate font-semibold text-ink">{{ nextLesson.title }}</span>
-          <span class="block truncate text-xs text-ink-muted">{{ nextLesson.summary }}</span>
-        </span>
-        <span class="inline-flex h-9 shrink-0 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-fg">繼續</span>
-      </RouterLink>
-    </Card>
+      <div class="mt-2.5 h-1.5 overflow-hidden rounded-full bg-line-subtle">
+        <div
+          class="h-full rounded-full bg-primary transition-[width] duration-300 motion-reduce:transition-none"
+          :style="{ width: `${progress.progress * 100}%` }"
+        />
+      </div>
+    </header>
 
-    <!-- Serpentine learning path (chess.com / Duolingo style) -->
-    <LearnPath :nodes="pathNodes" @open="onOpen" />
-  </div>
+    <div class="flex flex-col gap-2.5 px-[14px] pt-3">
+      <template v-for="c in chapters" :key="c.tier">
+        <!-- 作用中章節：展開課程列表 -->
+        <div
+          v-if="chapterStatus(c) === 'active'"
+          class="overflow-hidden rounded-[14px] shadow-[0_6px_20px_rgba(10,30,24,0.28)]"
+        >
+          <DarkPanel no-pad>
+            <div class="px-3.5 pb-3 pt-3.5">
+              <div class="mb-2.5 flex items-center gap-2.5">
+                <ChapterBadge :glyph="TIER_GLYPH[c.tier]" :size="42" />
+                <div class="min-w-0 flex-1">
+                  <p
+                    class="mb-0.5 font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-gold"
+                  >
+                    第{{ TIER_NUM[c.tier] }}章
+                  </p>
+                  <p class="font-display text-[15px] font-bold leading-tight text-ink-on-deep">
+                    {{ LESSON_TIER_LABELS[c.tier] }}
+                  </p>
+                  <p class="mt-0.5 font-sans text-[10px] text-ink-on-deep-dim">{{ TIER_SUB[c.tier] }}</p>
+                </div>
+                <span class="shrink-0 font-num text-[11px] text-ink-on-deep-dim">
+                  {{ c.done }}/{{ c.total }}
+                </span>
+              </div>
+              <div class="h-[3px] overflow-hidden rounded-full bg-white/[0.12]">
+                <div
+                  class="h-full rounded-full bg-[linear-gradient(90deg,#3AB894,#F8B500)]"
+                  :style="{ width: `${(c.done / c.total) * 100}%` }"
+                />
+              </div>
+            </div>
+          </DarkPanel>
+
+          <!-- 課程列 -->
+          <div class="bg-surface-card">
+            <button
+              v-for="(l, i) in c.lessons"
+              :key="l.id"
+              type="button"
+              class="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors"
+              :class="[
+                i < c.lessons.length - 1 && 'border-b border-black/[0.04]',
+                lessonState(l) === 'current' &&
+                  'bg-[linear-gradient(90deg,#FAF2DC,#FDF9EE)]',
+                lessonState(l) === 'locked' ? 'cursor-default' : 'hover:bg-surface-hover',
+              ]"
+              :disabled="lessonState(l) === 'locked'"
+              @click="openLesson(l)"
+            >
+              <!-- 狀態點 -->
+              <span
+                class="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full"
+                :class="{
+                  'bg-primary-soft': lessonState(l) === 'done',
+                  'bg-[linear-gradient(150deg,#ffc94d,#f8b500)] shadow-[0_0_6px_rgba(248,181,0,0.4)]':
+                    lessonState(l) === 'current',
+                  'bg-surface-raised': lessonState(l) === 'locked',
+                }"
+              >
+                <Check
+                  v-if="lessonState(l) === 'done'"
+                  :size="10"
+                  class="text-primary"
+                  :stroke-width="3.5"
+                />
+                <span
+                  v-else-if="lessonState(l) === 'current'"
+                  class="font-num text-[9px] font-bold text-gold-ink"
+                >{{ i + 1 }}</span>
+                <Lock v-else :size="9" class="text-ink-faint" :stroke-width="2.5" />
+              </span>
+
+              <span
+                class="flex-1 truncate font-sans text-xs"
+                :class="{
+                  'font-bold text-ink': lessonState(l) === 'current',
+                  'text-ink-faint line-through decoration-ink-faint/35': lessonState(l) === 'done',
+                  'text-ink-faint': lessonState(l) === 'locked',
+                }"
+              >{{ l.title }}</span>
+
+              <span
+                v-if="lessonState(l) === 'current'"
+                class="shrink-0 rounded-full bg-[linear-gradient(180deg,#ffc94d,#f8b500)] px-2 py-0.5 font-sans text-[9px] font-bold text-gold-ink"
+              >繼續</span>
+              <span
+                v-else-if="lessonState(l) === 'done'"
+                class="shrink-0 font-sans text-[9px] text-ink-faint"
+              >完成</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 其他章節：摺疊卡片 -->
+        <button
+          v-else
+          type="button"
+          class="flex items-center gap-3 rounded-[14px] border border-line bg-surface-raised px-3.5 py-3 text-left transition-colors"
+          :class="
+            chapterStatus(c) === 'done'
+              ? 'hover:bg-surface-hover'
+              : 'cursor-default opacity-[0.68]'
+          "
+          :disabled="chapterStatus(c) === 'locked'"
+          @click="openChapter(c)"
+        >
+          <span
+            class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-surface-raised text-[21px] leading-none"
+            :class="chapterStatus(c) === 'done' ? 'text-primary' : 'text-ink-faint'"
+          >{{ TIER_GLYPH[c.tier] }}</span>
+          <div class="min-w-0 flex-1">
+            <p class="mb-0.5 font-sans text-[9px] text-ink-faint">第{{ TIER_NUM[c.tier] }}章</p>
+            <p
+              class="font-display text-sm font-bold"
+              :class="chapterStatus(c) === 'done' ? 'text-ink' : 'text-ink-muted'"
+            >{{ LESSON_TIER_LABELS[c.tier] }}</p>
+            <p class="mt-0.5 font-sans text-[10px] text-ink-faint">
+              <template v-if="chapterStatus(c) === 'done'">{{ c.done }}/{{ c.total }} · 已完成</template>
+              <template v-else>{{ c.total }} 課</template>
+            </p>
+          </div>
+          <Lock
+            v-if="chapterStatus(c) === 'locked'"
+            :size="15"
+            class="text-ink-faint"
+            :stroke-width="1.8"
+          />
+          <ChevronRight v-else :size="15" class="text-ink-faint" :stroke-width="1.8" />
+        </button>
+      </template>
+    </div>
   </div>
 </template>
-
-<style scoped>
-/* Full-page chess-map parchment backdrop — sits behind ALL page content so
-   the path area and surrounding regions share the same texture (no visible seam). */
-.learn-page {
-  min-height: 100vh;
-  position: relative;
-}
-</style>

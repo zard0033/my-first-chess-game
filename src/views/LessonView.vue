@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { ArrowLeft, ArrowRight, RotateCw, Lightbulb, Check, X } from 'lucide-vue-next'
 import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import { Button } from '@/components/ui/button'
@@ -164,7 +165,7 @@ function prev(): void {
         size="icon"
         aria-label="返回課程清單"
         @click="router.push('/learn')"
-      >←</Button>
+      ><ArrowLeft :size="20" :stroke-width="1.8" /></Button>
       <h1 class="flex-1 font-display text-xl font-semibold text-ink" tabindex="-1">{{ lesson.title }}</h1>
       <span class="shrink-0 text-sm tabular-nums text-ink-faint">
         {{ stepIndex + 1 }} / {{ lesson.steps.length }}
@@ -219,16 +220,16 @@ function prev(): void {
         <!-- Corner badges: ✗ wrong / ✓ correct -->
         <div
           v-if="wrongBadge"
-          class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-danger font-bold text-danger-fg shadow-button"
-          :style="{ left: `${wrongBadge.left}px`, top: `${wrongBadge.top}px`, width: `${wrongBadge.size}px`, height: `${wrongBadge.size}px`, fontSize: `${wrongBadge.size * 0.6}px` }"
+          class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-danger text-danger-fg shadow-button"
+          :style="{ left: `${wrongBadge.left}px`, top: `${wrongBadge.top}px`, width: `${wrongBadge.size}px`, height: `${wrongBadge.size}px` }"
           aria-hidden="true"
-        >✕</div>
+        ><X :size="wrongBadge.size * 0.62" :stroke-width="3" /></div>
         <div
           v-if="correctBadge"
-          class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-success font-bold text-success-fg shadow-button"
-          :style="{ left: `${correctBadge.left}px`, top: `${correctBadge.top}px`, width: `${correctBadge.size}px`, height: `${correctBadge.size}px`, fontSize: `${correctBadge.size * 0.6}px` }"
+          class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-success text-success-fg shadow-button"
+          :style="{ left: `${correctBadge.left}px`, top: `${correctBadge.top}px`, width: `${correctBadge.size}px`, height: `${correctBadge.size}px` }"
           aria-hidden="true"
-        >✓</div>
+        ><Check :size="correctBadge.size * 0.62" :stroke-width="3" /></div>
       </div>
 
       <!-- Coach panel: scrollable content (no action buttons here on mobile) -->
@@ -250,7 +251,7 @@ function prev(): void {
           >{{ lesson.scenario }}</p>
 
           <!-- Step narration -->
-          <p class="mb-4 text-base leading-loose text-ink">{{ currentStep?.text }}</p>
+          <p class="mb-4 font-lesson text-base leading-loose text-ink">{{ currentStep?.text }}</p>
 
           <!-- Wrong-move feedback (no buttons — they're in the sticky bar) -->
           <Alert v-if="wrongMove" variant="danger" class="mb-4">
@@ -282,7 +283,7 @@ function prev(): void {
               variant="danger"
               class="text-sm"
               @click="retry"
-            >↻ 重試</Button>
+            ><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
             <Button
               v-if="wrongMove && !answerRevealed"
               variant="secondary"
@@ -296,7 +297,7 @@ function prev(): void {
               :class="{ 'lightbulb-glow': lightbulbGlowing }"
               @click="hintShown = true"
             >
-              <span aria-hidden="true">💡</span> 提示
+              <Lightbulb :size="15" :stroke-width="1.8" /> 提示
             </Button>
             <Button
               v-if="hintShown && !answerRevealed && !wrongMove"
@@ -309,12 +310,16 @@ function prev(): void {
               variant="secondary"
               class="text-sm"
               @click="prev"
-            >← 上一步</Button>
+            ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
             <Button
               class="text-sm"
+              :variant="isLastStep ? 'gold' : 'default'"
               :disabled="!canAdvance"
               @click="next"
-            >{{ isLastStep ? '完成課程' : '下一步 →' }}</Button>
+            >
+              <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
+              <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
+            </Button>
           </div>
         </Card>
       </div>
@@ -324,7 +329,7 @@ function prev(): void {
     <div class="sticky bottom-14 z-20 flex shrink-0 items-center gap-2 border-t border-line bg-surface-base px-4 py-3 lg:hidden">
       <!-- Contextual: wrong-move state -->
       <template v-if="wrongMove">
-        <Button variant="danger" class="text-sm" @click="retry">↻ 重試</Button>
+        <Button variant="danger" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
         <Button
           v-if="!answerRevealed"
           variant="secondary"
@@ -341,7 +346,7 @@ function prev(): void {
           :class="{ 'lightbulb-glow': lightbulbGlowing }"
           @click="hintShown = true"
         >
-          <span aria-hidden="true">💡</span> 提示
+          <Lightbulb :size="15" :stroke-width="1.8" /> 提示
         </Button>
         <Button
           v-if="hintShown && !answerRevealed"
@@ -358,12 +363,16 @@ function prev(): void {
         variant="secondary"
         class="text-sm"
         @click="prev"
-      >← 上一步</Button>
+      ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
       <Button
         class="text-sm"
+        :variant="isLastStep ? 'gold' : 'default'"
         :disabled="!canAdvance"
         @click="next"
-      >{{ isLastStep ? '完成課程' : '下一步 →' }}</Button>
+      >
+        <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
+        <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
+      </Button>
     </div>
   </div>
 </template>

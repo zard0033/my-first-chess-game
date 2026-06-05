@@ -123,7 +123,7 @@ describe('AC-03: empty state', () => {
     const wrapper = mountView(pinia)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('No games recorded yet.')
+    expect(wrapper.text()).toContain('還沒有對局紀錄')
     expect(wrapper.find('a[href="#/play"]').exists()).toBe(true)
   })
 })
@@ -142,7 +142,7 @@ describe('AC-04: error state', () => {
     const wrapper = mountView(pinia)
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Try again')
+    expect(wrapper.text()).toContain('再試一次')
     expect(wrapper.findAll('[data-testid="history-row"]').length).toBe(0)
   })
 })
@@ -164,7 +164,7 @@ describe('AC-05: retry behavior', () => {
     await flushPromises()
     fetchSpy.mockClear()
 
-    const retryBtn = wrapper.findAll('button').find(b => b.text().includes('Try again'))
+    const retryBtn = wrapper.findAll('button').find(b => b.text().includes('再試一次'))
     expect(retryBtn?.exists()).toBe(true)
     await retryBtn!.trigger('click')
 
@@ -194,13 +194,13 @@ describe('AC-05b: retry success', () => {
     const wrapper = mountView(pinia)
     await flushPromises()
 
-    const retryBtn = wrapper.findAll('button').find(b => b.text().includes('Try again'))
+    const retryBtn = wrapper.findAll('button').find(b => b.text().includes('再試一次'))
     expect(retryBtn?.exists()).toBe(true)
     await retryBtn!.trigger('click')
     await flushPromises()
 
     expect(wrapper.findAll('[data-testid="history-row"]').length).toBe(1)
-    expect(wrapper.text()).not.toContain('Try again')
+    expect(wrapper.text()).not.toContain('再試一次')
   })
 })
 
@@ -235,7 +235,7 @@ describe('AC-09b: cache valid empty', () => {
     await flushPromises()
 
     expect(fetchSpy).not.toHaveBeenCalled()
-    expect(wrapper.text()).toContain('No games recorded yet.')
+    expect(wrapper.text()).toContain('還沒有對局紀錄')
   })
 })
 
@@ -351,7 +351,7 @@ describe('AC-16a: refresh button', () => {
     const invalidateSpy = vi.spyOn(store, 'invalidate')
     const fetchSpy = vi.spyOn(store, 'fetchHistory').mockResolvedValue()
 
-    const refreshBtn = wrapper.find('[aria-label="Refresh game history"]')
+    const refreshBtn = wrapper.find('[aria-label="重新整理對局紀錄"]')
     expect(refreshBtn.exists()).toBe(true)
     await refreshBtn.trigger('click')
 
@@ -388,7 +388,7 @@ describe('AC-26: load more spinner', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-testid="load-more-button"]').exists()).toBe(false)
-    expect(wrapper.find('[aria-label="Loading more games"]').exists()).toBe(true)
+    expect(wrapper.find('[aria-label="載入更多對局中"]').exists()).toBe(true)
     expect(wrapper.findAll('[data-testid="history-row"]').length).toBe(1)
   })
 })
@@ -412,7 +412,7 @@ describe('AC-27: load more error toast', () => {
     await wrapper.find('[data-testid="load-more-button"]').trigger('click')
     await flushPromises()
 
-    expect(wrapper.text()).toContain('Could not load more games')
+    expect(wrapper.text()).toContain('無法載入更多對局，請再試一次。')
     expect(wrapper.findAll('[data-testid="history-row"]').length).toBe(1)
   })
 })

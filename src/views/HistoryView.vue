@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { RotateCw } from 'lucide-vue-next'
 import { useGameHistoryStore } from '@/stores/game-history'
 import HistoryRow from '@/components/history-row.vue'
 import { HISTORY_SKELETON_ROWS } from '@/config/history-config'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { DarkPanel } from '@/components/ui/gambit'
 
 const store = useGameHistoryStore()
 
@@ -17,11 +19,27 @@ const showRefresh = computed(() =>
   !store.isLoading && (store.entries.length > 0 || store.error !== null),
 )
 
+const summary = computed(() => {
+  let wins = 0
+  let draws = 0
+  let losses = 0
+  for (const e of store.entries) {
+    if (e.playerResult === 'Win') wins++
+    else if (e.playerResult === 'Draw') draws++
+    else if (e.playerResult === 'Loss') losses++
+  }
+  return [
+    { label: '勝', val: wins, col: 'text-[#7FD4A8]' },
+    { label: '和', val: draws, col: 'text-ink-on-deep-dim' },
+    { label: '負', val: losses, col: 'text-[#E08E79]' },
+  ]
+})
+
 const errorMessage = computed(() => {
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    return 'No internet connection. Check your connection and try again.'
+    return '沒有網路連線，請檢查連線後再試。'
   }
-  return 'Could not load game history. Try again.'
+  return '無法載入對局紀錄，請再試一次。'
 })
 
 function onRefresh() {
@@ -37,9 +55,9 @@ async function onLoadMore() {
   loadMoreError.value = null
   try {
     await store.loadMore()
-    loadMoreAnnouncement.value = `${store.entries.length} games loaded`
+    loadMoreAnnouncement.value = `已載入 ${store.entries.length} 局`
   } catch {
-    loadMoreError.value = 'Could not load more games. Try again.'
+    loadMoreError.value = '無法載入更多對局，請再試一次。'
   }
 }
 
@@ -51,87 +69,101 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-4 py-6">
-    <header class="flex items-center justify-between mb-4">
-      <h1 class="font-display text-2xl font-semibold text-ink" tabindex="-1">Game History</h1>
+  <div class="max-w-2xl mx-auto pb-7">
+    <!-- 標頭 -->
+    <header class="flex items-center justify-between px-[18px] pb-2 pt-5">
+      <h1 class="font-display text-2xl font-bold text-ink" tabindex="-1">對局紀錄</h1>
       <Button
         v-if="showRefresh"
         variant="ghost"
         size="icon"
-        aria-label="Refresh game history"
-        class="text-xl"
+        aria-label="重新整理對局紀錄"
         @click="onRefresh"
-      >↻</Button>
+      ><RotateCw :size="18" :stroke-width="1.8" /></Button>
     </header>
 
-    <!-- Loading -->
-    <div v-if="store.isLoading" role="list" aria-busy="true">
-      <Skeleton
-        v-for="n in HISTORY_SKELETON_ROWS"
-        :key="n"
-        class="mb-1 h-[44px] rounded"
-        aria-hidden="true"
-        style="pointer-events: none"
-      />
-      <p role="status" class="sr-only">Loading game history</p>
+    <!-- 戰績摘要 — 深青瓷 -->
+    <div v-if="store.entries.length > 0" class="px-[18px] pb-1 pt-1">
+      <DarkPanel>
+        <div class="flex">
+          <div v-for="s in summary" :key="s.label" class="flex-1 py-1 text-center">
+            <div class="font-num text-[28px] font-bold leading-none" :class="s.col">{{ s.val }}</div>
+            <div class="mt-1.5 font-sans text-[11px] text-ink-on-deep-dim">{{ s.label }}</div>
+          </div>
+        </div>
+      </DarkPanel>
     </div>
 
-    <!-- Error (initial load, no cached data) -->
-    <div v-else-if="store.error && store.entries.length === 0" class="py-12 text-center">
-      <p class="mb-4 text-ink">{{ errorMessage }}</p>
-      <Button @click="onRetry">Try again</Button>
-    </div>
-
-    <!-- Empty -->
-    <div v-else-if="store.entries.length === 0" class="py-12 text-center">
-      <p class="mb-4 text-ink-muted">No games recorded yet.</p>
-      <Button as-child><RouterLink to="/play">Play a game →</RouterLink></Button>
-    </div>
-
-    <!-- List -->
-    <template v-else>
-      <!-- Error banner above cached list (refresh failure) -->
-      <Alert
-        v-if="store.error"
-        variant="danger"
-        class="mb-3 flex items-center justify-between py-2.5"
-      >
-        <AlertDescription class="text-danger">{{ errorMessage }}</AlertDescription>
-        <Button variant="link" class="ml-3 text-danger" @click="onRetry">Try again</Button>
-      </Alert>
-
-      <div role="list">
-        <HistoryRow
-          v-for="entry in store.entries"
-          :key="entry.id"
-          :entry="entry"
-          :is-expanded="store.expandedRowId === entry.id"
+    <div class="px-[18px] pt-3.5">
+      <!-- Loading -->
+      <div v-if="store.isLoading" role="list" aria-busy="true" class="space-y-2.5">
+        <Skeleton
+          v-for="n in HISTORY_SKELETON_ROWS"
+          :key="n"
+          class="h-[56px] rounded-card"
+          aria-hidden="true"
+          style="pointer-events: none"
         />
+        <p role="status" class="sr-only">載入對局紀錄中</p>
       </div>
 
-      <div v-if="store.hasMore || store.isLoadingMore" class="mt-4 text-center">
-        <Button
-          v-if="!store.isLoadingMore"
-          data-testid="load-more-button"
-          variant="secondary"
-          class="text-sm"
-          @click="onLoadMore"
-        >Load more</Button>
+      <!-- Error (initial load, no cached data) -->
+      <div v-else-if="store.error && store.entries.length === 0" class="py-12 text-center">
+        <p class="mb-4 text-ink">{{ errorMessage }}</p>
+        <Button @click="onRetry">再試一次</Button>
+      </div>
+
+      <!-- Empty -->
+      <div v-else-if="store.entries.length === 0" class="py-12 text-center">
+        <p class="mb-4 text-ink-muted">還沒有對局紀錄</p>
+        <Button as-child><RouterLink to="/play">開始一盤 →</RouterLink></Button>
+      </div>
+
+      <!-- List -->
+      <template v-else>
+        <!-- Error banner above cached list (refresh failure) -->
+        <Alert
+          v-if="store.error"
+          variant="danger"
+          class="mb-3 flex items-center justify-between py-2.5"
+        >
+          <AlertDescription class="text-danger">{{ errorMessage }}</AlertDescription>
+          <Button variant="link" class="ml-3 text-danger" @click="onRetry">再試一次</Button>
+        </Alert>
+
+        <div role="list" class="space-y-2.5">
+          <HistoryRow
+            v-for="entry in store.entries"
+            :key="entry.id"
+            :entry="entry"
+            :is-expanded="store.expandedRowId === entry.id"
+          />
+        </div>
+
+        <div v-if="store.hasMore || store.isLoadingMore" class="mt-4 text-center">
+          <Button
+            v-if="!store.isLoadingMore"
+            data-testid="load-more-button"
+            variant="secondary"
+            class="text-sm"
+            @click="onLoadMore"
+          >載入更多</Button>
+          <div
+            v-else
+            role="status"
+            aria-label="載入更多對局中"
+            class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-line border-t-primary"
+          />
+        </div>
+
         <div
-          v-else
-          role="status"
-          aria-label="Loading more games"
-          class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-line border-t-primary"
-        />
-      </div>
+          v-if="loadMoreError"
+          class="mt-2 text-center text-sm text-danger"
+          role="alert"
+        >{{ loadMoreError }}</div>
 
-      <div
-        v-if="loadMoreError"
-        class="mt-2 text-center text-sm text-danger"
-        role="alert"
-      >{{ loadMoreError }}</div>
-
-      <div role="status" class="sr-only" aria-live="polite">{{ loadMoreAnnouncement }}</div>
-    </template>
+        <div role="status" class="sr-only" aria-live="polite">{{ loadMoreAnnouncement }}</div>
+      </template>
+    </div>
   </div>
 </template>
