@@ -1,4 +1,4 @@
-import{h as t,g as o}from"./index-C5wGodsZ.js";import{l as r,L as c,i as n,y as l,a2 as p,R as i}from"./chess-board-CKnImvKx.js";/**
+import{h as t,g as o}from"./index-Df8rRtDb.js";import{l as r,L as c,i as n,y as l,a2 as p,R as i}from"./chess-board-CKnImvKx.js";/**
  * @license lucide-vue-next v1.0.0 - ISC
  *
  * This source code is licensed under the ISC license.
