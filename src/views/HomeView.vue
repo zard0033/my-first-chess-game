@@ -6,15 +6,17 @@ import { lessons } from '@/data/lessons'
 import { LESSON_TIER_LABELS } from '@/types/lesson'
 import type { LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
+import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DarkPanel, ChapterBadge, StatCard, SectionLabel, ProgressBar } from '@/components/ui/gambit'
 
 const router = useRouter()
 const progress = useLessonProgressStore()
+const dungeon = useDungeonProgressStore()
 
-// 棋子剪影：依課程 tier 變化（呼應 hero 徽章「隨主角棋子變化」）
-const TIER_GLYPH: Record<LessonTier, string> = { 1: '♟', 2: '♞', 3: '♜', 4: '♚' }
+// 棋子徽章：用棋盤同一套 Gioco Wood 棋子（依課程 tier 變化），與盤面風格統一。
+const TIER_PIECE: Record<LessonTier, string> = { 1: 'bP', 2: 'bN', 3: 'bR', 4: 'bK' }
 
 // 時間感問候
 const greeting = computed(() => {
@@ -58,7 +60,7 @@ function continueLearning() {
             開始對局 <ArrowRight :size="16" />
           </Button>
         </div>
-        <ChapterBadge glyph="♚" :size="62" />
+        <ChapterBadge piece="bK" :size="62" />
       </div>
     </DarkPanel>
 
@@ -76,7 +78,7 @@ function continueLearning() {
               繼續 · 第 {{ lessonOrdinal }} 課 <ArrowRight :size="15" />
             </Button>
           </div>
-          <ChapterBadge :glyph="TIER_GLYPH[nextLesson.tier]" :size="52" />
+          <ChapterBadge :piece="TIER_PIECE[nextLesson.tier]" :size="52" />
         </div>
         <div class="mt-3.5">
           <ProgressBar :value="progress.completedCount" :total="progress.totalCount" />
@@ -91,7 +93,7 @@ function continueLearning() {
               回到地圖 <ArrowRight :size="15" />
             </Button>
           </div>
-          <ChapterBadge glyph="♚" :size="52" />
+          <ChapterBadge piece="bK" :size="52" />
         </div>
       </template>
     </Card>
@@ -104,7 +106,13 @@ function continueLearning() {
         label="學習進度"
         :value="`${progress.completedCount}/${progress.totalCount}`"
       />
-      <StatCard :icon="Target" label="今日謎題" value="即將推出" locked />
+      <RouterLink to="/dungeon" class="flex flex-1 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="試煉">
+        <StatCard
+          :icon="Target"
+          label="試煉"
+          :value="`${dungeon.solvedCount}/${dungeon.totalCount}`"
+        />
+      </RouterLink>
       <StatCard :icon="Library" label="開局庫" value="即將推出" locked />
     </div>
   </div>

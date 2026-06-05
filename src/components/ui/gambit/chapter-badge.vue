@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{ glyph?: string; size?: number }>(), {
-  glyph: '♜',
-  size: 60,
-})
+const props = withDefaults(
+  defineProps<{
+    /** Unicode fallback glyph (legacy). Prefer `piece` for board-matching artwork. */
+    glyph?: string
+    /** Gioco Wood piece code (e.g. 'bK', 'wN') — renders the same SVG the board uses. */
+    piece?: string
+    size?: number
+  }>(),
+  { glyph: '♜', size: 60 },
+)
 
 // 金邊翡翠錢幣：白底 + 金外環 + 四方位刻點 + 中央棋子剪影
 const dotSize = computed(() => Math.round(props.size * 0.065))
@@ -31,7 +37,27 @@ const glyphSize = computed(() => Math.round(props.size * 0.52))
       :style="{ left: `${dot.left}px`, top: `${dot.top}px`, width: `${dotSize}px`, height: `${dotSize}px` }"
     />
     <div class="absolute inset-0 flex items-center justify-center">
+      <!-- Flat jade silhouette of the real board piece (CSS mask), so the badge shares the
+           board piece's shape/identity while staying on-brand flat chrome. -->
       <span
+        v-if="piece"
+        class="block bg-primary"
+        aria-hidden="true"
+        :style="{
+          width: `${glyphSize}px`,
+          height: `${glyphSize}px`,
+          WebkitMaskImage: `url(/pieces/${piece}.svg)`,
+          maskImage: `url(/pieces/${piece}.svg)`,
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+          WebkitMaskPosition: 'center',
+          maskPosition: 'center',
+          WebkitMaskSize: 'contain',
+          maskSize: 'contain',
+        }"
+      />
+      <span
+        v-else
         class="text-primary leading-none [text-shadow:0_1px_2px_rgba(61,34,16,0.12)]"
         :style="{ fontSize: `${glyphSize}px` }"
         >{{ glyph }}</span

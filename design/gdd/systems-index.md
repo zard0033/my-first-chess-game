@@ -40,6 +40,7 @@ Lichess open-source components (chessground, stockfish.wasm, chess-openings) pro
 | 16 | Audio System | Audio | Polish | Not Started | — | — |
 | 17 | Settings | UI | Polish | Not Started | — | Multiple |
 | 18 | Lesson System | Gameplay | Phase 2 | **In Design** (2026-06-01; static scripted, S12) | [lesson-system.md](./lesson-system.md) | Chess Board, Navigation & Routing |
+| 19 | Dungeon Puzzle Mode | Gameplay | Phase 2 | **Approved** (2026-06-05; static puzzles, no streak, S13) | [dungeon-puzzle-mode.md](./dungeon-puzzle-mode.md) ([review log](./reviews/dungeon-puzzle-mode-review-log.md)) | Chess Board, Navigation & Routing, Lesson System (pattern) |
 
 ---
 

@@ -11,7 +11,8 @@ import { DarkPanel, ChapterBadge } from '@/components/ui/gambit'
 const router = useRouter()
 const progress = useLessonProgressStore()
 
-const TIER_GLYPH: Record<LessonTier, string> = { 1: '♜', 2: '♝', 3: '♛', 4: '♞' }
+// 棋子徽章：用棋盤同一套 Gioco Wood 棋子（扁平 jade 剪影），與 Home 一致。
+const TIER_PIECE: Record<LessonTier, string> = { 1: 'bP', 2: 'bN', 3: 'bR', 4: 'bK' }
 const TIER_NUM: Record<LessonTier, string> = { 1: '一', 2: '二', 3: '三', 4: '四' }
 const TIER_SUB: Record<LessonTier, string> = {
   1: '棋子走法 · 基本規則',
@@ -103,7 +104,7 @@ function openChapter(c: Chapter): void {
           <DarkPanel no-pad>
             <div class="px-3.5 pb-3 pt-3.5">
               <div class="mb-2.5 flex items-center gap-2.5">
-                <ChapterBadge :glyph="TIER_GLYPH[c.tier]" :size="42" />
+                <ChapterBadge :piece="TIER_PIECE[c.tier]" :size="42" />
                 <div class="min-w-0 flex-1">
                   <p
                     class="mb-0.5 font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-gold"
@@ -201,10 +202,23 @@ function openChapter(c: Chapter): void {
           :disabled="chapterStatus(c) === 'locked'"
           @click="openChapter(c)"
         >
-          <span
-            class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-surface-raised text-[21px] leading-none"
-            :class="chapterStatus(c) === 'done' ? 'text-primary' : 'text-ink-faint'"
-          >{{ TIER_GLYPH[c.tier] }}</span>
+          <span class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-surface-raised">
+            <span
+              class="block h-[21px] w-[21px]"
+              :class="chapterStatus(c) === 'done' ? 'bg-primary' : 'bg-ink-faint'"
+              aria-hidden="true"
+              :style="{
+                WebkitMaskImage: `url(/pieces/${TIER_PIECE[c.tier]}.svg)`,
+                maskImage: `url(/pieces/${TIER_PIECE[c.tier]}.svg)`,
+                WebkitMaskRepeat: 'no-repeat',
+                maskRepeat: 'no-repeat',
+                WebkitMaskPosition: 'center',
+                maskPosition: 'center',
+                WebkitMaskSize: 'contain',
+                maskSize: 'contain',
+              }"
+            />
+          </span>
           <div class="min-w-0 flex-1">
             <p class="mb-0.5 font-sans text-[9px] text-ink-faint">第{{ TIER_NUM[c.tier] }}章</p>
             <p
