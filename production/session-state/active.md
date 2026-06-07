@@ -1,8 +1,22 @@
 <!-- STATUS -->
-Epic: Learning Loop 概念連結（#20）— Phase A+B+C done；UI drift 修正 done；全數已 push
+Epic: 質感提升批次（redesign 起手）— H-1/M-1/L-2 + 課程/試煉版面全沉浸重構 done；待 commit
 Feature: 下一步 = 待 Eason 指定方向（候選見「其他待辦/風險」）
-Task: 2026-06-07 修 #7 reactivity bug + 清 20 vue-tsc 型別債 + 更正 game-replay/CSP 過期狀態；vue-tsc 0、629 passed；待 commit
+Task: 2026-06-07 質感批次：dungeon auto-scroll、focus 金環、進度條過場、課程/試煉全沉浸版面、棋盤座標角落式、中文 italic、徽章棋子正規化、導覽重構（試煉入列+profile 移 header）；vue-tsc 0、629 passed
 <!-- /STATUS -->
+
+> **2026-06-07 質感提升批次（redesign）細節**：
+> - **H-1 dungeon auto-scroll**：DungeonMapView onMounted rAF 將 current 節點置中；router afterEach h1 focus 改 `preventScroll`（通用修正，原本會把任何自訂初始捲動拉回頂部）。
+> - **M-1 focus-visible 金環**（沿 HomeView 既有 `ring-gold` 慣例）：learn-tabs、ConceptMap stretched-link + 去試煉、LearnView 課程列、Dungeon 節點（菱形改 inner-layer 讓 ring 不被 clip-path 裁掉）+ CTA bubble。
+> - **L-2**：LearnView 章節進度條補 `transition-[width]`（共用 ProgressBar 本就有）。
+> - **課程/試煉版面全沉浸（Eason 拍板）**：lesson/puzzle route 標 `fullBleed`（無全域頂部品牌列＋底部 tab，用畫面內 ← 返回）；棋盤加高度上限 `max-w-[min(…,54/56dvh)]`（板子是正方形，全寬會吃掉整屏把教學文字擠到摺線下）；教練卡 padding 收斂；LessonView sticky bar 下移 bottom-0 +safe-area。
+> - **中文 italic 渲染**：移除 LessonView 情境 quote 的 `italic`（CJK 無真斜體，明朝體假斜會把「哪」等字拉歪）；引言感改由左邊框＋灰階保留。opening-knowledge-card 的 italic 條件資料從未設 true（dead，不動）。
+> - **棋盤座標角落式（board-theme.css）**：a–h 右下角、1–8 左上角（lichess/chess.com 慣例）。水平：移除 `coords.files` 容器 `padding:0 4px`（造成 8 字母與 8 格漂移）→ `text-align:right`+`padding-right:3px`。垂直：原本 12px 字形在 chessground 底部薄條會懸在板底外 ~6px（padding/bottom 推不動，因字形 overflow 固定高度的 strip），改 `transform: translateY(-9px)` 把整排抬進底排格內（量測板內 3px）。座標為原生 chessground，僅動專案自有覆寫 CSS、未動上游棋盤/棋子渲染。
+> - **徽章棋子大小正規化（chapter-badge.vue）**：量測各棋子 SVG 內容佔 50×50 viewBox 的高度比（K 0.807…P 0.638），
+>   反向正規化讓每個剪影都渲染成 ≈0.40×徽章高（原 `contain` 下兵僅國王 79% 高、顯小）。量測：國王/兵現皆填徽章 40%。
+> - **導覽重構（Eason 拍板）**：底部 tab 改 `首頁/學習/試煉/對局`（試煉入列、盾牌 icon）；`我的`(profile) 移到右上 header
+>   （未登入顯示「登入」、登入顯示頭像 →/profile，登出在 ProfileView）。順解「按我的 tab 沒反應」＝原 profile auth-gate
+>   靜默導回首頁、`?login=required` 無人處理。app-nav.vue + App.vue（移除 onSignOut plumbing，登出改由 profile 頁）。
+> - **CLAUDE.md**：新增「UI 質感 Skill 路由」（redesign / frontend-ui-engineering / ui-ux-pro-max / web-design-engineer 觸發詞 + Gambit 裁判鐵則）。
 
 > **新 session 接手指引**：本檔是交接快照。詳盡規格在各 GDD / EPIC；此處只給「現況 + 下一步 + 鐵則」。
 > 全專案進度總覽見 `production/epics/index.md`（注意：該檔較舊，試煉/學習迴圈狀態以本檔為準，待補更新）。
@@ -93,6 +107,14 @@ Task: 2026-06-07 修 #7 reactivity bug + 清 20 vue-tsc 型別債 + 更正 game-
   （Supabase subscription cast `as unknown as`、AuthOtpResponse 補 data、fakeTimers 包 block、firstResolve 還原型別）、
   1 真欄位漏（history-view factory 補必填 `pgn`）。vue-tsc 0 errors、629 passed。
 - **Phase C+ / D**：捉雙/牽制賽後偵測（需精準度實測）；Claude API 動態講解（選配，最後）。
+- **🆕 訪客模式（local 完局紀錄）— Eason 指定待辦（2026-06-07）**：目前課程/試煉/概念進度已存 localStorage 且
+  `reconcileOnLogin` 已合併上雲（lesson/dungeon），但**完局紀錄只存 Supabase、訪客對局不保存**。要做：
+  ①新增本地完局紀錄 store（仿 lesson/dungeon 的 localStorage mirror）+ 解除 history/profile/review 對訪客的
+  auth gate（讀本地）；②登入時把本地對局 reconcile 上雲（擴充 reconcileOnLogin）；③文案：登入定位改「雲端備份・
+  跨裝置同步」、標註「訪客資料存此裝置」。框架現成（mirror + union reconcile）。有份量、非小修。
+- **🆕 全站 icon 優化調整 — Eason 指定待辦（2026-06-07）**：盤點全站 icon 一致性（Lucide line icon 單一字族、
+  禁 emoji、stroke-width/size 統一、語意對位）。範圍含 app-nav 內聯 SVG path、各 view 的 Lucide 用法、徽章/座標等。
+  走 `redesign`／`frontend-ui-engineering` 路由，對齊 Gambit。
 
 ## 💡 backlog（未排程）
 - 品牌 logo / 視覺識別：用 `ui-ux-pro-max` logo 模組 + SoT `design/gambit-design-system/`。

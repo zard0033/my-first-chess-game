@@ -127,7 +127,7 @@ const maskStyle = (piece: string) => ({
                whole tile is one tap target without nesting an interactive inside an interactive. -->
           <button
             type="button"
-            class="absolute inset-0 z-0 rounded-2xl transition-colors hover:bg-surface-hover"
+            class="absolute inset-0 z-0 rounded-2xl transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
             :aria-label="`複習「${v.label}」`"
             @click="reviewLesson(v)"
           />
@@ -154,7 +154,7 @@ const maskStyle = (piece: string) => ({
               v-if="v.isLearned && !v.isPracticed && v.practiceTargetId"
               type="button"
               data-testid="concept-practise-cta"
-              class="inline-flex min-h-[44px] items-center gap-0.5 self-start font-sans text-xs font-bold text-primary"
+              class="relative z-[1] inline-flex min-h-[44px] items-center gap-0.5 self-start rounded font-sans text-xs font-bold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
               @click="practise(v)"
             >去試煉<ChevronRight :size="13" :stroke-width="2" /></button>
           </div>

@@ -30,7 +30,7 @@ function go(to: string): void {
       v-for="t in tabs"
       :key="t.to"
       type="button"
-      class="min-h-[44px] flex-1 rounded-full py-2 font-sans text-sm font-bold transition-colors"
+      class="min-h-[44px] flex-1 rounded-full py-2 font-sans text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
       :class="isActive(t.to) ? 'bg-surface-card text-primary-dark shadow-[0_1px_4px_rgba(61,34,16,0.14)]' : 'text-ink-muted'"
       :aria-current="isActive(t.to) ? 'page' : undefined"
       @click="go(t.to)"

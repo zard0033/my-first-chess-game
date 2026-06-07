@@ -21,7 +21,17 @@ const dots = computed(() => [
   { left: center.value, top: props.size - dotSize.value - 2 },
   { left: 1, top: center.value },
 ])
-const glyphSize = computed(() => Math.round(props.size * 0.52))
+// Each piece's silhouette fills a different share of its 50×50 SVG viewBox (measured, Gioco Wood
+// set): a king is 0.81 tall, a pawn only 0.64. With mask-size:contain that makes a pawn badge look
+// ~20% smaller than a king. Normalise so every silhouette renders at the same optical height.
+const PIECE_CONTENT_FRAC: Record<string, number> = { K: 0.807, Q: 0.762, R: 0.676, B: 0.732, N: 0.71, P: 0.638 }
+const glyphSize = computed(() => {
+  if (props.piece) {
+    const intrinsic = PIECE_CONTENT_FRAC[props.piece.slice(-1).toUpperCase()] ?? 0.74
+    return Math.round(props.size * Math.min(0.7, 0.4 / intrinsic))
+  }
+  return Math.round(props.size * 0.52)
+})
 </script>
 
 <template>

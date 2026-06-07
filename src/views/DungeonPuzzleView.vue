@@ -156,7 +156,7 @@ function goNext(): void {
 </script>
 
 <template>
-  <div v-if="puzzle && pz" class="min-h-dvh bg-surface-dungeon pb-24 lg:pb-8">
+  <div v-if="puzzle && pz" class="min-h-dvh bg-surface-dungeon pb-[calc(2rem+env(safe-area-inset-bottom))] lg:pb-8">
     <!-- Header: back + position + calm progress -->
     <header class="flex items-center gap-2.5 border-b border-white/[0.06] bg-surface-dungeon-2 px-4 py-2.5">
       <button
@@ -174,8 +174,9 @@ function goNext(): void {
       </div>
     </header>
 
-    <!-- Board -->
-    <div class="relative mx-auto w-full max-w-[420px]">
+    <!-- Board: cap to a share of viewport height (board is square) so the prompt + hint stay on the
+         first screen instead of being pushed below an edge-to-edge board. -->
+    <div class="relative mx-auto w-full max-w-[min(420px,56dvh)]">
       <ChessBoard
         :key="boardKey"
         ref="board"

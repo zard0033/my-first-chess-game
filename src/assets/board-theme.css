@@ -37,11 +37,18 @@ cg-board {
 .cg-wrap coords.files {
   left: 0;
   right: 0;
-  padding: 0 4px 1px;
+  padding: 0;
+  /* Lift the row up off the board's bottom edge — chessground's thin bottom strip + the 12px
+     glyph's line-height otherwise hangs a–h ~6px below the board. translateY seats them inside
+     the bottom rank. (padding/bottom don't move it — the glyph overflows a fixed-height strip.) */
+  transform: translateY(-9px);
 }
 
+/* a–h in each square's bottom-right corner (lichess / chess.com style). No container side-padding
+   so the 8 coord cells map 1:1 onto the 8 squares; a small right inset sits the letter in the corner. */
 .cg-wrap coords.files coord {
   text-align: right;
+  padding-right: 3px;
 }
 
 /* ---- White pieces ---- */

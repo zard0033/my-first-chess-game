@@ -125,7 +125,7 @@ function openChapter(c: Chapter): void {
               </div>
               <div class="h-[3px] overflow-hidden rounded-full bg-white/[0.12]">
                 <div
-                  class="h-full rounded-full bg-[linear-gradient(90deg,#3AB894,#F8B500)]"
+                  class="h-full rounded-full bg-[linear-gradient(90deg,#3AB894,#F8B500)] transition-[width] duration-300 motion-reduce:transition-none"
                   :style="{ width: `${(c.done / c.total) * 100}%` }"
                 />
               </div>
@@ -138,7 +138,7 @@ function openChapter(c: Chapter): void {
               v-for="(l, i) in c.lessons"
               :key="l.id"
               type="button"
-              class="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors"
+              class="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"
               :class="[
                 i < c.lessons.length - 1 && 'border-b border-black/[0.04]',
                 lessonState(l) === 'current' &&

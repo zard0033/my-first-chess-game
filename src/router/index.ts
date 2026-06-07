@@ -10,9 +10,9 @@ export const routes = [
   { path: '/play',            name: 'play',      component: () => import('@/views/PlayView.vue') },
   { path: '/learn',           name: 'learn',     component: () => import('@/views/LearnView.vue') },
   { path: '/learn/concepts',  name: 'concepts',  component: () => import('@/views/ConceptMapView.vue') },
-  { path: '/learn/:lessonId', name: 'lesson',    component: () => import('@/views/LessonView.vue') },
+  { path: '/learn/:lessonId', name: 'lesson',    component: () => import('@/views/LessonView.vue'), meta: { fullBleed: true } },
   { path: '/dungeon',          name: 'dungeon',     component: () => import('@/views/DungeonMapView.vue') },
-  { path: '/dungeon/:puzzleId', name: 'puzzle',     component: () => import('@/views/DungeonPuzzleView.vue') },
+  { path: '/dungeon/:puzzleId', name: 'puzzle',     component: () => import('@/views/DungeonPuzzleView.vue'), meta: { fullBleed: true } },
   { path: '/review',          name: 'review',    component: () => import('@/views/ReviewView.vue') },
   { path: '/history',         name: 'history',   component: () => import('@/views/HistoryView.vue') },
   { path: '/replay/:gameId',  name: 'replay',    component: () => import('@/views/ReplayView.vue') },
@@ -57,7 +57,10 @@ export function createAppRouter() {
 
   router.afterEach(() => {
     nextTick(() => {
-      document.querySelector('h1')?.focus()
+      // preventScroll: this is an a11y focus reset to the page heading, not a viewport move —
+      // without it, focusing a top-of-page h1 yanks the scroll up and fights any view that
+      // positions its own initial scroll (e.g. DungeonMapView centring the current node).
+      document.querySelector('h1')?.focus({ preventScroll: true })
     })
   })
 

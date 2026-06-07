@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 
-defineProps<{ onSignOut: () => void }>()
-
 const authStore = useAuthStore()
 
-// Primary destinations — shared by the desktop top bar and the mobile bottom tab bar.
+// Primary destinations — 首頁 + the three core features (學習 / 試煉 / 對局). Account/profile lives in
+// the top-right header instead of a tab. Shared by the desktop top bar and the mobile bottom tab bar.
 // icon = inline SVG path(s) on a 24×24 viewBox, stroke-based (Lucide-style line icons).
 const NAV_ITEMS = [
   { to: '/', label: '首頁', icon: 'M3 11.5 12 4l9 7.5M5 10v9h5v-5h4v5h5v-9' },
   { to: '/learn', label: '學習', icon: 'M4 5.5A1.5 1.5 0 0 1 5.5 4H19v13H5.5A1.5 1.5 0 0 0 4 18.5zM4 18.5A1.5 1.5 0 0 0 5.5 20H19v-3' },
+  { to: '/dungeon', label: '試煉', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
   { to: '/play', label: '對局', icon: 'M8 5v14l11-7z' },
-  { to: '/profile', label: '我的', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.6 3.6-6.5 8-6.5s8 2.9 8 6.5' },
 ] as const
 </script>
 
@@ -49,6 +48,7 @@ const NAV_ITEMS = [
 
       <span class="flex-1" />
 
+      <!-- Account: 登入 when signed out, profile entry when signed in (登出 lives in ProfileView). -->
       <RouterLink
         v-if="!authStore.userId"
         to="/sign-in"
@@ -57,14 +57,17 @@ const NAV_ITEMS = [
       >
         登入
       </RouterLink>
-      <button
+      <RouterLink
         v-else
-        type="button"
-        class="flex items-center h-9 px-4 rounded-full text-sm font-medium text-ink-on-deep-dim hover:text-ink-on-deep hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-        @click="onSignOut"
+        to="/profile"
+        aria-label="我的"
+        class="flex items-center justify-center h-9 w-9 rounded-full text-ink-on-deep-dim hover:text-ink-on-deep hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        active-class="!text-white bg-primary"
       >
-        登出
-      </button>
+        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 20c0-3.6 3.6-6.5 8-6.5s8 2.9 8 6.5" />
+        </svg>
+      </RouterLink>
     </div>
   </header>
 

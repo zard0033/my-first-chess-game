@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check, Lock, Shield, ArrowRight } from 'lucide-vue-next'
 import { puzzles } from '@/data/puzzles'
@@ -9,6 +9,15 @@ import { useReducedMotion } from '@/composables/use-reduced-motion'
 const router = useRouter()
 const progress = useDungeonProgressStore()
 const { prefersReducedMotion } = useReducedMotion()
+
+// The track lays order 1 at the bottom and the (locked) high levels at the top, so a returning
+// player would land on a wall of locked nodes. Centre the current node on load. rAF defers past
+// the router's afterEach h1 focus-reset so neither fights the other.
+onMounted(() => {
+  requestAnimationFrame(() => {
+    document.querySelector('[data-dungeon-current]')?.scrollIntoView({ block: 'center' })
+  })
+})
 
 const DIAMOND = 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)'
 const W = 320
@@ -81,37 +90,45 @@ function enter(node: { puzzle: { id: string }; state: string }): void {
           :style="{ left: `${node.x - 34}px`, top: `${node.y - 34}px`, width: '68px', height: '68px', clipPath: DIAMOND, background: '#f8b500' }"
         />
 
-        <!-- Node face -->
+        <!-- Node face. The diamond is an inner layer (not a clip-path on the button itself) so the
+             keyboard focus ring isn't clipped away. -->
         <button
           type="button"
+          :data-dungeon-current="node.state === 'current' ? '' : undefined"
           :disabled="node.state === 'locked'"
           :aria-label="`${node.puzzle.title}（${node.state === 'done' ? '已完成' : node.state === 'current' ? '進行中' : '未解鎖'}）`"
-          class="absolute flex items-center justify-center transition-transform active:scale-95"
+          class="absolute flex items-center justify-center rounded-lg transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           :style="{
             left: `${node.x - (node.state === 'current' ? 30 : 26)}px`,
             top: `${node.y - (node.state === 'current' ? 30 : 26)}px`,
             width: `${(node.state === 'current' ? 30 : 26) * 2}px`,
             height: `${(node.state === 'current' ? 30 : 26) * 2}px`,
-            clipPath: DIAMOND,
             cursor: node.state === 'locked' ? 'default' : 'pointer',
-            background:
-              node.state === 'done' ? 'linear-gradient(150deg,#D49028,#8A5810)'
-              : node.state === 'current' ? 'linear-gradient(150deg,#FFC94D,#F8B500,#C87820)'
-              : 'linear-gradient(150deg,#1A1C1A,#0E100E)',
-            opacity: node.state === 'locked' ? 0.55 : 1,
           }"
           @click="enter(node)"
         >
-          <Check v-if="node.state === 'done'" :size="15" :stroke-width="2.8" class="text-[#fff4dc]" />
-          <span v-else-if="node.state === 'current'" class="font-num text-[13px] font-bold leading-none text-[#1A0800]">{{ node.puzzle.order }}</span>
-          <Lock v-else :size="12" :stroke-width="2" class="text-ink-on-deep-dim" />
+          <span
+            class="absolute inset-0"
+            aria-hidden="true"
+            :style="{
+              clipPath: DIAMOND,
+              background:
+                node.state === 'done' ? 'linear-gradient(150deg,#D49028,#8A5810)'
+                : node.state === 'current' ? 'linear-gradient(150deg,#FFC94D,#F8B500,#C87820)'
+                : 'linear-gradient(150deg,#1A1C1A,#0E100E)',
+              opacity: node.state === 'locked' ? 0.55 : 1,
+            }"
+          />
+          <Check v-if="node.state === 'done'" :size="15" :stroke-width="2.8" class="relative text-[#fff4dc]" />
+          <span v-else-if="node.state === 'current'" class="relative font-num text-[13px] font-bold leading-none text-[#1A0800]">{{ node.puzzle.order }}</span>
+          <Lock v-else :size="12" :stroke-width="2" class="relative text-ink-on-deep-dim" />
         </button>
 
         <!-- CTA bubble (current) -->
         <button
           v-if="node.state === 'current'"
           type="button"
-          class="absolute z-10 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-gradient-to-b from-gold-light to-gold px-3 py-1.5 font-sans text-[11px] font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.5)] active:scale-95"
+          class="absolute z-10 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-gradient-to-b from-gold-light to-gold px-3 py-1.5 font-sans text-[11px] font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.5)] transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dungeon"
           :style="{ left: `${node.x}px`, top: `${node.y - 64}px` }"
           @click="enter(node)"
         >

@@ -189,8 +189,9 @@ function prev(): void {
 </script>
 
 <template>
-  <!-- Full-height flex column — no outer horizontal padding so the board can go edge-to-edge -->
-  <div v-if="lesson" class="flex min-h-dvh flex-col pb-20 lg:pb-0">
+  <!-- Full-height flex column — no outer horizontal padding so the board can go edge-to-edge.
+       fullBleed route (no global top/bottom nav): the sticky action bar sits at the very bottom. -->
+  <div v-if="lesson" class="flex min-h-dvh flex-col">
 
     <!-- Header: back + title + step counter -->
     <header class="flex shrink-0 items-center gap-3 px-4 py-3">
@@ -209,8 +210,10 @@ function prev(): void {
     <!-- Content area: board left, coach right on desktop -->
     <div class="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-4">
 
-      <!-- Board: full width on mobile, auto on desktop -->
-      <div class="relative w-full lg:w-auto lg:shrink-0 lg:self-start">
+      <!-- Board: capped to a share of viewport height on mobile so the coach's narration stays
+           above the fold (board is square, so an uncapped full-width board eats the whole screen);
+           auto on desktop where board + coach sit side by side. -->
+      <div class="relative mx-auto w-full max-w-[min(100%,54dvh)] lg:mx-0 lg:w-auto lg:max-w-none lg:shrink-0 lg:self-start">
         <ChessBoard
           :key="boardKey"
           ref="board"
@@ -267,10 +270,10 @@ function prev(): void {
       </div>
 
       <!-- Coach panel: scrollable content (no action buttons here on mobile) -->
-      <div class="flex-1 min-w-0 px-4 py-4 lg:px-0 lg:py-0">
-        <Card class="p-5 lg:p-6">
+      <div class="flex-1 min-w-0 px-4 py-3 lg:px-0 lg:py-0">
+        <Card class="p-4 lg:p-6">
           <!-- Coach avatar -->
-          <div class="mb-4 flex items-center gap-2.5">
+          <div class="mb-3 flex items-center gap-2.5">
             <span
               class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-base leading-none text-primary-fg"
               aria-hidden="true"
@@ -281,7 +284,7 @@ function prev(): void {
           <!-- Scenario (step 0 only) -->
           <p
             v-if="stepIndex === 0 && lesson.scenario"
-            class="mb-4 border-l-2 border-primary/40 pl-4 font-display text-base italic leading-relaxed text-ink-muted"
+            class="mb-4 border-l-2 border-primary/40 pl-4 font-display text-base leading-relaxed text-ink-muted"
           >{{ lesson.scenario }}</p>
 
           <!-- Step narration -->
@@ -359,8 +362,9 @@ function prev(): void {
       </div>
     </div>
 
-    <!-- Sticky bottom action bar — mobile only, positioned above the bottom tab nav (h≈56px) -->
-    <div class="sticky bottom-14 z-20 flex shrink-0 items-center gap-2 border-t border-line bg-surface-base px-4 py-3 lg:hidden">
+    <!-- Sticky bottom action bar — mobile only. fullBleed route: no tab nav below, so it sits at
+         the very bottom (+ iOS safe-area inset). -->
+    <div class="sticky bottom-0 z-20 flex shrink-0 items-center gap-2 border-t border-line bg-surface-base px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
       <!-- Contextual: wrong-move state -->
       <template v-if="wrongMove">
         <Button variant="danger" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
