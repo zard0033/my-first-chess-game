@@ -9,6 +9,7 @@ export const routes = [
   { path: '/',                name: 'home',      component: HomeView },
   { path: '/play',            name: 'play',      component: () => import('@/views/PlayView.vue') },
   { path: '/learn',           name: 'learn',     component: () => import('@/views/LearnView.vue') },
+  { path: '/learn/concepts',  name: 'concepts',  component: () => import('@/views/ConceptMapView.vue') },
   { path: '/learn/:lessonId', name: 'lesson',    component: () => import('@/views/LessonView.vue') },
   { path: '/dungeon',          name: 'dungeon',     component: () => import('@/views/DungeonMapView.vue') },
   { path: '/dungeon/:puzzleId', name: 'puzzle',     component: () => import('@/views/DungeonPuzzleView.vue') },

@@ -1,8 +1,14 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, onUnmounted, computed, ref, watch } from 'vue'
+import { useRouter, RouterLink } from 'vue-router'
 import { useGameStore } from '@/stores/game-store'
-import { usePostGameReview } from '@/modules/post-game-review/use-post-game-review'
+import { usePostGameReview, buildFenSequence } from '@/modules/post-game-review/use-post-game-review'
+import { classify, selectMistakeSignposts, type ClassifiedMistake } from '@/modules/learning-loop/classify'
+import { candidates } from '@/modules/learning-loop/recommend'
+import { getConceptById } from '@/data/concepts'
+import { puzzles } from '@/data/puzzles'
+import { MISTAKE_CONCEPT_MAX_LINKS } from '@/config/learning-loop-tuning'
+import type { ChessConcept } from '@/types/concept'
 import { useReviewEngine } from '@/modules/chess-engine/review-engine'
 import { identifyOpening } from '@/modules/opening-id/opening-index'
 import type { OpeningResult } from '@/modules/opening-id/opening-index'
@@ -180,6 +186,72 @@ function jumpToBiggestSwing(): void {
   if (bsc !== null) review.goTo(bsc)
 }
 
+// ---- Bridge 3 — concept signposts (Learning Loop #20, GDD §3.4 / §4.4) ----
+// A neutral, opt-in tag attached to a classified mistake. Never in the default render (D2): it lives
+// behind the Show-detail affordance and only on the move the signal fired on.
+
+interface Signpost {
+  index: number
+  concept: ChessConcept
+  label: string
+  lessonId: string | null
+  puzzleId: string | null
+}
+
+/** #7 F2b reused (zero new logic): did the player's move i allow a forced mate? (放任被將死 transition) */
+function allowedForcedMate(i: number): boolean {
+  const curr = review.analysisResults.value[i]
+  const next = review.analysisResults.value[i + 1]
+  if (!curr || !next) return false
+  const hadMate = curr.evalMate !== undefined && curr.evalMate > 0
+  const nowMated = next.evalMate !== undefined && next.evalMate > 0
+  return !hadMate && nowMated
+}
+
+const mistakeSignposts = computed<Signpost[]>(() => {
+  if (review.phase.value !== 'COMPLETE') return []
+  const game = gameStore.completedGame
+  if (!game) return []
+  const fens = buildFenSequence([...game.moves])
+
+  const classified: ClassifiedMistake[] = []
+  for (let i = 0; i < game.moves.length; i++) {
+    if (!review.isPlayerMove(i)) continue
+    if (!review.isCpLossFinal(i)) continue
+    const loss = review.computeCpLoss(i)
+    if (loss === null || loss <= 0) continue
+    const concept = classify({
+      fen: fens[i],
+      playerMoveUci: game.moves[i],
+      opponentReplyUci: game.moves[i + 1],
+      signals: { allowedForcedMate: allowedForcedMate(i) },
+    })
+    if (concept === 'none') continue
+    classified.push({ index: i, concept, cpLoss: loss })
+  }
+
+  return selectMistakeSignposts(classified, MISTAKE_CONCEPT_MAX_LINKS).map((m) => {
+    const meta = getConceptById(m.concept)
+    return {
+      index: m.index,
+      concept: m.concept,
+      label: meta?.label ?? m.concept,
+      lessonId: meta?.teaches[0] ?? null,
+      puzzleId: candidates(m.concept, puzzles)[0]?.id ?? null,
+    }
+  })
+})
+
+/** The signpost on the move under the cursor (GDD §3.4: the tag sits on its own move), else null. */
+const signpostForCursor = computed<Signpost | null>(
+  () => mistakeSignposts.value.find((s) => s.index === review.cursor.value) ?? null,
+)
+
+// Opt-in (D2): the signpost is never rendered by default. Each move is an independent opt-in, so the
+// reveal state resets when the cursor moves.
+const showConceptDetail = ref(false)
+watch(() => review.cursor.value, () => { showConceptDetail.value = false })
+
 // ---- Lifecycle ----
 
 onMounted(async () => {
@@ -213,7 +285,7 @@ function handleExit(): void {
 </script>
 
 <template>
-  <div class="flex flex-col items-center p-4 min-h-screen">
+  <div class="flex flex-col items-center p-4 min-h-dvh">
     <!-- Header row -->
     <div class="mb-3 flex w-full max-w-md items-center justify-between">
       <Button variant="secondary" size="sm" @click="handleExit">
@@ -329,6 +401,43 @@ function handleExit(): void {
       class="text-sm text-ink-muted text-center"
     >
       這盤沒有大轉折 — 全程穩定
+    </div>
+
+    <!-- Bridge 3 — concept signpost (Learning Loop #20, GDD §3.4 D2: neutral, opt-in, behind detail) -->
+    <div v-if="signpostForCursor" class="w-full max-w-md mb-3">
+      <button
+        v-if="!showConceptDetail"
+        type="button"
+        class="min-h-[44px] w-full rounded-lg border border-primary/20 bg-surface-hover px-4 text-sm text-ink-muted"
+        @click="showConceptDetail = true"
+      >
+        顯示細節
+      </button>
+      <div
+        v-else
+        data-testid="review-detail-panel"
+        class="rounded-lg border border-primary/20 bg-surface-hover p-4"
+      >
+        <div data-testid="concept-signpost" class="flex flex-col gap-3">
+          <p class="text-sm text-ink">相關概念：{{ signpostForCursor.label }}</p>
+          <div class="flex flex-wrap gap-3">
+            <RouterLink
+              v-if="signpostForCursor.lessonId"
+              :to="`/learn/${signpostForCursor.lessonId}`"
+              class="inline-flex min-h-[44px] items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-fg"
+            >
+              複習這個概念
+            </RouterLink>
+            <RouterLink
+              v-if="signpostForCursor.puzzleId"
+              :to="`/dungeon/${signpostForCursor.puzzleId}?from=lesson`"
+              class="inline-flex min-h-[44px] items-center rounded-lg border border-primary/30 px-4 text-sm font-semibold text-primary"
+            >
+              去試煉
+            </RouterLink>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Engine error state (AC-30 / Visual Requirements §Error State) -->

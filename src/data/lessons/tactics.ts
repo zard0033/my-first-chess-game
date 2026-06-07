@@ -11,6 +11,7 @@ import type { Lesson } from '../../types/lesson'
 
 const fork: Lesson = {
   id: 'fork',
+  concepts: ['fork'],
   title: '捉雙 (fork)',
   category: 'tactics',
   difficulty: 'beginner',
@@ -60,6 +61,7 @@ const fork: Lesson = {
 
 const pin: Lesson = {
   id: 'pin',
+  concepts: ['pin'],
   title: '牽制 (pin)',
   category: 'tactics',
   difficulty: 'beginner',
@@ -92,6 +94,7 @@ const pin: Lesson = {
 
 const skewer: Lesson = {
   id: 'skewer',
+  concepts: ['skewer'],
   title: '串擊 (skewer)',
   category: 'tactics',
   difficulty: 'intermediate',
@@ -124,6 +127,7 @@ const skewer: Lesson = {
 
 const discoveredAttack: Lesson = {
   id: 'discovered-attack',
+  concepts: ['discovered'],
   title: '閃擊 (discovered attack)',
   category: 'tactics',
   difficulty: 'intermediate',
@@ -159,6 +163,7 @@ const discoveredAttack: Lesson = {
 
 const protection: Lesson = {
   id: 'protection',
+  concepts: ['defense'],
   title: '保護與化解威脅',
   category: 'tactics',
   difficulty: 'beginner',

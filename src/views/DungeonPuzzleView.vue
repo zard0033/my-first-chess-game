@@ -2,11 +2,13 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Chess } from 'chess.js'
-import { ArrowLeft, ArrowRight, Lightbulb, Check } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Lightbulb, Check, BookOpen } from 'lucide-vue-next'
 import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import { getPuzzleById, puzzles } from '@/data/puzzles'
+import { reviewLinkForMotif } from '@/data/concepts'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
+import { useConceptProgressStore } from '@/stores/concept-progress'
 import { useDungeonPuzzle } from '@/modules/dungeon/use-dungeon-puzzle'
 import { useReducedMotion } from '@/composables/use-reduced-motion'
 import {
@@ -21,14 +23,25 @@ import type { Rect } from '@/utils/board-geometry'
 const route = useRoute()
 const router = useRouter()
 const progress = useDungeonProgressStore()
+const conceptProgress = useConceptProgressStore()
 const { prefersReducedMotion } = useReducedMotion()
 
 const puzzle = getPuzzleById(route.params.puzzleId as string)
 
-// Guard: unknown or still-locked puzzle → back to the map.
-if (!puzzle || progress.nodeState(puzzle) === 'locked') {
+// D1 side-door (Learning Loop #20): when arriving from a lesson's Bridge-1 CTA (`?from=lesson`),
+// this puzzle opens in PRACTICE mode — it bypasses the dungeon's linear `nodeState` lock, and a
+// solve is recorded ONLY in the concept-progress store (never the dungeon `solved` set). The
+// dungeon's linear map is untouched.
+const isPractice = route.query.from === 'lesson'
+
+// Guard: unknown puzzle → back to the map. A still-locked puzzle is allowed ONLY in practice mode.
+if (!puzzle || (progress.nodeState(puzzle) === 'locked' && !isPractice)) {
   router.replace('/dungeon')
 }
+
+// Local hint-used flag for the solved panel — in practice mode we must NOT write the dungeon
+// store's `hinted` set, so the panel reads this instead.
+const hintUsed = ref(false)
 
 const playerColor = computed<'white' | 'black'>(() =>
   puzzle && new Chess(puzzle.fen).turn() === 'b' ? 'black' : 'white',
@@ -97,18 +110,32 @@ function handleMove(payload: MoveMadePayload): void {
     return
   }
 
-  // correct-solved
-  if (puzzle) progress.markSolved(puzzle.id)
+  // correct-solved — practice mode records to concept-progress only (D1 zero-mutation invariant);
+  // normal dungeon play advances the linear progress as before.
+  if (puzzle) {
+    if (isPractice) conceptProgress.markPracticed(puzzle.id)
+    else progress.markSolved(puzzle.id)
+  }
 }
 
 function showHint(): void {
   if (!pz) return
   if (hintStage.value === 0) {
     hintStage.value = 1
-    if (puzzle) progress.markHintUsed(puzzle.id) // non-penalising (no streak); flag only
+    hintUsed.value = true
+    // Practice mode must not touch the dungeon store; only normal play records the hint flag.
+    if (puzzle && !isPractice) progress.markHintUsed(puzzle.id) // non-penalising (no streak); flag only
   } else if (hintStage.value === 1 && HINT_ARROW_ON_SECOND_PRESS) {
     hintStage.value = 2
   }
+}
+
+// Bridge 2 (Learning Loop #20, GDD §3.3): a calm, ALWAYS-visible back-link to the lesson that
+// teaches this puzzle's concept — never tied to wrong-attempt count (no implicit failure counter).
+const reviewLink = computed(() => (puzzle ? reviewLinkForMotif(puzzle.motif) : null))
+
+function reviewConcept(): void {
+  if (reviewLink.value) router.push(`/learn/${reviewLink.value.lessonId}`)
 }
 
 const nextPuzzle = computed(() => {
@@ -117,21 +144,27 @@ const nextPuzzle = computed(() => {
 })
 
 function goNext(): void {
+  // Practice mode is a side trip from a lesson — return to the lessons, not the dungeon's
+  // linear "next puzzle" flow.
+  if (isPractice) {
+    router.push('/learn')
+    return
+  }
   if (nextPuzzle.value) router.push(`/dungeon/${nextPuzzle.value.id}`)
   else router.push('/dungeon')
 }
 </script>
 
 <template>
-  <div v-if="puzzle && pz" class="min-h-dvh bg-[#070909] pb-24 lg:pb-8">
+  <div v-if="puzzle && pz" class="min-h-dvh bg-surface-dungeon pb-24 lg:pb-8">
     <!-- Header: back + position + calm progress -->
-    <header class="flex items-center gap-2.5 border-b border-white/[0.06] bg-[#0A0C0A] px-4 py-2.5">
+    <header class="flex items-center gap-2.5 border-b border-white/[0.06] bg-surface-dungeon-2 px-4 py-2.5">
       <button
         type="button"
         class="flex items-center gap-1 px-1 py-1 font-sans text-xs font-semibold text-gold/70 active:scale-95"
-        @click="router.push('/dungeon')"
+        @click="router.push(isPractice ? '/learn' : '/dungeon')"
       >
-        <ArrowLeft :size="16" :stroke-width="1.8" /> 地圖
+        <ArrowLeft :size="16" :stroke-width="1.8" /> {{ isPractice ? '課程' : '地圖' }}
       </button>
       <div class="flex-1 text-center font-num text-[11px] text-ink-on-deep-dim">
         Level {{ puzzle.level }} <span v-if="positionLabel">· {{ positionLabel }}</span>
@@ -191,6 +224,17 @@ function goNext(): void {
           <Lightbulb :size="16" :stroke-width="1.8" />
           {{ hintStage === 0 ? '提示' : hintStage === 1 ? '看答案箭頭' : '已給提示' }}
         </button>
+
+        <!-- Bridge 2: calm, always-visible back-link to the concept's lesson (Learning Loop #20) -->
+        <button
+          v-if="reviewLink"
+          type="button"
+          data-testid="concept-review-link"
+          class="mt-2.5 flex min-h-[44px] w-full items-center justify-center gap-1.5 font-sans text-[13px] font-medium text-ink-on-deep-dim/80 active:scale-[0.98]"
+          @click="reviewConcept"
+        >
+          <BookOpen :size="15" :stroke-width="1.8" /> 複習「{{ reviewLink.label }}」這個概念
+        </button>
       </div>
     </div>
 
@@ -205,7 +249,7 @@ function goNext(): void {
         </div>
         <div class="text-center">
           <p class="font-display text-xl font-bold text-ink-on-deep">
-            {{ progress.wasHintUsed(puzzle.id) ? '看了提示，完成' : '正確！' }}
+            {{ (isPractice ? hintUsed : progress.wasHintUsed(puzzle.id)) ? '看了提示，完成' : '正確！' }}
           </p>
           <p class="mt-2 font-lesson text-sm leading-relaxed text-ink-on-deep-dim">{{ puzzle.successText }}</p>
         </div>
@@ -214,7 +258,7 @@ function goNext(): void {
           class="flex min-w-[150px] items-center justify-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 py-2.5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
           @click="goNext"
         >
-          {{ nextPuzzle ? '下一題' : '回到地圖' }} <ArrowRight :size="16" />
+          {{ isPractice ? '回課程' : nextPuzzle ? '下一題' : '回到地圖' }} <ArrowRight :size="16" />
         </button>
       </div>
     </div>

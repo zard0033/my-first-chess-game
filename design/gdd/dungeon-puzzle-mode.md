@@ -244,6 +244,14 @@ solved when p ≥ L − 1 after a correct final player move
   store and a new `dungeon_progress` table (ADR-0011), mirroring `lesson_progress`. Progress
   is local-first; sync reconciles (union) on login. *(Reciprocal: supabase-integration GDD
   to list `dungeon_progress`.)*
+- **Learning Loop — Concept Linking (#20)** *(downstream consumer)* — maps each puzzle `motif` to a
+  shared `ChessConcept` (`MOTIF_TO_CONCEPT`); the puzzle player hosts a「複習這個概念」back-link to the
+  teaching lesson, and is the route target of the course→puzzle CTA. **The CTA enters in a side-door
+  "practice mode" (`?from=lesson` route intent) that the entry guard honours for that one puzzle id even
+  when `nodeState` is `locked` — a practice solve does NOT call `markSolved`, does NOT advance
+  `currentOrder`, and does NOT touch `isUnlocked`.** The linear map, `solved` set, and unlock semantics
+  are therefore **unchanged** (Learning Loop D1, round-2 spec — the earlier "unlock exemption" idea was
+  dropped because it broke the linear-map invariant). See `design/gdd/learning-loop.md` + ADR-0012.
 - **Out of scope (v0)**: Stockfish/engine call for validation, AI hints.
 
 ---

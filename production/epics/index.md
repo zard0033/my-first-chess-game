@@ -33,6 +33,7 @@
 | [game-replay](game-replay/EPIC.md) | Feature (Phase 2) | ReplayView + review-engine | game-replay.md | ADR-0001/0003/0005 (no new ADR) | 5 stories | **In Progress** (S10 — S10-01/02/03 done; S10-04/05 implemented, pending QA) |
 | [lesson-system](lesson-system/EPIC.md) | Feature (Phase 2) | LearnView + LessonView + useLessonProgressStore | lesson-system.md | ADR-0005 (no new ADR for v0) | 5 stories | **Built** (S01–04 shipped + tested：LearnView/LessonView/progress store/lessons data；S05 內容撰寫 ongoing) |
 | [dungeon-puzzle](dungeon-puzzle/EPIC.md) | Feature (Phase 2) | DungeonMapView + DungeonPuzzleView + useDungeonProgressStore + use-dungeon-puzzle | dungeon-puzzle-mode.md | ADR-0005 (no new ADR for v0) | 6 stories (S13) | **In Design** (GDD Approved 2026-06-05；無 streak；待實作) |
+| [learning-loop](learning-loop/EPIC.md) | Feature (Phase 2 connective) | concept SoT + 3 bridges (lesson↔puzzle↔game) + Concept Map | learning-loop.md | ADR-0012 | Phase A: 4 stories (S14)；B–D 待排 | **GDD Approved (round 2, 2026-06-06)**；Phase A stories 已開（S14-01…04）；D1 側門練習；待實作 |
 
 ## Process Epics
 

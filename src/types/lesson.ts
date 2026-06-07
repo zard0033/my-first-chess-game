@@ -7,6 +7,8 @@
  * step-kind discriminator — there is no separate `kind` field).
  */
 
+import type { ChessConcept } from './concept'
+
 /** A piece-promotion target for an interactive step's expected move. */
 export type PromotionPiece = 'q' | 'r' | 'b' | 'n'
 
@@ -62,6 +64,12 @@ export interface Lesson {
   /** Global position in the linear curriculum (1-based). Drives the unlock predicate. */
   order: number
   summary: string
+  /**
+   * Concepts this lesson teaches (Learning Loop #20). Additive/optional — a lesson without it
+   * keeps working unchanged. Drives Bridge 1 (course→puzzle) and the Concept Map's 已學 state.
+   * `tests/unit/data/concepts.test.ts` asserts each concept's `teaches` lesson carries it here.
+   */
+  concepts?: ChessConcept[]
   /** Situational set-up shown before the first step (Beth's method: scenario first). */
   scenario?: string
   /** What the player will learn. */

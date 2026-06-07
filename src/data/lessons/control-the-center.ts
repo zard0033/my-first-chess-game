@@ -11,6 +11,7 @@ const AFTER_NF3 = 'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 
  */
 export const controlTheCenter: Lesson = {
   id: 'control-the-center',
+  concepts: ['center'],
   title: '控制中心',
   category: 'opening-principles',
   difficulty: 'beginner',

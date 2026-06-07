@@ -1,0 +1,123 @@
+/**
+ * Bridge 3 — game-mistake → concept classifier (Learning Loop #20, GDD §3.4, §4.4, Phase C).
+ *
+ * A pure function over the ACTUAL game line — no engine call beyond what #7 already ran. v1 fires on
+ * exactly two reliably-detectable signals; fork/pin are deferred (pv is unreliable, GDD §3.4). The
+ * north star is **prefer-silence**: a wrong thematic label is worse than silence (EC-10), so every
+ * ambiguous case returns `'none'`.
+ */
+import { Chess, type Move } from 'chess.js'
+import type { ChessConcept } from '../../types/concept'
+
+/** Outcome of classification: a concept tag, or `'none'` (the silent, default, correct case). */
+export type ClassifyResult = ChessConcept | 'none'
+
+/** Signals #7's review already computed for the player's move i (reused, not recomputed). */
+export interface MistakeSignals {
+  /** #7 F2b: the player's move allowed the opponent a forced mate (the「放任被將死」transition). */
+  allowedForcedMate: boolean
+}
+
+export interface ClassifyInput {
+  /** FEN before the player's move i (player to move). */
+  fen: string
+  /** The player's move i, UCI (e.g. 'e2e4', 'e7e8q'). */
+  playerMoveUci: string
+  /** The opponent's ACTUALLY-played reply (move i+1), UCI; `undefined` if the game ended on move i. */
+  opponentReplyUci: string | undefined
+  signals: MistakeSignals
+}
+
+/** Centipawn-free material values (GDD §4.4 value clause). King is uncapturable. */
+const PIECE_VALUE: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: Infinity }
+
+function applyUci(chess: Chess, uci: string): Move | null {
+  const from = uci.slice(0, 2)
+  const to = uci.slice(2, 4)
+  const promotion = uci.length === 5 ? (uci[4] as 'q' | 'r' | 'b' | 'n') : undefined
+  try {
+    return chess.move({ from, to, promotion })
+  } catch {
+    return null
+  }
+}
+
+/**
+ * GDD §4.4 predicate: after the player's move, did the opponent's ACTUAL reply capture an undefended
+ * player piece with no compensating recapture? Replays the real line with chess.js (same technique as
+ * `puzzles.test.ts`); legality-based, one-ply, no static-exchange eval.
+ *
+ * Returns `true` only when confident the material was hung. Ambiguous cases (a pinned-only defender,
+ * en-passant, promotion-captures) return `false` — prefer-silence over a wrong label (GDD EC-10, AC-6).
+ */
+export function hungUndefendedMaterial(
+  fen: string,
+  playerMoveUci: string,
+  opponentReplyUci: string,
+): boolean {
+  const chess = new Chess(fen)
+  if (!applyUci(chess, playerMoveUci)) return false
+
+  const reply = applyUci(chess, opponentReplyUci)
+  if (!reply || !reply.captured) return false
+  // Excluded from v1 (GDD §4.4): en-passant (captured pawn is not on the destination square) and
+  // promotion-captures (value accounting differs). Rare; stay silent rather than mislabel.
+  if (reply.flags.includes('e') || reply.flags.includes('p')) return false
+
+  const square = reply.to
+  const capturedValue = PIECE_VALUE[reply.captured]
+  const capturerValue = PIECE_VALUE[reply.piece]
+  const playerColor = reply.color === 'w' ? 'b' : 'w'
+
+  // `attackers` is geometric — it includes a piece that is pinned (the defender that *looks* like it
+  // guards the square but cannot legally recapture). Zero attackers ⇒ genuinely undefended (AC-5).
+  const defenders = chess.attackers(square, playerColor)
+  if (defenders.length === 0) return true
+
+  // A geometric defender exists. If none can LEGALLY recapture (the only defender is absolutely
+  // pinned), stay silent — conservative reading per AC-6(b).
+  const legalRecaptures = chess.moves({ verbose: true }).filter((m) => m.to === square && m.captured)
+  if (legalRecaptures.length === 0) return false
+
+  // Compensation (one ply, no SEE): every legal recapture lands on `square`, taking the capturer.
+  // If that capturer is worth ≥ the lost piece, the player wins the material back — not hung (AC-6a).
+  if (capturerValue >= capturedValue) return false
+
+  // Recapture exists but wins back less than was lost (e.g. hung a queen, can only take a knight).
+  return true
+}
+
+/**
+ * Classify a player mistake into a concept tag, or `'none'` (GDD §4.4). Mate precedes material
+ * (EC-5: the larger error). Everything else — fork/pin (v1-deferred), positional, time — is silence.
+ */
+export function classify(input: ClassifyInput): ClassifyResult {
+  if (input.signals.allowedForcedMate) return 'mate'
+  if (
+    input.opponentReplyUci &&
+    hungUndefendedMaterial(input.fen, input.playerMoveUci, input.opponentReplyUci)
+  ) {
+    return 'material'
+  }
+  return 'none'
+}
+
+/** A classified mistake at a move index — the raw input to signpost selection. */
+export interface ClassifiedMistake {
+  index: number
+  concept: ChessConcept
+  cpLoss: number
+}
+
+/**
+ * GDD §4.4 link selection: of the classified mistakes, keep the `maxLinks` biggest by cpLoss
+ * (tie-break: lower index first, deterministic). Returns at most `maxLinks` signposts.
+ */
+export function selectMistakeSignposts(
+  classified: readonly ClassifiedMistake[],
+  maxLinks: number,
+): ClassifiedMistake[] {
+  return [...classified]
+    .sort((a, b) => b.cpLoss - a.cpLoss || a.index - b.index)
+    .slice(0, Math.max(0, maxLinks))
+}

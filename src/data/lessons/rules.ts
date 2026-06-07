@@ -146,6 +146,7 @@ const knightAndQueen: Lesson = {
 
 const kingAndValue: Lesson = {
   id: 'king-and-value',
+  concepts: ['material'],
   title: '王的走法與子力價值',
   category: 'rules',
   difficulty: 'beginner',
@@ -235,6 +236,7 @@ const checkAndEscape: Lesson = {
 
 const checkmateInOne: Lesson = {
   id: 'checkmate-in-one',
+  concepts: ['mate'],
   title: '一步將死',
   category: 'rules',
   difficulty: 'beginner',

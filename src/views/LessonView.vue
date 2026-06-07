@@ -14,10 +14,18 @@ import type { Annotation } from '@/modules/move-annotation/annotation-types'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import type { Rect } from '@/utils/board-geometry'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
+import { useDungeonProgressStore } from '@/stores/dungeon-progress'
+import { useConceptProgressStore } from '@/stores/concept-progress'
+import { puzzles } from '@/data/puzzles'
+import { getConceptById } from '@/data/concepts'
+import { candidates, practiceTarget } from '@/modules/learning-loop/recommend'
+import { LESSON_TO_PUZZLE_COUNT } from '@/config/learning-loop-tuning'
 
 const route = useRoute()
 const router = useRouter()
 const progress = useLessonProgressStore()
+const dungeonProgress = useDungeonProgressStore()
+const conceptProgress = useConceptProgressStore()
 
 const lesson = getLessonById(route.params.lessonId as string)
 
@@ -141,10 +149,36 @@ const lightbulbGlowing = computed(
   () => everWrong.value && !wrongMove.value && !solved.value && !hintShown.value,
 )
 
+// ── Bridge 1 (Learning Loop #20): lesson completion card + course→puzzle invitation ──
+const completed = ref(false)
+
+// A puzzle counts as practised whether cleared in the dungeon or from a prior lesson CTA.
+function isPuzzleSolved(id: string): boolean {
+  return dungeonProgress.isSolved(id) || conceptProgress.isPracticeSolved(id)
+}
+
+/**
+ * One completion-card row per concept the lesson teaches (capped for readability). Concepts with
+ * drill puzzles get a CTA into practice mode; concepts with none get a calm "即將加入" hint (EC-1).
+ */
+const completionConcepts = computed(() => {
+  const ids = lesson?.concepts ?? []
+  return ids.slice(0, LESSON_TO_PUZZLE_COUNT).map((id) => {
+    const meta = getConceptById(id)
+    const hasPuzzles = candidates(id, puzzles).length > 0
+    const target = hasPuzzles ? practiceTarget(id, puzzles, isPuzzleSolved) : null
+    return { id, label: meta?.label ?? id, hasPuzzles, targetId: target?.id ?? null }
+  })
+})
+
+function practise(targetId: string): void {
+  router.push(`/dungeon/${targetId}?from=lesson`)
+}
+
 function next(): void {
   if (isLastStep.value) {
     if (lesson) progress.markComplete(lesson.id)
-    router.push('/learn')
+    completed.value = true // show the completion card; Bridge-1 invitation lives here
     return
   }
   stepIndex.value++
@@ -373,6 +407,50 @@ function prev(): void {
         <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
         <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
       </Button>
+    </div>
+
+    <!-- Bridge 1: lesson completion card (Learning Loop #20) -->
+    <div
+      v-if="completed"
+      data-testid="lesson-completion-card"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6"
+    >
+      <div class="flex w-full max-w-[340px] flex-col items-center gap-5 rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#1E4D3E,#142E26)] p-7 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-success/25 ring-2 ring-success">
+          <Check :size="28" :stroke-width="2.5" class="text-success" />
+        </div>
+        <div class="text-center">
+          <p class="font-display text-xl font-bold text-ink-on-deep">這一課完成了</p>
+          <p class="mt-2 font-lesson text-sm leading-relaxed text-ink-on-deep-dim">{{ lesson?.summary }}</p>
+        </div>
+
+        <!-- Per-concept Bridge-1 invitation / hint -->
+        <div v-if="completionConcepts.length" class="flex w-full flex-col gap-2">
+          <template v-for="c in completionConcepts" :key="c.id">
+            <button
+              v-if="c.hasPuzzles && c.targetId"
+              type="button"
+              data-testid="lesson-practice-cta"
+              class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 py-3 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
+              @click="practise(c.targetId)"
+            >
+              想趁熱練幾題「{{ c.label }}」嗎？ <ArrowRight :size="16" />
+            </button>
+            <p
+              v-else
+              data-testid="lesson-practice-hint"
+              class="w-full rounded-[10px] bg-white/[0.05] px-4 py-3 text-center font-sans text-sm text-ink-on-deep-dim"
+            >「{{ c.label }}」的試煉即將加入</p>
+          </template>
+        </div>
+
+        <button
+          type="button"
+          data-testid="lesson-completion-return"
+          class="font-sans text-sm font-semibold text-ink-on-deep-dim/80 active:scale-95"
+          @click="router.push('/learn')"
+        >回課程列表</button>
+      </div>
     </div>
   </div>
 </template>

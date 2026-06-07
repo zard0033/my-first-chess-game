@@ -31,7 +31,7 @@ When the player closes the review, they carry three things:
 **Explicitly NOT this system's job:**
 - No "You lost 4 pawns of value on move 12!" headlines — numbers are per-move, not accumulated into a verdict
 - No "Great game!" or "Tough luck" end-of-review message — the review ends when the player stops navigating, not on a note
-- No recommendation to "study the Italian Game" within the review — that is Phase 2 territory (bidirectional lesson linking). The review names the opening and reports the gap; it does not prescribe the study
+- No recommendation to "study the Italian Game" in the **default** review — that is Phase 2 territory (bidirectional lesson linking). The default review names the opening and reports the gap; it does not prescribe the study. *(Reciprocal, Learning Loop #20 D2: an **opt-in** concept tag may surface a lesson/drill link behind the Show-detail affordance — never in the default render, never as a verdict. To support its test gate, #7's opt-in detail container must carry a stable `data-testid="review-detail-panel"`.)*
 - No timer pressure — the player can linger on any position as long as they want
 
 ## Detailed Design
@@ -293,6 +293,7 @@ If Stockfish returns `depthReached < REVIEW_TARGET_DEPTH` (e.g. `movetimeMs` tim
 | System | What they expect from Post-Game Review |
 | ------ | -------------------------------------- |
 | *(none in v0)* | Post-Game Review is a terminal feature in v0 — no other system reads its output. |
+| **Learning Loop — Concept Linking (#20)** *(Phase 2)* | Reads the existing per-move `cpLoss`, biggest-swing eligibility, and `pv` to run a **conservative mistake classifier** (Bridge 3) that, *only on a high-confidence match*, adds an opt-in concept link (lesson + drill puzzles) on the anchor moment. **Invariant: the loop never alters the neutral, number-only default render** — it only adds a link node on confident classification, stays silent otherwise. This realises the "prescribe study is Phase 2 territory (bidirectional lesson linking)" hook this GDD's Player Fantasy defers. See `design/gdd/learning-loop.md` §3.4 + ADR-0012. |
 
 ### Bidirectional Notes
 
