@@ -7,6 +7,8 @@ import { LESSON_TIER_LABELS, COACH } from '@/types/lesson'
 import type { Lesson, LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { DarkPanel, ChapterBadge } from '@/components/ui/gambit'
+import LearnTabs from '@/components/learn-tabs.vue'
+import { SHOW_CONCEPT_MAP } from '@/config/learning-loop-tuning'
 
 const router = useRouter()
 const progress = useLessonProgressStore()
@@ -80,6 +82,7 @@ function openChapter(c: Chapter): void {
       <p class="mb-0.5 font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-ink-faint">
         教練 · {{ COACH.name }}
       </p>
+      <LearnTabs v-if="SHOW_CONCEPT_MAP" class="mb-3.5 mt-2" />
       <div class="flex items-baseline justify-between gap-3">
         <h1 class="font-display text-2xl font-bold text-ink" tabindex="-1">棋藝課程</h1>
         <span class="shrink-0 font-num text-sm tabular-nums text-ink-muted">
