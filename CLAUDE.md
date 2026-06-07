@@ -92,6 +92,24 @@ See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 - **繁中語氣**：成熟、平靜、低壓力，稱呼「你」；無 streak / timer / leaderboard。
 - **西洋棋用語**：棋子一律用「后 / 城堡 / 騎士 / 主教 / 國王 / 兵」。**這是西洋棋，禁用象棋的「車 / 馬 / 象」**（rook=城堡、knight=騎士、bishop=主教）。課程標題如「城堡與主教」「騎士與后」即為準則。
 
+## UI 質感 Skill 路由（潤飾專用）
+
+當 Eason 提到下列關鍵詞時，主動採用對應 skill。**兩條鐵則優先於一切**：
+
+1. **Gambit 是裁判**：任何 UI 潤飾前先讀 `design/gambit-design-system/`。`ui-ux-pro-max` / `web-design-engineer`
+   的產出**不得覆蓋** Gambit 的配色 / 字型 / 金色（focus·reward only）規則；它們只供想法，採用前一律對齊 Gambit。
+2. **單純小修不觸發重型 skill**：改一個字、調一格間距等，依「最小可行解 / 勿動沒壞的」直接做，不啟動下表。
+
+| 關鍵詞 | 採用 skill | 行為 |
+| --- | --- | --- |
+| 潤飾、質感、質感提升、視覺/UI/介面優化、polish | `redesign` | 先**審查既有屏**出 H/M/L 優先清單，等拍板再改；不直接亂動 |
+| 實作元件、改畫面、切版、RWD、響應式、a11y、無障礙、前端實作 | `agent-skills:frontend-ui-engineering` | 當**施工紀律**做 production 級實作，逐項 Playwright 驗畫面 |
+| 配色、字型、風格、動效曲線、微互動、設計原則、圖表/chart | `ui-ux-pro-max` | **只當顧問**出想法；採用前對齊 Gambit（見鐵則 1） |
+| Landing、行銷頁、品牌頁、logo 頁、簡報頁、HTML demo、獨立頁 | `web-design-engineer` | 僅限**全新獨立頁**；不碰 App 內既有畫面 |
+
+> 全面提升流程：`redesign` 找問題 → triage（砍掉違反 Gambit / 沒壞的）→ `frontend-ui-engineering` 施工 →
+> 卡關時 `ui-ux-pro-max` 補深度。`web-design-engineer` 留給品牌頁等獨立頁。
+
 ## Coding Standards
 
 @.claude/docs/coding-standards.md
