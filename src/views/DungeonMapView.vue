@@ -44,7 +44,7 @@ function enter(node: { puzzle: { id: string }; state: string }): void {
 </script>
 
 <template>
-  <div class="min-h-dvh bg-[#070909] pb-24 lg:pb-8">
+  <div class="min-h-dvh bg-surface-dungeon pb-24 lg:pb-8">
     <!-- Header -->
     <header class="flex items-center gap-2.5 border-b border-white/[0.05] px-4 py-3.5">
       <span
@@ -104,7 +104,7 @@ function enter(node: { puzzle: { id: string }; state: string }): void {
         >
           <Check v-if="node.state === 'done'" :size="15" :stroke-width="2.8" class="text-[#fff4dc]" />
           <span v-else-if="node.state === 'current'" class="font-num text-[13px] font-bold leading-none text-[#1A0800]">{{ node.puzzle.order }}</span>
-          <Lock v-else :size="12" :stroke-width="2" class="text-white/25" />
+          <Lock v-else :size="12" :stroke-width="2" class="text-ink-on-deep-dim" />
         </button>
 
         <!-- CTA bubble (current) -->
@@ -125,10 +125,10 @@ function enter(node: { puzzle: { id: string }; state: string }): void {
             ? { left: `${node.x + 36}px`, top: `${node.y - 11}px` }
             : { right: `${W - node.x + 36}px`, top: `${node.y - 11}px`, textAlign: 'right' }"
         >
-          <p class="font-sans text-[9px] text-white/30">Level {{ node.puzzle.level }}</p>
+          <p class="font-sans text-[9px] text-ink-on-deep-dim">Level {{ node.puzzle.level }}</p>
           <p
             class="font-sans text-[11px]"
-            :class="node.state === 'current' ? 'font-bold text-gold/90' : node.state === 'done' ? 'text-[#c8a050]/80' : 'text-white/25'"
+            :class="node.state === 'current' ? 'font-bold text-gold/90' : node.state === 'done' ? 'text-[#c8a050]/80' : 'text-ink-on-deep-dim'"
           >{{ node.puzzle.title }}</p>
         </div>
       </template>

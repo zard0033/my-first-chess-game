@@ -47,6 +47,8 @@ export default {
           hover: '#efe4d2',    // hover state
           deep: '#103029',     // dark anchor: nav, immersive map world (jade)
           'deep-2': '#18443a', // raised layer inside a deep-anchored region
+          dungeon: '#0b211b',  // 試煉道場 world — one step deeper than `deep`, still warm jade (not cold near-black)
+          'dungeon-2': '#0e2a22', // raised layer inside the dungeon (header)
         },
         line: {
           DEFAULT: '#e0d3bd', // hairline border / divider
@@ -73,12 +75,14 @@ export default {
           dark: '#3a6447',
           light: '#eef4ee',
           fg: '#fcf9f3',
+          'on-deep': '#7fd4a8', // lightened sage for legibility on a deep/dungeon anchor
         },
         danger: {
           DEFAULT: '#b8533a',
           dark: '#9a4330',
           light: '#f9efe9',
           fg: '#fcf9f3',
+          'on-deep': '#e08e79', // lightened warm-red for legibility on a deep/dungeon anchor
         },
         hint: {
           DEFAULT: '#c9872e',

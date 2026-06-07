@@ -36,7 +36,7 @@ async function handleSignOut() {
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col">
+  <div class="min-h-dvh flex flex-col">
     <AppNav v-if="!fullBleed" :on-sign-out="handleSignOut" />
     <main class="flex-1" :class="fullBleed ? '' : 'pb-20 md:pb-0'">
       <RouterView />

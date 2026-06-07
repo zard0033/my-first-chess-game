@@ -29,9 +29,9 @@ const summary = computed(() => {
     else if (e.playerResult === 'Loss') losses++
   }
   return [
-    { label: '勝', val: wins, col: 'text-[#7FD4A8]' },
+    { label: '勝', val: wins, col: 'text-success-on-deep' },
     { label: '和', val: draws, col: 'text-ink-on-deep-dim' },
-    { label: '負', val: losses, col: 'text-[#E08E79]' },
+    { label: '負', val: losses, col: 'text-danger-on-deep' },
   ]
 })
 
