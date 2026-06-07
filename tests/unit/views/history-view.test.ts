@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { setActivePinia, createPinia } from 'pinia'
 import { createRouter, createWebHashHistory } from 'vue-router'
@@ -49,6 +49,7 @@ function makeEntry(id: string, overrides: Partial<GameHistoryEntry> = {}): GameH
     openingName: 'Ruy Lopez',
     openingEco: 'C65',
     openingDisplay: 'Ruy Lopez',
+    pgn: '1. e4 e5 *',
     ...overrides,
   }
 }

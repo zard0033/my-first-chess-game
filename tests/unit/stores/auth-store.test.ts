@@ -21,7 +21,7 @@ function setupAuthCallback(): (event: string, session: Record<string, unknown> |
   let captured: ((event: string, session: Record<string, unknown> | null) => void) | undefined
   vi.mocked(supabase.auth.onAuthStateChange).mockImplementationOnce((cb: unknown) => {
     captured = cb as typeof captured
-    return { data: { subscription: { unsubscribe: vi.fn() } } } as ReturnType<
+    return { data: { subscription: { unsubscribe: vi.fn() } } } as unknown as ReturnType<
       typeof supabase.auth.onAuthStateChange
     >
   })
@@ -33,7 +33,7 @@ describe('useAuthStore', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue(
-      { data: { subscription: { unsubscribe: vi.fn() } } } as ReturnType<
+      { data: { subscription: { unsubscribe: vi.fn() } } } as unknown as ReturnType<
         typeof supabase.auth.onAuthStateChange
       >
     )
@@ -208,6 +208,7 @@ describe('useAuthStore', () => {
 
     it('sets authError and leaves pendingEmail false on network error', async () => {
       vi.mocked(supabase.auth.signInWithOtp).mockResolvedValueOnce({
+        data: { user: null, session: null },
         error: { message: 'Network request failed' } as never,
       })
 
@@ -220,7 +221,7 @@ describe('useAuthStore', () => {
 
     it('clears previous authError before each signIn attempt', async () => {
       vi.mocked(supabase.auth.signInWithOtp)
-        .mockResolvedValueOnce({ error: { message: 'First error' } as never })
+        .mockResolvedValueOnce({ data: { user: null, session: null }, error: { message: 'First error' } as never })
         .mockResolvedValueOnce({ error: null } as never)
 
       const store = useAuthStore()

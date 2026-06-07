@@ -7,7 +7,7 @@
  *
  * Run manually: npx playwright test tests/e2e/move-annotation-pointer.spec.ts
  */
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 
 test.describe('MoveAnnotationDisplay — pointer-events:none overlay', () => {
   test.skip('svg overlay does not intercept pointer events on chess pieces', async ({ page }) => {

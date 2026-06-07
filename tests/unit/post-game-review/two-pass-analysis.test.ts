@@ -386,7 +386,7 @@ describe('usePostGameReview — biggestSwingCursor', () => {
 
     // Abort so the test finishes quickly
     review.abort()
-    if (firstResolve) firstResolve()
+    ;(firstResolve as (() => void) | null)?.()
     await p
   })
 

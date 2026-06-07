@@ -3,7 +3,7 @@
  * TR-move-annotation-005: ResizeObserver + rAF coalesce per ADR-0006 Formula 4.
  * Tests the resize-throttle logic independently of Vue component lifecycle.
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ---- rAF polyfill for node environment ----
 // Vitest runs in node by default; requestAnimationFrame is not available.

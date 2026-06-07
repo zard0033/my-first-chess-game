@@ -30,7 +30,7 @@
 
 | Epic | Layer | Module | GDD | ADR Coverage | Stories | Status |
 |------|-------|--------|-----|--------------|---------|--------|
-| [game-replay](game-replay/EPIC.md) | Feature (Phase 2) | ReplayView + review-engine | game-replay.md | ADR-0001/0003/0005 (no new ADR) | 5 stories | **In Progress** (S10 — S10-01/02/03 done; S10-04/05 implemented, pending QA) |
+| [game-replay](game-replay/EPIC.md) | Feature (Phase 2) | ReplayView + review-engine | game-replay.md | ADR-0001/0003/0005 (no new ADR) | 5 stories | **Shipped** (S10 — QA APPROVED 2026-06-02；S10-01…04 done；S10-05 動畫 polish deferred) |
 | [lesson-system](lesson-system/EPIC.md) | Feature (Phase 2) | LearnView + LessonView + useLessonProgressStore | lesson-system.md | ADR-0005 (no new ADR for v0) | 5 stories | **Built** (S01–04 shipped + tested：LearnView/LessonView/progress store/lessons data；S05 內容撰寫 ongoing) |
 | [dungeon-puzzle](dungeon-puzzle/EPIC.md) | Feature (Phase 2) | DungeonMapView + DungeonPuzzleView + useDungeonProgressStore + use-dungeon-puzzle | dungeon-puzzle-mode.md | ADR-0005 (no new ADR for v0) | 6 stories (S13) | **In Design** (GDD Approved 2026-06-05；無 streak；待實作) |
 | [learning-loop](learning-loop/EPIC.md) | Feature (Phase 2 connective) | concept SoT + 3 bridges (lesson↔puzzle↔game) + Concept Map | learning-loop.md | ADR-0012 | Phase A: 4 stories (S14)；B–D 待排 | **GDD Approved (round 2, 2026-06-06)**；Phase A stories 已開（S14-01…04）；D1 側門練習；待實作 |
@@ -45,8 +45,8 @@
 ## Summary
 
 - **Feature/system epics**: 14 (10 v0 + 2 MVP + 2 Phase 2)
-- **Shipped**: 11 (9 v0 + supabase + game-history)
-- **In Progress**: 1 (game-replay — S10，S05 動畫 polish deferred)
+- **Shipped**: 12 (9 v0 + supabase + game-history + game-replay)
+- **In Progress**: 0（game-replay S10 已 QA APPROVED 2026-06-02；S10-05 動畫 polish deferred）
 - **Built**: lesson-system（S01–04 已實作 + 測試；S05 內容撰寫 ongoing）
 - **Backlog**: 1 (visual-identity — 棋盤主題 GDD + ADR pending)
 - **Total TR-IDs**: 89 (49 v0 + 13 MVP supabase + 27 MVP game-history) + Phase 2 TRs (game-replay / lesson-system, in GDDs)

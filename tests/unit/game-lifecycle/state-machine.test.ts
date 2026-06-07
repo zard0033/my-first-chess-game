@@ -336,7 +336,7 @@ describe('useGameLifecycle — EC-07/EC-08: AI resignation edge cases', () => {
     handlePlayerMove('e2', 'e4')
 
     // Act — EC-07: syntactically valid UCI but illegal in position
-    const result = handleAiMove('a8a1') // rook move from empty square — illegal
+    handleAiMove('a8a1') // rook move from empty square — illegal
 
     // Assert
     expect(phase.value).toBe('GAME_OVER')
@@ -365,7 +365,7 @@ describe('useGameLifecycle — resign', () => {
 
   it('test_stateMachine_resignBlack_resultIs1_0', () => {
     // Arrange
-    const { phase, terminal, startGame, resign } = useGameLifecycle()
+    const { terminal, startGame, resign } = useGameLifecycle()
     startGame('black', 10) // → AI_THINKING (AI moves first)
 
     // Act

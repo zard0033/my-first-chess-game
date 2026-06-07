@@ -23,7 +23,7 @@ function makeRouter() {
 
 function mockAuthSubscription() {
   vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue(
-    { data: { subscription: { unsubscribe: vi.fn() } } } as ReturnType<
+    { data: { subscription: { unsubscribe: vi.fn() } } } as unknown as ReturnType<
       typeof supabase.auth.onAuthStateChange
     >
   )
@@ -102,7 +102,7 @@ describe('auth route guard', () => {
     // Guard must not redirect while auth is still loading
     let resolveSession!: (v: unknown) => void
     vi.mocked(supabase.auth.getSession).mockReturnValueOnce(
-      new Promise(r => { resolveSession = r })
+      new Promise(r => { resolveSession = r as typeof resolveSession })
     )
     const router = makeRouter()
     const authStore = useAuthStore()

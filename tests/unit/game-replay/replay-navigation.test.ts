@@ -56,8 +56,8 @@ describe('useReplayNavigation', () => {
   })
 
   describe('play / pause', () => {
-    beforeEach(() => vi.useFakeTimers())
-    afterEach(() => vi.useRealTimers())
+    beforeEach(() => { vi.useFakeTimers() })
+    afterEach(() => { vi.useRealTimers() })
 
     it('test_nav_toggle_play_flips_is_playing_state', () => {
       const total = ref(3)

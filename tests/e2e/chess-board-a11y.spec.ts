@@ -6,7 +6,7 @@
  * Run manually: npx playwright test tests/e2e/chess-board-a11y.spec.ts
  * (Excluded from vitest — Playwright-only)
  */
-import { test, expect } from '@playwright/test'
+import { test } from '@playwright/test'
 
 // AC-1: No axe violations of impact serious or critical on the chess board.
 // This test is a placeholder — requires the app running on localhost:5173

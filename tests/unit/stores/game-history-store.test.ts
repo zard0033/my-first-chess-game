@@ -21,7 +21,7 @@ import { useDataSyncStore } from '@/stores/data-sync'
 
 function mockAuthSubscription() {
   vi.mocked(supabase.auth.onAuthStateChange).mockReturnValue(
-    { data: { subscription: { unsubscribe: vi.fn() } } } as ReturnType<
+    { data: { subscription: { unsubscribe: vi.fn() } } } as unknown as ReturnType<
       typeof supabase.auth.onAuthStateChange
     >,
   )

@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: Learning Loop 概念連結（#20，GDD APPROVED；Phase A + B + C done）
-Feature: 下一步 = 全站 UI Gambit SoT 一致性稽核（/redesign）
-Task: Phase C 完成（橋3 分類器 + 賽後 opt-in 標記）；全套 627 passed（2026-06-07）
+Epic: Learning Loop 概念連結（#20）— Phase A+B+C done；UI drift 修正 done；全數已 push
+Feature: 下一步 = 待 Eason 指定方向（候選見「其他待辦/風險」）
+Task: 2026-06-07 修 #7 reactivity bug + 清 20 vue-tsc 型別債 + 更正 game-replay/CSP 過期狀態；vue-tsc 0、629 passed；待 commit
 <!-- /STATUS -->
 
 > **新 session 接手指引**：本檔是交接快照。詳盡規格在各 GDD / EPIC；此處只給「現況 + 下一步 + 鐵則」。
@@ -61,9 +61,9 @@ Task: Phase C 完成（橋3 分類器 + 賽後 opt-in 標記）；全套 627 pas
   opt-in gating，標記置於 index 0 用 mate 訊號繞過 nav）。
 - **未做（刻意）**：捉雙/牽制賽後偵測延 Phase C+；去試煉 drill link 復用 `?from=lesson` 側門（完成後回 /learn，
   非回 review — 可接受的小 UX 皺褶，避免擴張 DungeonPuzzleView guard）；epic story 檔仍未補（B/C 都沒開正式 story）。
-- **⚠️ 既有潛在 bug（非本批造成，未修）**：`use-post-game-review.ts` 的 `totalPositions` computed 只讀非 reactive
-  的 `_completedGame`，restore→COMPLETE 路徑下首次 render 會 cache 0（happy-dom 觀察到 nav 卡死）。屬 #7 自身
-  reactivity 議題，本批繞過未動。建議排查。
+- **✅ 既有 reactivity bug 已修（2026-06-07）**：`use-post-game-review.ts` 的 `_completedGame` 由非 reactive `let`
+  改為 `shallowRef`。原 bug＝`totalPositions`/`canGoNext`/`biggestSwingCursor` 等 computed 依賴它但無 reactive dep，
+  read 為 0 後永久 cache 0，restore→COMPLETE 路徑 nav 卡死。+2 regression test（reactivity.test.ts）。629 passed、型別錯仍 20。
 
 ---
 
@@ -82,11 +82,16 @@ Task: Phase C 完成（橋3 分類器 + 賽後 opt-in 標記）；全套 627 pas
   **M-2** App/Review/NotFound 用 `min-h-screen` 而試煉用 `min-h-dvh`（內部不一致，建議一律 dvh）。
   其餘 L 級建議不動。**等 Eason 看報告決定修哪些（勿動沒壞的）。** History/Profile/Review 需登入/完賽資料，
   以程式碼層判讀（巡屏只到 Home/Learn/ConceptMap/DungeonMap/DungeonPuzzle）。
-- **game-replay (#S10)**：S10-04/05 已實作、**待 QA**；動畫 polish 延後。
+- **game-replay (#S10)**：**QA 已 APPROVED**（`qa/qa-signoff-sprint10-2026-06-02.md`，含 S10-04 rating + Playwright
+  browser 驗證）。S10-05 動畫 polish 正式 deferred。剩 non-blocking：iPhone 實機（與 S8-06 一起）。
+  CSP font-src cosmetic ✅ 已修（index.html CSP 已含 `font-src 'self' data:`）。
+  2026-06-07 複驗：完整 replay 測試面 48 passed，無退化。（先前「待 QA」為過期註記，已更正。）
 - **課程內容撰寫 (lesson-system S05)**：框架已好，補課文 ongoing。
 - **iOS Magic Link 實機補測 (game-history S8-06)**：需真機驗登入。
-- **epics/index.md 過期**：未反映試煉/學習迴圈已完成 — 待補（純文件）。
-- **vue-tsc 既有債 20 個**：建議排一次清理。
+- **epics/index.md 過期**：game-replay 已更正為 Shipped；試煉/學習迴圈仍待補（純文件）。
+- **✅ vue-tsc 既有債 20 個已清（2026-06-07）**：全在測試檔（src/build 本就零錯）。8 unused import、11 mock 型別對齊
+  （Supabase subscription cast `as unknown as`、AuthOtpResponse 補 data、fakeTimers 包 block、firstResolve 還原型別）、
+  1 真欄位漏（history-view factory 補必填 `pgn`）。vue-tsc 0 errors、629 passed。
 - **Phase C+ / D**：捉雙/牽制賽後偵測（需精準度實測）；Claude API 動態講解（選配，最後）。
 
 ## 💡 backlog（未排程）
