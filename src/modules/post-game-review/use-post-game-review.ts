@@ -6,7 +6,7 @@
  * AC-18: AbortController stored via markRaw, not Vue reactive.
  * Rule 14: Pass 2 is bounded by REVIEW_TOTAL_TIME_BUDGET_MS; Pass 1 is never cut.
  */
-import { ref, computed, readonly, markRaw } from 'vue'
+import { ref, shallowRef, computed, readonly, markRaw } from 'vue'
 import { Chess } from 'chess.js'
 import type { CompletedGame } from '../../stores/game-store'
 import type { ReviewResult } from '../chess-engine/review-engine'
@@ -170,7 +170,10 @@ export function usePostGameReview(deps?: PostGameReviewDeps) {
   // AbortController is created fresh per init(); stored via markRaw (AC-18).
   let _abortController: AbortController = markRaw(new AbortController())
 
-  let _completedGame: CompletedGame | null = null
+  // shallowRef (not a plain let): totalPositions / canGoNext / biggestSwingCursor
+  // are computeds that read this — a non-reactive source would cache their first
+  // value forever (read as 0 before init → frozen at 0).
+  const _completedGame = shallowRef<CompletedGame | null>(null)
   let _fenSequence: string[] = []
 
   // ---- sessionStorage persistence (S4-05) ----
@@ -184,14 +187,14 @@ export function usePostGameReview(deps?: PostGameReviewDeps) {
   }
 
   function _flushToStorage(): void {
-    if (!persistenceAvailable.value || !_completedGame || !_storage) return
+    if (!persistenceAvailable.value || !_completedGame.value || !_storage) return
     if (_debounceTimer) clearTimeout(_debounceTimer)
     _debounceTimer = setTimeout(() => {
       try {
         const stripped: Array<PersistedResult | null> = analysisResults.value.map(r =>
           r ? { bestMove: r.bestMove, evalCp: r.evalCp, evalMate: r.evalMate, depthReached: r.depthReached, pass: r.pass } : null,
         )
-        _storage!.setItem(_storageKey(_completedGame!), JSON.stringify(stripped))
+        _storage!.setItem(_storageKey(_completedGame.value!), JSON.stringify(stripped))
       } catch {
         persistenceAvailable.value = false
       }
@@ -213,14 +216,14 @@ export function usePostGameReview(deps?: PostGameReviewDeps) {
 
   // ---- Computed ----
 
-  const totalPositions = computed(() => _completedGame?.moves.length ?? 0)
+  const totalPositions = computed(() => _completedGame.value?.moves.length ?? 0)
 
   const currentFen = computed(() => _fenSequence[cursor.value] ?? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1')
 
   /** Whether position i is a player move (F3). */
   function isPlayerMove(i: number): boolean {
-    if (!_completedGame) return false
-    const color = _completedGame.playerColor
+    if (!_completedGame.value) return false
+    const color = _completedGame.value.playerColor
     return color === 'white' ? i % 2 === 0 : i % 2 === 1
   }
 
@@ -352,7 +355,7 @@ export function usePostGameReview(deps?: PostGameReviewDeps) {
     _abortController.abort()
     _abortController = markRaw(new AbortController())
 
-    _completedGame = game
+    _completedGame.value = game
     _fenSequence = buildFenSequence(game.moves)
     cursor.value = 0
     phase.value = 'LOADING'
