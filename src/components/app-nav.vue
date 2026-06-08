@@ -76,14 +76,16 @@ const NAV_ITEMS = [
     </div>
   </header>
 
-  <!-- Mobile bottom nav — floating glass pill (SoT glass finish). Icon-only; the active tab expands to
-       show its label. Wrapper is pointer-events-none so taps beside the pill still reach content. -->
+  <!-- Mobile bottom nav — floating jade pill. Icon-only; the active tab expands to show its label.
+       Wrapper is pointer-events-none so taps beside the pill still reach content. -->
   <nav
     class="md:hidden fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(0.875rem+env(safe-area-inset-bottom))] pointer-events-none"
     aria-label="主要導覽"
   >
+    <!-- Solid jade (no backdrop-blur): on iOS the blur repaints every frame and makes the
+         tab-switch + page transition stutter. Solid keeps the dark-anchor look at no GPU cost. -->
     <div
-      class="pointer-events-auto flex items-center justify-around gap-1 rounded-full border border-white/[0.16] bg-[#142F28]/80 px-2.5 py-1.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_30px_rgba(0,0,0,0.45)]"
+      class="pointer-events-auto flex items-center justify-around gap-1 rounded-full border border-white/[0.16] bg-[#142F28] px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_30px_rgba(0,0,0,0.45)]"
     >
       <RouterLink
         v-for="item in NAV_ITEMS"

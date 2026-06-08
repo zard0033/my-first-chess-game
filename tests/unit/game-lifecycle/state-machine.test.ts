@@ -429,3 +429,57 @@ describe('useGameLifecycle — EC-05: startGame guard', () => {
     expect(playerColor.value).toBe('white')
   })
 })
+
+// -----------------------------------------------------------------------
+// Undo (悔棋) + reactive move history
+// -----------------------------------------------------------------------
+
+const INITIAL_FEN = new Chess().fen()
+
+describe('useGameLifecycle — undo / moveHistory', () => {
+  it('test_moveHistory_recordsSanForBothSides', () => {
+    const { startGame, handlePlayerMove, handleAiMove, moveHistory } = useGameLifecycle()
+    startGame('white', 10)
+    handlePlayerMove('e2', 'e4')
+    handleAiMove('e7e5')
+    expect([...moveHistory.value]).toEqual(['e4', 'e5'])
+  })
+
+  it('test_undo_revertsPlayerMoveAndAiReply_backToPlayerTurn', () => {
+    const { startGame, handlePlayerMove, handleAiMove, undo, phase, fen, moveHistory } = useGameLifecycle()
+    startGame('white', 10)
+    handlePlayerMove('e2', 'e4')
+    handleAiMove('e7e5') // back to PLAYER_TURN, 2 plies on board
+
+    undo()
+
+    expect(phase.value).toBe('PLAYER_TURN')
+    expect(fen.value).toBe(INITIAL_FEN)
+    expect(moveHistory.value.length).toBe(0)
+  })
+
+  it('test_undo_noOpDuringAiThinking', () => {
+    const { startGame, handlePlayerMove, undo, phase, moveHistory } = useGameLifecycle()
+    startGame('white', 10)
+    handlePlayerMove('e2', 'e4') // phase = AI_THINKING, 1 ply
+    const before = fenless(moveHistory.value)
+
+    undo()
+
+    expect(phase.value).toBe('AI_THINKING')
+    expect(fenless(moveHistory.value)).toEqual(before)
+  })
+
+  it('test_undo_noOpWhenFewerThanTwoPlies', () => {
+    // Player is black: AI opens (1 ply), now PLAYER_TURN but nothing of the player's to take back.
+    const { startGame, handleAiMove, undo, moveHistory } = useGameLifecycle()
+    startGame('black', 10) // phase = AI_THINKING
+    handleAiMove('e2e4') // phase = PLAYER_TURN, 1 ply
+    undo()
+    expect(moveHistory.value.length).toBe(1)
+  })
+})
+
+function fenless(arr: readonly string[]): string[] {
+  return [...arr]
+}

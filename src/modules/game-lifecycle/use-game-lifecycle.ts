@@ -93,6 +93,8 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
   const aiSkillLevel = ref<number>(10)
   const fen = ref<string>(chess.fen())
   const terminal = ref<TerminalState | null>(null)
+  // Reactive SAN history for the in-game move record (城堡=O-O etc.). Mirrors _moves but in SAN.
+  const moveHistory = ref<string[]>([])
 
   // ADR-0005 §7: internal move history (UCI strings) — cloned into CompletedGame on terminal.
   let _moves: string[] = []
@@ -160,6 +162,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     terminal.value = null
     _moves = []
     _playerMoveTimes = []
+    moveHistory.value = []
     if (color === 'white') {
       enterPlayerTurn()
     } else {
@@ -185,6 +188,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     // Record player thinking time (Formula 2) and the UCI move string
     _playerMoveTimes.push(Date.now() - _turnStartedAt)
     _moves.push(from + to + (promotion ?? ''))
+    moveHistory.value.push(move.san)
 
     fen.value = chess.fen()
     const t = detectTerminal(chess)
@@ -238,6 +242,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     }
 
     _moves.push(from + to + (promo ?? ''))
+    moveHistory.value.push(move.san)
     fen.value = chess.fen()
     const t = detectTerminal(chess)
     if (t) {
@@ -248,6 +253,22 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     }
     enterPlayerTurn()
     return null
+  }
+
+  /**
+   * Take back the player's last move and the AI's reply, returning to PLAYER_TURN at the same
+   * position the player faced before that move. Valid only during PLAYER_TURN with at least one
+   * completed player move (so ≥2 plies — player move + AI reply — exist to undo).
+   */
+  function undo(): void {
+    if (phase.value !== 'PLAYER_TURN' || moveHistory.value.length < 2) return
+    chess.undo()
+    chess.undo()
+    _moves.splice(-2)
+    moveHistory.value.splice(-2)
+    _playerMoveTimes.pop()
+    fen.value = chess.fen()
+    _turnStartedAt = Date.now()
   }
 
   /**
@@ -271,6 +292,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     terminal.value = null
     _moves = []
     _playerMoveTimes = []
+    moveHistory.value = []
   }
 
   /**
@@ -285,6 +307,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
       phase.value = 'PLAYER_TURN'
       _moves = []
       _playerMoveTimes = []
+      moveHistory.value = []
     } catch {
       // Invalid FEN — ignore silently
     }
@@ -296,10 +319,12 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     aiSkillLevel: readonly(aiSkillLevel),
     fen: readonly(fen),
     terminal: readonly(terminal),
+    moveHistory: readonly(moveHistory),
     startGame,
     handlePlayerMove,
     handleAiMove,
     resign,
+    undo,
     resetToSetup,
     setDevFen,
     /** Internal chess instance accessor — exposed only for unit tests (non-reactivity assertion). */

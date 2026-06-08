@@ -26,7 +26,20 @@ watch(() => authStore.userId, (userId) => {
 })
 
 // initAuth() not awaited — isAuthLoading guards against flash of unauthenticated state
-onMounted(() => { authStore.initAuth() })
+onMounted(() => {
+  authStore.initAuth()
+
+  // Warm the primary tab route chunks during idle so tab taps swap instantly on mobile
+  // (first visit otherwise blocks on downloading/parsing each view's lazy chunk). Importing
+  // only loads the module — PlayView's Stockfish init still waits for the view to actually mount.
+  const prefetch = (): void => {
+    void import('@/views/PlayView.vue')
+    void import('@/views/LearnView.vue')
+    void import('@/views/DungeonMapView.vue')
+  }
+  if ('requestIdleCallback' in window) window.requestIdleCallback(prefetch)
+  else setTimeout(prefetch, 1500)
+})
 </script>
 
 <template>

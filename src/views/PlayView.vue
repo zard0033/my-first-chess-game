@@ -26,7 +26,25 @@ const { isGameInProgress } = storeToRefs(gameStore)
 // completedGame, but does NOT auto-navigate — the GAME_OVER overlay gives the player
 // the choice to review or start a new game (ADR-0005 §5).
 const lifecycle = useGameLifecycle()
-const { phase, playerColor, fen, terminal } = lifecycle
+const { phase, playerColor, fen, terminal, moveHistory } = lifecycle
+
+// In-game move record — SAN grouped into numbered pairs (white, black) for display.
+const movePairs = computed(() => {
+  const pairs: { n: number; w: string; b?: string }[] = []
+  for (let i = 0; i < moveHistory.value.length; i += 2) {
+    pairs.push({ n: i / 2 + 1, w: moveHistory.value[i], b: moveHistory.value[i + 1] })
+  }
+  return pairs
+})
+const canUndo = computed(() => phase.value === 'PLAYER_TURN' && moveHistory.value.length >= 2)
+const canResign = computed(() => phase.value === 'PLAYER_TURN' || phase.value === 'AI_THINKING')
+
+function handleUndo(): void {
+  lifecycle.undo()
+}
+function handleResign(): void {
+  lifecycle.resign()
+}
 
 const engine = usePlayEngine()
 
@@ -148,7 +166,7 @@ function injectFen(): void {
 </script>
 
 <template>
-  <div class="flex flex-col items-center p-4">
+  <div class="flex min-h-full flex-col items-center bg-surface-deep p-4">
     <h1 class="sr-only" tabindex="-1">對局</h1>
 
     <!-- 回合徽章 -->
@@ -199,6 +217,32 @@ function injectFen(): void {
             <Button variant="secondary" @click="handleReview">複盤</Button>
           </div>
         </Card>
+      </div>
+    </div>
+
+    <!-- In-game HUD: move record (棋譜) + 悔棋 / 投降. Shown only while a game is live. -->
+    <div
+      v-if="phase === 'PLAYER_TURN' || phase === 'AI_THINKING'"
+      class="mt-4 w-full max-w-[min(92vw,28rem)]"
+    >
+      <div
+        class="rounded-card border border-white/10 bg-surface-deep-2 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
+      >
+        <p class="mb-2 text-[11px] font-medium uppercase tracking-wider text-ink-on-deep-dim">棋譜</p>
+        <div class="max-h-24 overflow-y-auto font-num text-[13px] leading-relaxed text-ink-on-deep">
+          <span v-if="!movePairs.length" class="text-ink-on-deep-dim">尚無棋步</span>
+          <span v-for="p in movePairs" :key="p.n" class="mr-3 inline-block tabular-nums">
+            <span class="text-ink-on-deep-dim">{{ p.n }}.</span> {{ p.w }}<template v-if="p.b"> {{ p.b }}</template>
+          </span>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <Button variant="secondary" size="sm" class="flex-1" :disabled="!canUndo" @click="handleUndo"
+            >悔棋</Button
+          >
+          <Button variant="secondary" size="sm" class="flex-1" :disabled="!canResign" @click="handleResign"
+            >投降</Button
+          >
+        </div>
       </div>
     </div>
 
