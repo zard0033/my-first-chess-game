@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { House, BookOpen, Target, Swords, CircleUserRound } from 'lucide-vue-next'
+import { useRoute } from 'vue-router'
 import brandMark from '@/assets/brand-mark.svg'
 import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const route = useRoute()
+
+// Mobile floating pill shows the label only on the active tab (icon-only otherwise), so we need the
+// active state in script. Matches RouterLink semantics: exact for 首頁 (/), prefix for the rest.
+const isActive = (to: string): boolean => (to === '/' ? route.path === '/' : route.path.startsWith(to))
 
 // Primary destinations — 首頁 + the three core features (學習 / 試煉 / 對局). Account/profile lives in
 // the top-right header instead of a tab. Shared by the desktop top bar and the mobile bottom tab bar.
@@ -21,16 +27,16 @@ const NAV_ITEMS = [
   <header
     class="sticky top-0 z-30 border-b border-white/[0.06] bg-[linear-gradient(180deg,#1E5043_0%,#183E35_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
   >
-    <div class="max-w-6xl mx-auto flex items-center gap-1 px-4 h-14">
+    <div class="max-w-6xl mx-auto flex items-center gap-1 px-4 h-12">
       <!-- 品牌字標：金徽（國王剪影）+ Cinzel GAMBIT wordmark -->
       <RouterLink to="/" class="flex items-center gap-2 mr-3" aria-label="GAMBIT 首頁">
         <img
           :src="brandMark"
           alt=""
           aria-hidden="true"
-          class="h-[22px] w-auto drop-shadow-[0_0_8px_rgba(248,181,0,0.35)]"
+          class="h-[18px] w-auto drop-shadow-[0_0_8px_rgba(248,181,0,0.35)]"
         />
-        <span class="font-brand font-black text-xl tracking-[0.04em] text-ink-on-deep">GAMBIT</span>
+        <span class="font-brand font-black text-lg tracking-[0.04em] text-ink-on-deep">GAMBIT</span>
       </RouterLink>
 
       <!-- Desktop primary nav (mobile uses the bottom bar) -->
@@ -70,21 +76,26 @@ const NAV_ITEMS = [
     </div>
   </header>
 
-  <!-- Mobile bottom tab bar — 深青瓷漸層；active = 實心 jade pill + 金指示條（SoT §5.1） -->
+  <!-- Mobile bottom nav — floating glass pill (SoT glass finish). Icon-only; the active tab expands to
+       show its label. Wrapper is pointer-events-none so taps beside the pill still reach content. -->
   <nav
-    class="md:hidden fixed bottom-0 inset-x-0 z-30 border-t border-white/[0.06] bg-[linear-gradient(180deg,#183E35_0%,#142F28_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.10)] pb-[env(safe-area-inset-bottom)]"
+    class="md:hidden fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(0.875rem+env(safe-area-inset-bottom))] pointer-events-none"
     aria-label="主要導覽"
   >
-    <div class="flex gap-1 px-2.5 pt-2 pb-1">
+    <div
+      class="pointer-events-auto flex items-center justify-around gap-1 rounded-full border border-white/[0.16] bg-[#142F28]/80 px-2.5 py-1.5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_30px_rgba(0,0,0,0.45)]"
+    >
       <RouterLink
         v-for="item in NAV_ITEMS"
         :key="item.to"
         :to="item.to"
-        class="relative flex-1 flex flex-col items-center justify-center gap-1 min-h-[52px] py-2 rounded-xl text-[11px] font-medium text-ink-on-deep-dim transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-        active-class="!text-white !font-bold bg-primary after:content-[''] after:absolute after:-bottom-px after:left-[30%] after:right-[30%] after:h-[3px] after:rounded-full after:bg-gold"
+        :aria-label="item.label"
+        :aria-current="isActive(item.to) ? 'page' : undefined"
+        class="flex h-11 items-center gap-1.5 rounded-full px-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        :class="isActive(item.to) ? 'bg-primary text-white px-4' : 'text-ink-on-deep-dim'"
       >
-        <component :is="item.icon" :size="24" :stroke-width="1.8" aria-hidden="true" />
-        {{ item.label }}
+        <component :is="item.icon" :size="23" :stroke-width="1.8" aria-hidden="true" />
+        <span v-if="isActive(item.to)" class="text-[13px] font-bold">{{ item.label }}</span>
       </RouterLink>
     </div>
   </nav>

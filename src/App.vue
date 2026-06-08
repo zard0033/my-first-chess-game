@@ -32,7 +32,7 @@ onMounted(() => { authStore.initAuth() })
 <template>
   <div class="min-h-dvh flex flex-col">
     <AppNav v-if="!fullBleed" />
-    <main class="flex-1" :class="fullBleed ? '' : 'pb-20 md:pb-0'">
+    <main class="flex-1" :class="fullBleed ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0'">
       <RouterView />
     </main>
   </div>
