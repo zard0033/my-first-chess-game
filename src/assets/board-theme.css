@@ -71,7 +71,6 @@ cg-board {
    Gioco Wood's dark pieces carry their colour as an embedded raster texture, so
    tint can't be changed by a hex. Lighten the whole piece with a filter instead.
    1.0 = original; raise for brighter black pieces. Applies to the live board
-   (chessground) and to <img> piece previews (Home board, etc.). */
+   (chessground); the play-setup modal applies the same var inline on its preview. */
 :root { --piece-dark-brightness: 1.2; }
-.cg-wrap piece.black,
-img[src*='/pieces/b'] { filter: brightness(var(--piece-dark-brightness)); }
+.cg-wrap piece.black { filter: brightness(var(--piece-dark-brightness)); }

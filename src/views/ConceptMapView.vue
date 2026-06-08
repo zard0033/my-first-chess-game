@@ -94,8 +94,8 @@ function practise(v: ConceptVM): void {
 }
 
 const maskStyle = (piece: string) => ({
-  WebkitMaskImage: `url(/pieces/${piece}.svg)`,
-  maskImage: `url(/pieces/${piece}.svg)`,
+  WebkitMaskImage: `url(/pieces/silhouette/${piece}.svg)`,
+  maskImage: `url(/pieces/silhouette/${piece}.svg)`,
 })
 </script>
 

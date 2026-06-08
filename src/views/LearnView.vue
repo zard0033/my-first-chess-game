@@ -211,8 +211,8 @@ function openChapter(c: Chapter): void {
               :class="chapterStatus(c) === 'done' ? 'bg-primary' : 'bg-ink-faint'"
               aria-hidden="true"
               :style="{
-                WebkitMaskImage: `url(/pieces/${TIER_PIECE[c.tier]}.svg)`,
-                maskImage: `url(/pieces/${TIER_PIECE[c.tier]}.svg)`,
+                WebkitMaskImage: `url(/pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
+                maskImage: `url(/pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
                 WebkitMaskRepeat: 'no-repeat',
                 maskRepeat: 'no-repeat',
                 WebkitMaskPosition: 'center',

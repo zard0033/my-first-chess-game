@@ -56,8 +56,8 @@ const glyphSize = computed(() => {
         :style="{
           width: `${glyphSize}px`,
           height: `${glyphSize}px`,
-          WebkitMaskImage: `url(/pieces/${piece}.svg)`,
-          maskImage: `url(/pieces/${piece}.svg)`,
+          WebkitMaskImage: `url(/pieces/silhouette/${piece}.svg)`,
+          maskImage: `url(/pieces/silhouette/${piece}.svg)`,
           WebkitMaskRepeat: 'no-repeat',
           maskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',

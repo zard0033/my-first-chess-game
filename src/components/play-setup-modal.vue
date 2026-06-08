@@ -110,12 +110,16 @@ function start(): void {
             :aria-pressed="selectedSide === side.value"
             @click="selectedSide = side.value"
           >
-            <img
-              :src="`/pieces/${side.piece}.svg`"
-              alt=""
-              class="h-7 w-7"
+<!-- Board pieces render via CSS background-image (works on iOS); <img> of the same
+                 textured SVG shows a broken-image icon on iPhone Safari, so mirror the board here. -->
+            <div
+              aria-hidden="true"
+              class="h-7 w-7 bg-contain bg-center bg-no-repeat"
               :class="{ 'opacity-60': side.value === 'random' }"
-              draggable="false"
+              :style="{
+                backgroundImage: `url(/pieces/${side.piece}.svg)`,
+                ...(side.piece.startsWith('b') ? { filter: 'brightness(var(--piece-dark-brightness))' } : {}),
+              }"
             />
             <span class="text-sm font-medium">{{ side.label }}</span>
           </button>
