@@ -14,6 +14,7 @@ const router = useRouter()
 const progress = useLessonProgressStore()
 
 // 棋子徽章：用棋盤同一套 Gioco Wood 棋子（扁平 jade 剪影），與 Home 一致。
+const base = import.meta.env.BASE_URL
 const TIER_PIECE: Record<LessonTier, string> = { 1: 'bP', 2: 'bN', 3: 'bR', 4: 'bK' }
 const TIER_NUM: Record<LessonTier, string> = { 1: '一', 2: '二', 3: '三', 4: '四' }
 const TIER_SUB: Record<LessonTier, string> = {
@@ -211,8 +212,8 @@ function openChapter(c: Chapter): void {
               :class="chapterStatus(c) === 'done' ? 'bg-primary' : 'bg-ink-faint'"
               aria-hidden="true"
               :style="{
-                WebkitMaskImage: `url(/pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
-                maskImage: `url(/pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
+                WebkitMaskImage: `url(${base}pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
+                maskImage: `url(${base}pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
                 WebkitMaskRepeat: 'no-repeat',
                 maskRepeat: 'no-repeat',
                 WebkitMaskPosition: 'center',

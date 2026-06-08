@@ -93,9 +93,10 @@ function practise(v: ConceptVM): void {
   if (v.practiceTargetId) router.push(`/dungeon/${v.practiceTargetId}?from=lesson`)
 }
 
+const base = import.meta.env.BASE_URL
 const maskStyle = (piece: string) => ({
-  WebkitMaskImage: `url(/pieces/silhouette/${piece}.svg)`,
-  maskImage: `url(/pieces/silhouette/${piece}.svg)`,
+  WebkitMaskImage: `url(${base}pieces/silhouette/${piece}.svg)`,
+  maskImage: `url(${base}pieces/silhouette/${piece}.svg)`,
 })
 </script>
 

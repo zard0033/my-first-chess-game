@@ -32,6 +32,9 @@ const suggestedLevel = computed(() =>
 const selectedLevel = ref<number>(suggestedLevel.value)
 const selectedSide = ref<Side>('random')
 
+// url() in inline-style is not base-rewritten like .css is, so prefix BASE_URL or it 404s on Pages.
+const base = import.meta.env.BASE_URL
+
 const SIDES: { value: Side; label: string; piece: string }[] = [
   { value: 'black', label: '執黑', piece: 'bK' },
   { value: 'random', label: '隨機', piece: 'wK' },
@@ -110,14 +113,24 @@ function start(): void {
             :aria-pressed="selectedSide === side.value"
             @click="selectedSide = side.value"
           >
-<!-- Board pieces render via CSS background-image (works on iOS); <img> of the same
-                 textured SVG shows a broken-image icon on iPhone Safari, so mirror the board here. -->
+<!-- Pieces render via background-image (matches the board). 隨機 = 左白右黑各半的王，
+                 用兩層 clip-path 各取一半疊出來。BASE_URL 前綴避免部署在子路徑時 404。 -->
+            <div v-if="side.value === 'random'" aria-hidden="true" class="relative h-7 w-7">
+              <span
+                class="absolute inset-0 bg-contain bg-center bg-no-repeat [clip-path:inset(0_50%_0_0)]"
+                :style="{ backgroundImage: `url(${base}pieces/wK.svg)` }"
+              />
+              <span
+                class="absolute inset-0 bg-contain bg-center bg-no-repeat [clip-path:inset(0_0_0_50%)]"
+                :style="{ backgroundImage: `url(${base}pieces/bK.svg)`, filter: 'brightness(var(--piece-dark-brightness))' }"
+              />
+            </div>
             <div
+              v-else
               aria-hidden="true"
               class="h-7 w-7 bg-contain bg-center bg-no-repeat"
-              :class="{ 'opacity-60': side.value === 'random' }"
               :style="{
-                backgroundImage: `url(/pieces/${side.piece}.svg)`,
+                backgroundImage: `url(${base}pieces/${side.piece}.svg)`,
                 ...(side.piece.startsWith('b') ? { filter: 'brightness(var(--piece-dark-brightness))' } : {}),
               }"
             />

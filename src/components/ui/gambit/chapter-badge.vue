@@ -12,6 +12,10 @@ const props = withDefaults(
   { glyph: '♜', size: 60 },
 )
 
+// Vite serves under a base path on GitHub Pages (/my-first-chess-game/). url() in JS/inline-style is
+// NOT base-rewritten the way it is in .css files, so prefix BASE_URL or the asset 404s in production.
+const base = import.meta.env.BASE_URL
+
 // 金邊翡翠錢幣：白底 + 金外環 + 四方位刻點 + 中央棋子剪影
 const dotSize = computed(() => Math.round(props.size * 0.065))
 const center = computed(() => props.size / 2 - dotSize.value / 2)
@@ -56,8 +60,8 @@ const glyphSize = computed(() => {
         :style="{
           width: `${glyphSize}px`,
           height: `${glyphSize}px`,
-          WebkitMaskImage: `url(/pieces/silhouette/${piece}.svg)`,
-          maskImage: `url(/pieces/silhouette/${piece}.svg)`,
+          WebkitMaskImage: `url(${base}pieces/silhouette/${piece}.svg)`,
+          maskImage: `url(${base}pieces/silhouette/${piece}.svg)`,
           WebkitMaskRepeat: 'no-repeat',
           maskRepeat: 'no-repeat',
           WebkitMaskPosition: 'center',
