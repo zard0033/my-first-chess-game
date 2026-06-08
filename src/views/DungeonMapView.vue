@@ -119,7 +119,7 @@ function enter(node: { puzzle: { id: string }; state: string }): void {
               opacity: node.state === 'locked' ? 0.55 : 1,
             }"
           />
-          <Check v-if="node.state === 'done'" :size="15" :stroke-width="2.8" class="relative text-[#fff4dc]" />
+          <Check v-if="node.state === 'done'" :size="15" :stroke-width="2.5" class="relative text-[#fff4dc]" />
           <span v-else-if="node.state === 'current'" class="relative font-num text-[13px] font-bold leading-none text-[#1A0800]">{{ node.puzzle.order }}</span>
           <Lock v-else :size="12" :stroke-width="2" class="relative text-ink-on-deep-dim" />
         </button>

@@ -123,7 +123,7 @@ function start(): void {
       </fieldset>
 
       <Button variant="gold" size="lg" class="w-full" @click="start">
-        開始對局 <ArrowRight :size="16" :stroke-width="2" />
+        開始對局 <ArrowRight :size="16" :stroke-width="1.8" />
       </Button>
     </DialogContent>
   </Dialog>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Home } from 'lucide-vue-next'
+import { House } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 </script>
 
@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
       看來這一步走到了棋盤之外。
     </p>
     <Button as-child class="gap-2">
-      <RouterLink to="/"><Home :size="16" /> 返回首頁</RouterLink>
+      <RouterLink to="/"><House :size="16" /> 返回首頁</RouterLink>
     </Button>
     <Button variant="link" as-child class="mt-3.5 text-[13px] font-semibold text-primary">
       <RouterLink to="/learn">繼續學習之路</RouterLink>
