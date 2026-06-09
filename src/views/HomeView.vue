@@ -45,78 +45,86 @@ function continueLearning() {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-[18px] pt-[18px] pb-6">
+  <div class="max-w-2xl md:max-w-4xl mx-auto px-[18px] pt-[18px] pb-6">
     <!-- 問候 -->
-    <p class="font-sans text-[13px] font-medium text-ink-muted">{{ greeting }}</p>
-    <h1 class="font-display font-bold text-[26px] leading-tight text-ink mt-0.5" tabindex="-1">
+    <p class="font-sans text-base font-medium text-ink-muted">{{ greeting }}</p>
+    <h1 class="font-display font-bold text-[26px] md:text-[30px] leading-tight text-ink mt-0.5" tabindex="-1">
       今天想下一盤嗎？
     </h1>
 
-    <!-- 新對局 — 深青瓷焦點卡 -->
-    <DarkPanel class="mt-4 cursor-pointer" @click="startGame">
-      <div class="flex items-center gap-3.5">
-        <div class="flex-1 min-w-0">
-          <p class="font-sans text-[11px] font-bold tracking-[0.12em] text-gold">NEW GAME</p>
-          <p class="font-display font-bold text-[22px] text-ink-on-deep mt-1.5">開始新對局</p>
-          <p class="font-sans text-[13px] text-ink-on-deep-dim mt-1">自選強度與執子</p>
-          <Button variant="gold" size="sm" class="mt-3.5" @click.stop="startGame">
-            開始對局 <ArrowRight :size="16" />
-          </Button>
-        </div>
-        <ChapterBadge piece="bK" :size="62" />
-      </div>
-    </DarkPanel>
-
-    <!-- 繼續學習 — cream accent 卡 -->
-    <SectionLabel>繼續學習</SectionLabel>
-    <Card accent class="p-4 cursor-pointer" @click="continueLearning">
-      <template v-if="nextLesson">
-        <div class="flex items-center gap-3">
+    <!-- 主區：桌機 hero | 繼續學習 雙欄等高；手機堆疊 -->
+    <div class="mt-4 md:mt-6 md:grid md:grid-cols-2 md:gap-5 md:items-stretch">
+      <!-- 新對局 — 深青瓷焦點卡（桌機填滿欄高，內容垂直置中） -->
+      <DarkPanel class="cursor-pointer md:h-full md:flex md:flex-col md:justify-center" @click="startGame">
+        <div class="flex items-center gap-3.5">
           <div class="flex-1 min-w-0">
-            <p class="font-sans text-xs font-bold text-primary-dark">
-              {{ LESSON_TIER_LABELS[nextLesson.tier] }}
-            </p>
-            <p class="font-display font-bold text-xl text-ink mt-1">{{ nextLesson.title }}</p>
-            <Button size="sm" class="mt-3" @click.stop="continueLearning">
-              繼續 · 第 {{ lessonOrdinal }} 課 <ArrowRight :size="15" />
+            <p class="font-sans text-[11px] font-bold tracking-[0.12em] text-gold">NEW GAME</p>
+            <p class="font-display font-bold text-[22px] text-ink-on-deep mt-1.5">開始新對局</p>
+            <p class="font-sans text-[13px] text-ink-on-deep-dim mt-1">自選強度與執子</p>
+            <Button variant="gold" size="sm" class="mt-3.5" @click.stop="startGame">
+              開始對局 <ArrowRight :size="18" />
             </Button>
           </div>
-          <ChapterBadge :piece="TIER_PIECE[nextLesson.tier]" :size="52" />
+          <ChapterBadge piece="bK" :size="62" />
         </div>
-        <div class="mt-3.5">
-          <ProgressBar :value="progress.completedCount" :total="progress.totalCount" />
-        </div>
-      </template>
-      <template v-else>
-        <div class="flex items-center gap-3">
-          <div class="flex-1 min-w-0">
-            <p class="font-sans text-xs font-bold text-primary-dark">學習地圖</p>
-            <p class="font-display font-bold text-xl text-ink mt-1">你已完成所有課程</p>
-            <Button size="sm" class="mt-3" @click.stop="continueLearning">
-              回到地圖 <ArrowRight :size="15" />
-            </Button>
-          </div>
-          <ChapterBadge piece="bK" :size="52" />
-        </div>
-      </template>
-    </Card>
+      </DarkPanel>
 
-    <!-- 總覽 -->
+      <!-- 繼續學習 — cream accent 卡。桌機隱藏外部小標，讓本卡與左 hero 頂底等高對齊
+           （兩卡都靠卡內小標：NEW GAME / 基礎規則）；手機保留小標分段。 -->
+      <SectionLabel class="mt-5 md:hidden">繼續學習</SectionLabel>
+      <Card
+        accent
+        class="p-4 cursor-pointer md:h-full md:flex md:flex-col md:justify-center"
+        @click="continueLearning"
+      >
+        <template v-if="nextLesson">
+          <div class="flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="font-sans text-xs font-bold text-primary-dark">
+                {{ LESSON_TIER_LABELS[nextLesson.tier] }}
+              </p>
+              <p class="font-display font-bold text-xl text-ink mt-1">{{ nextLesson.title }}</p>
+              <Button size="sm" class="mt-3" @click.stop="continueLearning">
+                繼續 · 第 {{ lessonOrdinal }} 課 <ArrowRight :size="16" />
+              </Button>
+            </div>
+            <ChapterBadge :piece="TIER_PIECE[nextLesson.tier]" :size="52" />
+          </div>
+          <div class="mt-3.5">
+            <ProgressBar :value="progress.completedCount" :total="progress.totalCount" />
+          </div>
+        </template>
+        <template v-else>
+          <div class="flex items-center gap-3">
+            <div class="flex-1 min-w-0">
+              <p class="font-sans text-xs font-bold text-primary-dark">學習地圖</p>
+              <p class="font-display font-bold text-xl text-ink mt-1">你已完成所有課程</p>
+              <Button size="sm" class="mt-3" @click.stop="continueLearning">
+                回到地圖 <ArrowRight :size="16" />
+              </Button>
+            </div>
+            <ChapterBadge piece="bK" :size="52" />
+          </div>
+        </template>
+      </Card>
+    </div>
+
+    <!-- 總覽（全寬） -->
     <SectionLabel>總覽</SectionLabel>
-    <div class="flex gap-2.5">
+    <div class="grid grid-cols-3 gap-2.5">
       <StatCard
         :icon="BookOpen"
         label="學習進度"
         :value="`${progress.completedCount}/${progress.totalCount}`"
       />
-      <RouterLink to="/dungeon" class="flex flex-1 rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="試煉">
+      <RouterLink to="/dungeon" class="block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="試煉">
         <StatCard
           :icon="Target"
           label="試煉"
           :value="`${dungeon.solvedCount}/${dungeon.totalCount}`"
         />
       </RouterLink>
-      <StatCard :icon="Library" label="開局庫" value="即將推出" locked />
+      <StatCard :icon="Library" value="即將推出" locked />
     </div>
   </div>
 </template>

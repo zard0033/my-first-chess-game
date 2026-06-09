@@ -1,27 +1,35 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
+import { Lock } from 'lucide-vue-next'
 
-defineProps<{ icon: Component; label: string; value: string; locked?: boolean }>()
+defineProps<{ icon: Component; label?: string; value: string; locked?: boolean }>()
 </script>
 
 <template>
-  <!-- 總覽統計卡：cream 立體；locked 灰階 + 「即將推出」 -->
+  <!-- 總覽統計卡：cream 立體。一般卡 icon/數字/文字三段；locked 灰階 + 角落鎖頭，
+       只留 icon + 「即將推出」並垂直置中對齊一般卡的數字+文字區。 -->
   <div
-    class="flex-1 text-center rounded-card bg-surface-card
+    class="relative flex flex-col text-center rounded-card bg-surface-card
            border border-line border-t-white/[0.68] border-b-line-subtle
            shadow-[0_4px_12px_rgba(61,34,16,0.08),0_1px_3px_rgba(61,34,16,0.05),inset_0_1px_0_rgba(255,255,255,0.5)]
            px-2.5 py-3"
     :class="locked && 'opacity-55'"
   >
+    <Lock
+      v-if="locked"
+      :size="12"
+      :stroke-width="2.2"
+      class="absolute top-2 right-2 text-ink-faint"
+    />
     <div class="flex justify-center mb-1.5" :class="locked ? 'text-ink-faint' : 'text-primary'">
       <component :is="icon" :size="20" :stroke-width="1.8" />
     </div>
-    <div
-      class="font-bold tabular-nums"
-      :class="locked ? 'font-sans text-[13px] text-ink-faint' : 'font-num text-lg text-ink'"
-    >
-      {{ value }}
+    <template v-if="!locked">
+      <div class="font-num text-lg text-ink font-bold tabular-nums">{{ value }}</div>
+      <div class="font-sans text-[11px] text-ink-muted mt-0.5">{{ label }}</div>
+    </template>
+    <div v-else class="flex-1 flex items-center justify-center">
+      <span class="font-sans text-[13px] font-bold text-ink-faint">{{ value }}</span>
     </div>
-    <div class="font-sans text-[11px] text-ink-muted mt-0.5">{{ label }}</div>
   </div>
 </template>

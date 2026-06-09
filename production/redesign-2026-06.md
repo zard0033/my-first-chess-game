@@ -47,14 +47,16 @@
 
 ---
 
-## Phase 2 — 首頁 HomeView　⏳ TODO（下一步）
+## Phase 2 — 首頁 HomeView　✅ DONE（未 commit）
 
-主檔：`src/views/HomeView.vue`。現況單欄 `max-w-2xl`，元件用得好但缺沉點與桌機斷點。
+主檔：`src/views/HomeView.vue`。`/redesign` skill 對 1280/375/320 實審後施工。
 
-- **High**：加 deep-jade 沉點（破全 cream 灰撲撲）；問候字 13px→16px（iOS auto-zoom）；StatCard 三卡 `flex flex-1` 在 <360px 塌陷 → grid 或縮 padding，每卡 ≥44px。
-- **Medium**：桌機善用寬度（hero+繼續學習雙欄/加寬置中）；StatCard 鎖定狀態加 lock icon；字級/間距收斂。
-- **Low**：CTA 箭頭 16→18、SectionLabel 微分隔、locked 對比驗證。
-- 注意：首頁「開始新對局」卡 `@click` 已改開全域 modal（Phase 1 動過），勿改回 router.push。
+- **High**：deep-jade 沉點＝沿用既有 NEW GAME DarkPanel（桌機 `md:h-full` 填欄高變強錨，降級不另加深色塊）；問候字 13px→16px（`text-base`）；StatCard `flex`→`grid grid-cols-3`（修中間 RouterLink 巢狀 `flex flex-1`），RouterLink 改 `block`。
+- **Medium**：**桌機雙欄**（`md:grid-cols-2 md:items-stretch`：左 hero｜右繼續學習等高，總覽全寬在下）；容器 `md:max-w-4xl`、h1 `md:30px`；StatCard locked 加右上角 Lock icon。
+- **Low**：hero CTA 箭頭 16→18（done）。**刻意不做**：SectionLabel 微分隔（卡片已是強分組，加線違背平靜調性）；locked 對比拉高（disabled 佔位該退到背景，WCAG 對 disabled 豁免，拉高反搶真資料份量）。
+- **Eason 回饋後追加**：桌機隱藏「繼續學習」外部小標 → 兩 hero 卡頂底等高（左右都靠卡內小標）；locked StatCard 拿掉「開局庫」label，icon 對齊頂線、「即將推出」於下方區置中對齊一般卡的數字+文字。
+- 共用元件動到：`section-label.vue` 加 `class` 透傳（桌機覆寫 `md:mt-0`，Phase 3/4 沿用）；`stat-card.vue` 加 Lock + locked 改 icon 頂對齊 + 文字置中、`label` 改 optional。
+- 注意：首頁「開始新對局」卡 `@click` 開全域 modal（Phase 1），未改回 router.push。
 
 ## Phase 3 — 學習 LearnView + ConceptMapView + LessonView　⏳ TODO
 
