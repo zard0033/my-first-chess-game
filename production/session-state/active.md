@@ -1,7 +1,7 @@
 <!-- STATUS -->
 Epic: 跨頁 UI Redesign（2026-06-09）— 主計畫見 repo 內 `production/redesign-2026-06.md`（Phase 0–4，含進度）
-Feature: Phase 0+1+2 已 commit（→ ff4a675）。Phase 3 學習頁 = DONE 且驗證；**未 commit**。下一步 = Phase 4 試煉
-Task: Phase 3 完成（ConceptMap jade banner 沉點+概念卡 glass+桌機4欄 / LearnView 分隔線+lg:max-w-2xl+字級收斂 / LessonView 完成卡暖調 / learn-tabs token 化）
+Feature: Phase 0–4 全部完成。Phase 4 試煉地圖＝F（透視登高 funnel）已實作、驗證，等 commit + push
+Task: 準備 push（commit message 已列，等 Eason 確認）
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -24,31 +24,13 @@ Task: Phase 3 完成（ConceptMap jade banner 沉點+概念卡 glass+桌機4欄 
 > 主計畫（Phase 0–4 細項與進度）：repo 內 `production/redesign-2026-06.md`。每 Phase 細節在 git log + 計畫檔。
 
 - **Phase 0 共用語言 + Phase 1 對局頁 PlayView**：done，已 commit（`6e35394`）。
-- **Phase 2 首頁 HomeView**：done 且驗證（vue-tsc 0、645 passed、Playwright 1280/375/320 實測）。桌機 hero｜繼續學習 雙欄等高 + 總覽全寬、問候 16px、StatCard grid+lock+置中、CTA 箭頭 18、`md:max-w-4xl`。動到 `HomeView.vue`、`section-label.vue`（class 透傳）、`stat-card.vue`（lock + locked 重排、label optional）。**待 push（本批）。**
-- **Phase 3 學習（LearnView + ConceptMapView + LessonView）→ Phase 4 試煉（DungeonMap + 子頁）**：TODO，細項見計畫檔。**下一步＝Phase 3（明天繼續）。**
+- **Phase 2 首頁 HomeView**：done，已 commit（`ff4a675`）。桌機 hero｜繼續學習 雙欄等高 + 總覽全寬、問候 16px、StatCard grid+lock+置中、CTA 箭頭 18、`md:max-w-4xl`。
+- **Phase 3 學習（LearnView + ConceptMapView + LessonView）**：done，已 commit（`727ec56`）。ConceptMap jade banner 沉點 + 概念卡 glass + 桌機 4 欄；LearnView 分隔線 + `lg:max-w-2xl` + 字級收斂 + 繼續/完成等高 pill；LessonView 完成卡暖棕調；learn-tabs token 化。vue-tsc 0、645 passed、Playwright 375/1280 實測。
+- **Phase 4 試煉（DungeonMapView + DungeonPuzzleView）**：✅ **實作完成，待 push**。`/redesign` 出 A–F 六個 mockup（d:\tmp\dungeon-map-mockup，throwaway），Eason 選定 **F＝蜿蜒登高 · 透視縱深**。
+  - **實作內容**：DungeonMapView 完整重寫為透視 funnel（W=340, AMP_MAX=0.30→AMP_MIN=0.045，jade 立體金幣節點，3 樓層分段，起點/峰頂文字，距離霧化，locked 深度縮放/變淡，由下而上捲動至 current）；DungeonPuzzleView H/M 修正（金色內文→ink-on-deep 3 處，glass-panel 套用，字級修正，Modal 漸層加深）；GDD §3.1+AC-11/12+Dependencies 更新，記偏離理由（2026-06-09 拍板）。
+  - **驗證**：vue-tsc 0、vitest 645 passed、Playwright 375/1280 截圖確認。
+  - **待辦**：等 push 確認 → commit + git push origin main → 清 d:\tmp\dungeon-map-mockup。
 - 流程鐵則：redesign 類任務先跑 `/redesign` 對真實畫面出 H/M/L 報告 → Eason 拍板 → 才施工，即使計畫檔已有清單。
-
-## 上一批變更（2026-06-09，待 push — 概念 tab 改版 + 側門學習 + UI 修補）
-
-> 更早一輪（base-path 資產 404、浮動膠囊、對局頁 HUD）已 push，細節在 git log。
-
-**概念 tab 改版（主線）**：起點＝Eason 覺得學習頁概念分頁混亂。
-- 潤飾：移「學習迴圈」eyebrow、兩頁大標題轉 `sr-only`、tab 加 GraduationCap/Compass icon、概念 blurb 白話化。
-- 功能改版（`/design-review` full 把關，原「砍掉重練」判 **MAJOR REVISION** → 收斂為**加法版**）：
-  概念頁＝**平靜熟悉度地圖 + 按戰術切入學習入口**。每張卡可點 → `/learn/:id?from=concept` **側門**進課
-  （線性鎖住也能學）。移除雙圓點混亂（已學/已練 chip 只在達成顯示）、移除概念頁「去試煉」CTA
-  （一戰術對多謎題無單一目標；練習留 Bridge-1+謎題）。**三道雙向橋（課程↔試煉↔對局）不動。**
-- **側門用 D1 獨立 signal**：`lesson-progress` 新增 `sideLearned`（與 `completed` 分開、`isUnlocked` **完全不動**）
-  → 側門學了不洩漏線性解鎖。`isLearned`＝`completed ∪ sideLearned` 點亮地圖「已學」。
-- LessonView：`?from=concept` 進入豁免、完成寫 `sideLearned`、返回導回 `/learn/concepts`+aria-label、頂部中立「提前學」註記。
-- **雲端同步**：新表 `lesson_side_learned`（鏡像 `lesson_progress` + RLS），data-sync 加 `load/upsertSideLearned`，
-  store `reconcileOnLogin`/`syncFromCloud` 並推拉。**migration Eason 已在 Dashboard 套用並驗（rowsecurity=true、policy 在）。**
-- 規格＋審查紀錄：`design/quick-specs/concept-tab-tactic-entry.md`。
-
-**順帶 UI 修補（上一輪殘留未提交）**：`index.html` lang→`zh-TW`；App.vue 頁面底色套 `<main>`（修試煉/對局底部留白露 cream）；
-app-nav.vue 底部 nav 改等寬 tab + 單一滑動 jade 指示器（取代展開式膠囊）。
-
-- 測試：vue-tsc 0、vitest **645 passed**（+12：data-sync 側門同步、lesson-progress 側門不污染、concept-map 重寫）。
 
 ## 🚧 待辦 / 開放項
 
