@@ -29,8 +29,13 @@ const conceptProgress = useConceptProgressStore()
 
 const lesson = getLessonById(route.params.lessonId as string)
 
-// Guard: unknown or still-locked lesson → back to the catalog.
-if (!lesson || !progress.isUnlocked(lesson)) {
+// Concept-tab side-door (Learning Loop #20): `?from=concept` lets a non-beginner open a tactic's
+// lesson out of linear order. Mirrors the dungeon practice side-door; return nav routes back to 概念.
+const fromConcept = route.query.from === 'concept'
+const backTo = fromConcept ? '/learn/concepts' : '/learn'
+
+// Guard: unknown or still-locked lesson → back to the catalog. The side-door bypasses the lock.
+if (!lesson || (!progress.isUnlocked(lesson) && !fromConcept)) {
   router.replace('/learn')
 }
 
@@ -177,7 +182,12 @@ function practise(targetId: string): void {
 
 function next(): void {
   if (isLastStep.value) {
-    if (lesson) progress.markComplete(lesson.id)
+    // Side-door entry lights 已學 via the separate signal only — it must NOT advance linear progress
+    // (no markComplete → no isUnlocked leak; GDD §3.2 D1 pattern).
+    if (lesson) {
+      if (fromConcept) progress.markSideLearned(lesson.id)
+      else progress.markComplete(lesson.id)
+    }
     completed.value = true // show the completion card; Bridge-1 invitation lives here
     return
   }
@@ -198,14 +208,21 @@ function prev(): void {
       <Button
         variant="ghost"
         size="icon"
-        aria-label="返回課程清單"
-        @click="router.push('/learn')"
+        :aria-label="fromConcept ? '返回概念' : '返回課程清單'"
+        @click="router.push(backTo)"
       ><ArrowLeft :size="20" :stroke-width="1.8" /></Button>
       <h1 class="flex-1 font-display text-xl font-semibold text-ink" tabindex="-1">{{ lesson.title }}</h1>
       <span class="shrink-0 text-sm tabular-nums text-ink-faint">
         {{ stepIndex + 1 }} / {{ lesson.steps.length }}
       </span>
     </header>
+
+    <!-- Side-door context note: quiet, neutral — never judges the out-of-order entry -->
+    <p
+      v-if="fromConcept"
+      data-testid="lesson-from-concept-note"
+      class="shrink-0 px-4 pb-1 font-sans text-xs text-ink-faint"
+    >你從概念地圖提前學這個戰術</p>
 
     <!-- Content area: board left, coach right on desktop -->
     <div class="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-4">
@@ -452,8 +469,8 @@ function prev(): void {
           type="button"
           data-testid="lesson-completion-return"
           class="font-sans text-sm font-semibold text-ink-on-deep-dim/80 active:scale-95"
-          @click="router.push('/learn')"
-        >回課程列表</button>
+          @click="router.push(backTo)"
+        >{{ fromConcept ? '回概念地圖' : '回課程列表' }}</button>
       </div>
     </div>
   </div>

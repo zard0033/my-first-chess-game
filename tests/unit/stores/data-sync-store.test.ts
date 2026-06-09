@@ -348,6 +348,65 @@ describe('useDataSyncStore', () => {
     })
   })
 
+  // ── lesson_side_learned (Concept-tab side-door, Learning Loop #20) ──────
+
+  describe('loadSideLearned', () => {
+    it('returns [] when logged out without touching supabase', async () => {
+      const store = useDataSyncStore()
+      expect(await store.loadSideLearned()).toEqual([])
+      expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('maps rows to lesson_id strings when logged in', async () => {
+      const selectFn = vi.fn().mockResolvedValueOnce({
+        data: [{ lesson_id: 'pin' }, { lesson_id: 'skewer' }],
+        error: null,
+      })
+      vi.mocked(supabase.from).mockReturnValueOnce({ select: selectFn } as never)
+      useAuthStore().userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      expect(await store.loadSideLearned()).toEqual(['pin', 'skewer'])
+      expect(supabase.from).toHaveBeenCalledWith('lesson_side_learned')
+    })
+
+    it('returns [] on error (degrades to local cache)', async () => {
+      const selectFn = vi.fn().mockResolvedValueOnce({ data: null, error: { message: 'boom' } })
+      vi.mocked(supabase.from).mockReturnValueOnce({ select: selectFn } as never)
+      useAuthStore().userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      expect(await store.loadSideLearned()).toEqual([])
+    })
+  })
+
+  describe('upsertSideLearned', () => {
+    it('no-ops (false) when logged out', async () => {
+      const store = useDataSyncStore()
+      expect(await store.upsertSideLearned(['pin'])).toBe(false)
+      expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('no-ops (false) for an empty id list', async () => {
+      useAuthStore().userId = 'uid-1'
+      const store = useDataSyncStore()
+      expect(await store.upsertSideLearned([])).toBe(false)
+      expect(supabase.from).not.toHaveBeenCalled()
+    })
+
+    it('upserts user-scoped rows to lesson_side_learned and returns true', async () => {
+      const upsertFn = vi.fn().mockResolvedValueOnce({ error: null })
+      vi.mocked(supabase.from).mockReturnValueOnce({ upsert: upsertFn } as never)
+      useAuthStore().userId = 'uid-1'
+
+      const store = useDataSyncStore()
+      expect(await store.upsertSideLearned(['pin'])).toBe(true)
+      expect(supabase.from).toHaveBeenCalledWith('lesson_side_learned')
+      const [rows] = upsertFn.mock.calls[0]
+      expect(rows).toEqual([{ user_id: 'uid-1', lesson_id: 'pin' }])
+    })
+  })
+
   // ── dungeon_progress (S13 cross-device) ─────────────────────────────────
 
   describe('loadDungeonProgress', () => {

@@ -1,147 +1,75 @@
 <!-- STATUS -->
-Epic: 品牌 icon/logo overhaul（2026-06-08）— icon 語意收斂 + GAMBIT 兵冠向量 logo done（已 push）
-Feature: 下一步 = 待 Eason 指定方向（候選見「其他待辦/風險」）
-Task: 2026-06-08 icon/logo：導覽 House/BookOpen/Target/Swords、app-nav 內聯 SVG→Lucide、新兵冠 SVG logo+向量 favicon、PWA PNG 圖標、NotFound House、stroke 收斂、刪 12 個無用 tiles；vue-tsc 0、629 passed
+Epic: 學習頁概念 tab 改版 + 側門學習（2026-06-09）— 概念頁從「熟悉度地圖」加成「按戰術切入學習」入口；側門用 D1 獨立 signal；雲端同步 done（migration Eason 已套用驗證）
+Feature: 下一步 = 待 Eason 指定方向（候選見「待辦/開放項」）
+Task: 概念頁重建（每卡側門進課、移雙圓點、已學/已練 chip）、LessonView ?from=concept 豁免+返回導回概念頁+提前學註記、lesson-progress sideLearned 獨立訊號（isUnlocked 不動）、data-sync lesson_side_learned 雲端同步、tab icon+標頭潤飾+blurb 白話；vue-tsc 0、645 passed
 <!-- /STATUS -->
 
-> **2026-06-08 icon/logo overhaul（已 push）**：
-> - 導覽列 app-nav 4 個手刻內聯 SVG → Lucide：首頁 House／學習 BookOpen／試煉 Target（取代盾牌）／對局 Swords（取代 ▶）。
-> - 新品牌 logo「兵戴冠（兵→王＝gambit 棄兵＋新手升變）」：ChatGPT 生扁平金兵 on jade → potrace 向量化
->   `src/assets/brand-mark.svg`，取代 ♚ 金方塊（22px 對齊字標、文字維持 cream）；favicon 改向量；apple-touch／pwa PNG + theme-color。
-> - NotFound Home→House；stroke 收斂兩處（play-setup 2→1.8、DungeonMap 2.8→2.5）；刪 12 個無用模板 tiles。
-> - 驗證：vue-tsc 0、vitest 629、Playwright nav+favicon。色彩鐵則：icon currentColor 跟背景走對比，金只 logo/focus/reward。
-> - 🔎 **dead-file 稽核（Eason 喊暫緩、未動）**：src ~11 orphan（ui/checkbox·label·progress·tooltip、composables/use-stockfish）、
->   模板殘留 `docs/engine-reference/`、`CCGS Skill Testing Framework/`、引擎 specialist agents、`public/board/wood12_bg.jpg` 皆可清。
->
-> **2026-06-07 質感提升批次（redesign）細節**：
-> - **H-1 dungeon auto-scroll**：DungeonMapView onMounted rAF 將 current 節點置中；router afterEach h1 focus 改 `preventScroll`（通用修正，原本會把任何自訂初始捲動拉回頂部）。
-> - **M-1 focus-visible 金環**（沿 HomeView 既有 `ring-gold` 慣例）：learn-tabs、ConceptMap stretched-link + 去試煉、LearnView 課程列、Dungeon 節點（菱形改 inner-layer 讓 ring 不被 clip-path 裁掉）+ CTA bubble。
-> - **L-2**：LearnView 章節進度條補 `transition-[width]`（共用 ProgressBar 本就有）。
-> - **課程/試煉版面全沉浸（Eason 拍板）**：lesson/puzzle route 標 `fullBleed`（無全域頂部品牌列＋底部 tab，用畫面內 ← 返回）；棋盤加高度上限 `max-w-[min(…,54/56dvh)]`（板子是正方形，全寬會吃掉整屏把教學文字擠到摺線下）；教練卡 padding 收斂；LessonView sticky bar 下移 bottom-0 +safe-area。
-> - **中文 italic 渲染**：移除 LessonView 情境 quote 的 `italic`（CJK 無真斜體，明朝體假斜會把「哪」等字拉歪）；引言感改由左邊框＋灰階保留。opening-knowledge-card 的 italic 條件資料從未設 true（dead，不動）。
-> - **棋盤座標角落式（board-theme.css）**：a–h 右下角、1–8 左上角（lichess/chess.com 慣例）。水平：移除 `coords.files` 容器 `padding:0 4px`（造成 8 字母與 8 格漂移）→ `text-align:right`+`padding-right:3px`。垂直：原本 12px 字形在 chessground 底部薄條會懸在板底外 ~6px（padding/bottom 推不動，因字形 overflow 固定高度的 strip），改 `transform: translateY(-9px)` 把整排抬進底排格內（量測板內 3px）。座標為原生 chessground，僅動專案自有覆寫 CSS、未動上游棋盤/棋子渲染。
-> - **徽章棋子大小正規化（chapter-badge.vue）**：量測各棋子 SVG 內容佔 50×50 viewBox 的高度比（K 0.807…P 0.638），
->   反向正規化讓每個剪影都渲染成 ≈0.40×徽章高（原 `contain` 下兵僅國王 79% 高、顯小）。量測：國王/兵現皆填徽章 40%。
-> - **導覽重構（Eason 拍板）**：底部 tab 改 `首頁/學習/試煉/對局`（試煉入列、盾牌 icon）；`我的`(profile) 移到右上 header
->   （未登入顯示「登入」、登入顯示頭像 →/profile，登出在 ProfileView）。順解「按我的 tab 沒反應」＝原 profile auth-gate
->   靜默導回首頁、`?login=required` 無人處理。app-nav.vue + App.vue（移除 onSignOut plumbing，登出改由 profile 頁）。
-> - **CLAUDE.md**：新增「UI 質感 Skill 路由」（redesign / frontend-ui-engineering / ui-ux-pro-max / web-design-engineer 觸發詞 + Gambit 裁判鐵則）。
-
-> **新 session 接手指引**：本檔是交接快照。詳盡規格在各 GDD / EPIC；此處只給「現況 + 下一步 + 鐵則」。
-> 全專案進度總覽見 `production/epics/index.md`（注意：該檔較舊，試煉/學習迴圈狀態以本檔為準，待補更新）。
+> **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
+> 全專案總覽 `production/epics/index.md`（較舊，試煉/學習迴圈狀態以本檔為準）。
 
 ---
 
-## 現況快照（2026-06-07）
+## 現況（產品已全線可用）
 
-- **核心產品已全線可用**：對局 → 賽後檢討(#7) → 課程(#18) / 試煉(#19)，雲端登入 + 跨裝置同步。
-- **試煉道場 (#19, S13)**：**全部完成**。30 題（每層 10）、地圖、解題、跨裝置進度。
-  S13-07 `dungeon_progress` 表已建並驗證（REST：200 []、匿名寫入擋 401/42501）。
-- **學習迴圈 (#20)**：GDD Approved（round 2）。**Phase A + B + C 完成**。
-- **測試**：全套 **627 passed**（+15：classify 13 / review-view-signpost 2）。技術債＝20 個既有 vue-tsc 型別錯（未增加）。
-- **dev server** 背景跑 localhost:5173。
+- **核心動線**：對局 → 賽後檢討(#7) → 課程(#18) / 試煉(#19)，雲端登入 + 跨裝置同步。
+- **試煉道場 (#19)**：完成（30 題、地圖、解題、跨裝置進度，`dungeon_progress` 表已驗）。
+- **學習迴圈 (#20)**：Phase A/B/C 完成（概念底層、雙向橋接課程↔試煉、概念地圖 `/learn/concepts`、
+  賽後檢討的中立 opt-in 概念標記 v1＝mate + material）。**概念頁已改版＝「熟悉度地圖 + 按戰術切入學習」
+  雙職，可側門跳學鎖住的戰術（不污染線性進度）；側門已學雲端同步（`lesson_side_learned` 表已套用）。**
+- **game-replay (#S10)**：QA APPROVED；S10-05 動畫 polish 已 deferred；剩 iPhone 實機。
+- **測試**：vue-tsc 0、vitest **645 passed**。
 
-### 學習迴圈 Phase A（已完成）
-- 概念底層 `src/types/concept.ts` + `src/data/concepts/`（8 概念、`MOTIF_TO_CONCEPT`、`ALL_PUZZLE_MOTIFS`）。
-- 8 課貼 `concepts?` 標。橋1：LessonView 完成卡片 + 側門練習（`?from=lesson`，繞 dungeon `nodeState` 鎖、
-  解題只寫 `concept-progress`、不動 dungeon `solved`/`currentOrder` — D1 零變動 invariant）。
-- `recommend.ts`（candidates/recommended/practiceTarget）。
+## 最近一次變更（2026-06-09，待 push — 概念 tab 改版 + 側門學習 + UI 修補）
 
-### 學習迴圈 Phase B（已完成，本批）
-- **橋2（試煉→課程）**：`DungeonPuzzleView` 常駐「複習『X』這個概念」link；`reviewLinkForMotif()`
-  在 `data/concepts/index.ts`。常駐、不綁錯誤次數（AC-4）。
-- **概念地圖**：`/learn/concepts` + `ConceptMapView.vue`；`learned/practiced` 純函式在
-  `modules/learning-loop/mastery.ts`（practiced = dungeonSolved ∪ practiceSolved ≥ `CONCEPT_PRACTICED_THRESHOLD`）。
-  視覺＝暖 cream 棋子格 + 微光圓點（翡翠＝課程 / 金＝試煉，圓點＝點亮）；用詞精煉 2 字「課程/試煉」；
-  dormant 收「之後會帶你認識」（非未達成、無鎖）；lesson-only 只亮「課程」。整格 stretched-link→課程、
-  「去試煉」CTA 獨立 ≥44px。
-- **學習頁 IA**：頂部 segmented control「課程/概念」（`components/learn-tabs.vue`，route-driven、
-  gated on `SHOW_CONCEPT_MAP`）。
-- 測試 +17（mastery 8 / reviewLink 2 / ConceptMapView 4 / gambit-compliance 3；route-table 更新）。
-  Playwright 全驗過。
+> 上一輪（base-path 資產 404、浮動膠囊、對局頁 HUD）已 push，細節在 git log。
 
----
+**概念 tab 改版（主線）**：起點＝Eason 覺得學習頁概念分頁混亂。
+- 潤飾：移「學習迴圈」eyebrow、兩頁大標題轉 `sr-only`、tab 加 GraduationCap/Compass icon、概念 blurb 白話化。
+- 功能改版（`/design-review` full 把關，原「砍掉重練」判 **MAJOR REVISION** → 收斂為**加法版**）：
+  概念頁＝**平靜熟悉度地圖 + 按戰術切入學習入口**。每張卡可點 → `/learn/:id?from=concept` **側門**進課
+  （線性鎖住也能學）。移除雙圓點混亂（已學/已練 chip 只在達成顯示）、移除概念頁「去試煉」CTA
+  （一戰術對多謎題無單一目標；練習留 Bridge-1+謎題）。**三道雙向橋（課程↔試煉↔對局）不動。**
+- **側門用 D1 獨立 signal**：`lesson-progress` 新增 `sideLearned`（與 `completed` 分開、`isUnlocked` **完全不動**）
+  → 側門學了不洩漏線性解鎖。`isLearned`＝`completed ∪ sideLearned` 點亮地圖「已學」。
+- LessonView：`?from=concept` 進入豁免、完成寫 `sideLearned`、返回導回 `/learn/concepts`+aria-label、頂部中立「提前學」註記。
+- **雲端同步**：新表 `lesson_side_learned`（鏡像 `lesson_progress` + RLS），data-sync 加 `load/upsertSideLearned`，
+  store `reconcileOnLogin`/`syncFromCloud` 並推拉。**migration Eason 已在 Dashboard 套用並驗（rowsecurity=true、policy 在）。**
+- 規格＋審查紀錄：`design/quick-specs/concept-tab-tactic-entry.md`。
 
-## ✅ Phase C 完成（2026-06-07，本批）
+**順帶 UI 修補（上一輪殘留未提交）**：`index.html` lang→`zh-TW`；App.vue 頁面底色套 `<main>`（修試煉/對局底部留白露 cream）；
+app-nav.vue 底部 nav 改等寬 tab + 單一滑動 jade 指示器（取代展開式膠囊）。
 
-橋3：賽後檢討偵測「高把握」訊號 → 掛中立、opt-in、預設不顯示的概念標記。v1 只認 mate + material。
+- 測試：vue-tsc 0、vitest **645 passed**（+12：data-sync 側門同步、lesson-progress 側門不污染、concept-map 重寫）。
 
-- **`src/modules/learning-loop/classify.ts`**：`classify()` + `hungUndefendedMaterial()` 純函式 +
-  `selectMistakeSignposts()`（依 cpLoss 排序取 top-N）。訊號 1 mate 重用 #7 F2b（`放任被將死` =
-  `!hadMate && nowMated` 的 evalMate transition，零新邏輯）；訊號 2 material 用 chess.js replay 真實對局線，
-  `attackers()` 幾何判定。**en passant / 升變吃子排除**。
-- **⚠️ 規格矛盾裁決**：§4.4 文字（review-log line 12「pinned defender ≠ defender」）與 **AC-6(b)**（被釘防禦子→
-  `none`）方向相反。採 **AC-6(b)**（可測試契約＋全節 prefer-silence 北極星）：有幾何防禦子但無合法 recapture（只
-  剩被釘）→ 保守沉默 `none`。實作＝`attackers(s)` 空→material；非空但無合法 recapture→none；有 recapture 且
-  value≥P→none（補償）；有 recapture 但 value<P→material。
-- **ReviewView 接線**：`mistakeSignposts` computed 讀 `gameStore.completedGame`（reactive）；
-  `顯示細節` opt-in toggle → `data-testid="review-detail-panel"` 內含 `data-testid="concept-signpost"`，
-  露「相關概念：X」+「複習這個概念」(→/learn/:lessonId) +「去試煉」(→/dungeon/:id?from=lesson 側門)。
-  cursor 換手時 reset opt-in。中立 cream/jade、無 gold（非 reward）。
-- **#7 reciprocal**：`post-game-review.md` GDD amendment 已就位（line 34）；本批實作 detail panel。
-- **tuning**：`MISTAKE_CONCEPT_MAX_LINKS=1`、`CLASSIFIER_SIGNALS=['mate','material']` 加進 learning-loop-tuning.ts。
-- **測試**：classify.test.ts 13（AC-5/6a-d/7 + 選取）、review-view-signpost.test.ts 2（AC-9 預設不顯示 / AC-9b
-  opt-in gating，標記置於 index 0 用 mate 訊號繞過 nav）。
-- **未做（刻意）**：捉雙/牽制賽後偵測延 Phase C+；去試煉 drill link 復用 `?from=lesson` 側門（完成後回 /learn，
-  非回 review — 可接受的小 UX 皺褶，避免擴張 DungeonPuzzleView guard）；epic story 檔仍未補（B/C 都沒開正式 story）。
-- **✅ 既有 reactivity bug 已修（2026-06-07）**：`use-post-game-review.ts` 的 `_completedGame` 由非 reactive `let`
-  改為 `shallowRef`。原 bug＝`totalPositions`/`canGoNext`/`biggestSwingCursor` 等 computed 依賴它但無 reactive dep，
-  read 為 0 後永久 cache 0，restore→COMPLETE 路徑 nav 卡死。+2 regression test（reactivity.test.ts）。629 passed、型別錯仍 20。
+## 🚧 待辦 / 開放項
 
----
-
-## 🚧 其他待辦 / 風險
-
-- **✅ UI drift 修正已套（2026-06-07，Eason 看 mockup 拍板 C）**：
-  H-1 加 `surface.dungeon #0b211b` + `dungeon-2 #0e2a22`（暖 jade，取代冷近黑 `#070909`）；
-  DungeonMap/Puzzle bg 改用 token。H-2 鎖定節點字 `text-white/25~30` → `text-ink-on-deep-dim`（過 AA）。
-  M-1 加 `success/danger.on-deep` token，History 勝負改用之。M-2 App/Review/NotFound `min-h-screen`→`min-h-dvh`。
-  L-1（試煉亮金 raw hex 收 token）刻意未做（視覺無傷、勿動沒壞的）。627 passed、型別錯仍 20、Playwright 已驗兩屏。
-- **稽核原始 drift 報告**：`production/qa/ui-drift-audit-2026-06-07.md`。**結論：整體相當一致，無「醜到要重設計」的屏。**
-  零 emoji、零象棋用語、棋子用詞全對、金只當 reward。真正 drift 集中在：
-  **H-1（需 Eason 拍板）** 試煉道場是刻意近黑世界 `#070909` vs SoT deep-jade `#103029`——全站唯一跨屏色系分歧，
-  決定暖化(A) 或收成具名 `surface-dungeon` token(B)；**H-2** 試煉鎖定節點標籤對比 <AA（a11y）；
-  **M-1** History 勝負用 off-palette raw hex（token 缺口，需 on-deep success/danger token）；
-  **M-2** App/Review/NotFound 用 `min-h-screen` 而試煉用 `min-h-dvh`（內部不一致，建議一律 dvh）。
-  其餘 L 級建議不動。**等 Eason 看報告決定修哪些（勿動沒壞的）。** History/Profile/Review 需登入/完賽資料，
-  以程式碼層判讀（巡屏只到 Home/Learn/ConceptMap/DungeonMap/DungeonPuzzle）。
-- **game-replay (#S10)**：**QA 已 APPROVED**（`qa/qa-signoff-sprint10-2026-06-02.md`，含 S10-04 rating + Playwright
-  browser 驗證）。S10-05 動畫 polish 正式 deferred。剩 non-blocking：iPhone 實機（與 S8-06 一起）。
-  CSP font-src cosmetic ✅ 已修（index.html CSP 已含 `font-src 'self' data:`）。
-  2026-06-07 複驗：完整 replay 測試面 48 passed，無退化。（先前「待 QA」為過期註記，已更正。）
-- **課程內容撰寫 (lesson-system S05)**：框架已好，補課文 ongoing。
-- **iOS Magic Link 實機補測 (game-history S8-06)**：需真機驗登入。
-- **epics/index.md 過期**：game-replay 已更正為 Shipped；試煉/學習迴圈仍待補（純文件）。
-- **✅ vue-tsc 既有債 20 個已清（2026-06-07）**：全在測試檔（src/build 本就零錯）。8 unused import、11 mock 型別對齊
-  （Supabase subscription cast `as unknown as`、AuthOtpResponse 補 data、fakeTimers 包 block、firstResolve 還原型別）、
-  1 真欄位漏（history-view factory 補必填 `pgn`）。vue-tsc 0 errors、629 passed。
-- **Phase C+ / D**：捉雙/牽制賽後偵測（需精準度實測）；Claude API 動態講解（選配，最後）。
-- **🆕 訪客模式（local 完局紀錄）— Eason 指定待辦（2026-06-07）**：目前課程/試煉/概念進度已存 localStorage 且
-  `reconcileOnLogin` 已合併上雲（lesson/dungeon），但**完局紀錄只存 Supabase、訪客對局不保存**。要做：
-  ①新增本地完局紀錄 store（仿 lesson/dungeon 的 localStorage mirror）+ 解除 history/profile/review 對訪客的
-  auth gate（讀本地）；②登入時把本地對局 reconcile 上雲（擴充 reconcileOnLogin）；③文案：登入定位改「雲端備份・
-  跨裝置同步」、標註「訪客資料存此裝置」。框架現成（mirror + union reconcile）。有份量、非小修。
-- **✅ 全站 icon 優化 + 品牌 logo（2026-06-08 完成，待 commit）**：導覽 House/BookOpen/Target/Swords、app-nav 內聯
-  SVG→Lucide 單一字族、新 GAMBIT 兵冠向量 logo + 向量 favicon + PWA PNG 圖標、NotFound House、stroke 收斂、刪 12 個
-  無用 tiles。詳見上方 2026-06-08 細節。剩 non-blocking：iPhone 實機看 apple-touch / PWA 圖標。
-
-## 💡 backlog（未排程）
-- 品牌 logo / 視覺識別：用 `ui-ux-pro-max` logo 模組 + SoT `design/gambit-design-system/`。
-  現字標＝Cinzel「GAMBIT」+ 金底國王剪影（app-nav.vue）。
-
----
+- **#3 過場效能**：上面那批是推測性修法，**待 Eason 下次實機確認**點 tab 換頁/膠囊動畫是否變順。
+- **訪客模式（local 完局紀錄）— Eason 指定，有份量**：課程/試煉/概念進度已存 localStorage 且
+  `reconcileOnLogin` 合併上雲，但**完局紀錄只存 Supabase、訪客對局不保存**。要做：①本地完局紀錄 store
+  （仿 lesson/dungeon mirror）+ 解除 history/profile/review 對訪客的 auth gate；②登入時 reconcile 上雲；
+  ③文案：登入定位改「雲端備份・跨裝置同步」、標「訪客資料存此裝置」。框架現成（mirror + union reconcile）。
+- **iOS 實機補測**：Magic Link 登入流程（S8-06）本輪未測；game-replay iPhone 實機；apple-touch / PWA 圖標外觀。
+- **課程內容撰寫 (S05)**：框架已好，補課文 ongoing。
+- **dead-file 稽核（Eason 喊暫緩，未動）**：src ~11 orphan（ui/checkbox·label·progress·tooltip、
+  composables/use-stockfish）、模板殘留 `docs/engine-reference/`、`CCGS Skill Testing Framework/`、
+  引擎 specialist agents、`public/board/wood12_bg.jpg` 皆可清。
+- **Phase C+ / D（未排程）**：捉雙/牽制賽後偵測（需精準度實測）；Claude API 動態講解（選配，最後）。
+- **文件**：`epics/index.md` 試煉/學習迴圈狀態待補（純文件）。UI drift 報告
+  `production/qa/ui-drift-audit-2026-06-07.md`：整體一致，H/M 級已套、L 級刻意不動。
 
 ## 🔑 鐵則 / 技術參考
 
-- **Push guardrail**：`git push origin main`，**絕不 bare `git push`**（origin=你的 fork，upstream=模板）。
-  push 前先列 commit message 等你確認。
+- **Push guardrail**：`git push origin main`，**絕不 bare `git push`**（origin=你的 fork、upstream=模板）。
+  push 前先列 commit message 等 Eason 確認。
+- **部署 base path**：JS/inline-style 的資產路徑（`url()`、`<img src>`、`mask-image`）**必加
+  `import.meta.env.BASE_URL`**，否則部署子路徑下 404；只有 `.css` 的 `url()` 會被 Vite 自動補。詳見 CLAUDE.md。
 - **設計 SoT**：`design/gambit-design-system/`（deep-jade #103029 錨、品牌金 #F8B500 只 focus/reward、
   暖 cream 內容、BIZ UDPMincho 標題 / Sarasa 內文 / LXGW 課文 / Cubic 數字）。Lucide icon、無 emoji、
   touch ≥44px、平靜語氣、**無 streak/timer/leaderboard**。
 - **西洋棋用語**：后/城堡/騎士/主教/國王/兵；**禁象棋 車/馬/象**。
-- **內容授權**：lichess 題庫位置/解法＝CC0 可商用；lila/chessops/Learn 課文＝禁抄（copyleft）；
-  教學文一律繁中 clean-room 自寫；棋子 Gioco Wood（CC BY-NC-SA，已標）。
+- **內容授權**：lichess 題庫位置/解法＝CC0 可商用；lila/chessops/Learn 課文＝禁抄（copyleft），教學文一律
+  繁中 clean-room 自寫；棋子 Gioco Wood（CC BY-NC-SA，已標）。
 - **Supabase migration**：走 Dashboard SQL Editor 手動套（無 CLI link）；見 `supabase/README.md`。
-- **同步鏡像**：dungeon/concept 進度鏡像 `lesson-progress` + `data-sync`（monotonic、union reconcile）。
-- **解法驗證**：chess.js（`.move()` 非法步 throw；`isCheckmate()`）。棋盤 `components/chess-board.vue`。
-- **截圖落點**（Playwright MCP）：`D:\Personal` 根目錄（非 repo）；測完自清。
+- **解法驗證**：chess.js（`.move()` 非法步 throw；`isCheckmate()`）。棋盤 `components/chess-board.vue`、
+  對局狀態機 `modules/game-lifecycle/use-game-lifecycle.ts`（chess.js 為唯一權威狀態）。
+- **截圖/暫存檔**：寫到子目錄、測完自清，不留在專案根目錄。

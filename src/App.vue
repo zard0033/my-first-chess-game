@@ -16,6 +16,19 @@ const route = useRoute()
 // 沉浸式全屏頁（登入）不套 app chrome：無頂部品牌列、無底部 tab。
 const fullBleed = computed(() => route.meta.fullBleed === true)
 
+// 頁面底色套在 <main> 上：深色頁（試煉/對局）的底部 nav 留白區若無底色會露出 body 的 cream
+// （試煉底部未填色 bug）。套在 main 讓 padding 區與內容同色。
+const pageBg = computed(() => {
+  switch (route.name) {
+    case 'dungeon':
+      return 'bg-surface-dungeon'
+    case 'play':
+      return 'bg-surface-deep'
+    default:
+      return 'bg-surface-base'
+  }
+})
+
 // Flush offline queue + reconcile lesson progress when player logs in (SUPA-AC-08).
 watch(() => authStore.userId, (userId) => {
   if (userId) {
@@ -45,7 +58,7 @@ onMounted(() => {
 <template>
   <div class="min-h-dvh flex flex-col">
     <AppNav v-if="!fullBleed" />
-    <main class="flex-1" :class="fullBleed ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0'">
+    <main class="flex-1" :class="[fullBleed ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0', pageBg]">
       <RouterView />
     </main>
   </div>

@@ -12,9 +12,10 @@ import ConceptMapView from '@/views/ConceptMapView.vue'
 import { puzzles } from '@/data/puzzles'
 import { conceptToMotifs } from '@/data/concepts'
 
-// S14-06 — Concept Map states (GDD §3.5/§4.2, AC-8). Seeds localStorage BEFORE mount so the
-// progress stores hydrate deterministically, then asserts the lit/dormant split and the
-// lesson-only invariant (skewer never renders as「未達成」).
+// Concept Map — additive redesign (quick-spec concept-tab-tactic-entry). The page is BOTH a calm
+// reflection (已學/已練, lesson-only never「未達成」) AND a by-tactic learning entry: every tile is
+// tappable and side-doors into its lesson (`?from=concept`). Seeds localStorage BEFORE mount so the
+// progress stores hydrate deterministically.
 
 function makeRouter() {
   return createRouter({
@@ -29,8 +30,11 @@ function makeRouter() {
   })
 }
 
-function seed(opts: { lessons?: string[]; solved?: string[] } = {}) {
-  localStorage.setItem('pgr:lessons:progress', JSON.stringify({ completed: opts.lessons ?? [] }))
+function seed(opts: { lessons?: string[]; sideLearned?: string[]; solved?: string[] } = {}) {
+  localStorage.setItem(
+    'pgr:lessons:progress',
+    JSON.stringify({ completed: opts.lessons ?? [], sideLearned: opts.sideLearned ?? [] }),
+  )
   localStorage.setItem('pgr:dungeon:progress', JSON.stringify({ solved: opts.solved ?? [], hinted: [] }))
 }
 
@@ -40,8 +44,11 @@ async function mountAt() {
   await router.isReady()
   const wrapper = mount(ConceptMapView, { global: { plugins: [router] } })
   await flushPromises()
-  return wrapper
+  return { wrapper, router }
 }
+
+const tileWithText = (w: ReturnType<typeof mount>, testid: string, text: string) =>
+  w.findAll(`[data-testid="${testid}"]`).find((t) => t.text().includes(text))!
 
 const firstPuzzleOfConcept = (concept: 'fork' | 'material') =>
   puzzles.find((p) => conceptToMotifs(concept).includes(p.motif))!
@@ -52,53 +59,77 @@ beforeEach(() => {
 })
 
 describe('ConceptMapView', () => {
-  it('test_conceptMap_nothingDone_allDormantAndShowsEmptyHint', async () => {
+  it('test_conceptMap_nothingDone_allTilesDormantTappableNeverUnmet', async () => {
+    // Arrange + Act
     seed()
-    const w = await mountAt()
+    const { wrapper: w } = await mountAt()
+    // Assert: first-run = no familiar tiles; all 8 sit quietly in the dormant zone, still tappable.
     expect(w.findAll('[data-testid="concept-tile-lit"]')).toHaveLength(0)
-    // All 8 concepts sit quietly in the dormant zone, none as「未達成」.
-    expect(w.findAll('[data-testid="concept-tile-dormant"]').length).toBeGreaterThan(0)
-    expect(w.text()).toContain('完成第一課')
+    expect(w.findAll('[data-testid="concept-tile-dormant"]').length).toBe(8)
     expect(w.text()).not.toContain('未達成')
+    // No practice entry anywhere on this page (removed by design).
+    expect(w.find('[data-testid="concept-practise-cta"]').exists()).toBe(false)
   })
 
-  it('test_conceptMap_learnedConceptWithPuzzles_litWithCourseDotAndPractiseCta', async () => {
-    // fork lesson completed, no fork puzzles solved → 課程 lit, 試煉 not, CTA offered.
+  it('test_conceptMap_learnedConcept_showsLearnedChipOnly', async () => {
+    // Arrange: fork lesson completed, no fork puzzles solved.
     seed({ lessons: ['fork'] })
-    const w = await mountAt()
-    const lit = w.findAll('[data-testid="concept-tile-lit"]')
-    expect(lit.length).toBeGreaterThan(0)
-    const forkTile = lit.find((t) => t.text().includes('捉雙'))!
+    // Act
+    const { wrapper: w } = await mountAt()
+    const forkTile = tileWithText(w, 'concept-tile-lit', '捉雙')
+    // Assert: 已學 chip present, 已練 absent, no practice CTA.
     expect(forkTile).toBeTruthy()
     expect(forkTile.find('.state-learned').exists()).toBe(true)
     expect(forkTile.find('.state-practiced').exists()).toBe(false)
-    expect(forkTile.find('[data-testid="concept-practise-cta"]').exists()).toBe(true)
+    expect(forkTile.find('[data-testid="concept-practise-cta"]').exists()).toBe(false)
   })
 
-  it('test_conceptMap_practicedConcept_showsTrainDot', async () => {
-    // material lesson done + a capture puzzle solved → both 課程 and 試煉 lit, no CTA.
+  it('test_conceptMap_sideLearnedConcept_litViaSideDoorSignal', async () => {
+    // Arrange: pin learned ONLY through the Concept side-door (sideLearned, not linear completion).
+    seed({ sideLearned: ['pin'] })
+    // Act
+    const { wrapper: w } = await mountAt()
+    const pinTile = tileWithText(w, 'concept-tile-lit', '牽制')
+    // Assert: the side-door signal lights 已學.
+    expect(pinTile).toBeTruthy()
+    expect(pinTile.find('.state-learned').exists()).toBe(true)
+  })
+
+  it('test_conceptMap_practicedConcept_showsBothChips', async () => {
+    // Arrange: material lesson done + a capture puzzle solved.
     const cap = firstPuzzleOfConcept('material')
     seed({ lessons: ['king-and-value'], solved: [cap.id] })
-    const w = await mountAt()
-    const materialTile = w
-      .findAll('[data-testid="concept-tile-lit"]')
-      .find((t) => t.text().includes('子力'))!
+    // Act
+    const { wrapper: w } = await mountAt()
+    const materialTile = tileWithText(w, 'concept-tile-lit', '子力')
+    // Assert: both 已學 and 已練 chips.
     expect(materialTile).toBeTruthy()
     expect(materialTile.find('.state-learned').exists()).toBe(true)
     expect(materialTile.find('.state-practiced').exists()).toBe(true)
-    expect(materialTile.find('[data-testid="concept-practise-cta"]').exists()).toBe(false)
   })
 
-  it('test_conceptMap_lessonOnlyConcept_neverShowsTrainDotOrUnmetState', async () => {
-    // skewer is lesson-only (no drill puzzles). Completing its lesson lights 課程 ONLY.
+  it('test_conceptMap_lessonOnlyConcept_neverShowsPractisedOrUnmet', async () => {
+    // Arrange: skewer is lesson-only (no drill puzzles). Completing its lesson lights 已學 ONLY.
     seed({ lessons: ['skewer'] })
-    const w = await mountAt()
-    const skewerTile = w
-      .findAll('[data-testid="concept-tile-lit"]')
-      .find((t) => t.text().includes('串擊'))!
+    // Act
+    const { wrapper: w } = await mountAt()
+    const skewerTile = tileWithText(w, 'concept-tile-lit', '串擊')
+    // Assert
     expect(skewerTile).toBeTruthy()
     expect(skewerTile.find('.state-learned').exists()).toBe(true)
     expect(skewerTile.find('.state-practiced').exists()).toBe(false)
-    expect(skewerTile.find('[data-testid="concept-practise-cta"]').exists()).toBe(false)
+    expect(w.text()).not.toContain('未達成')
+  })
+
+  it('test_conceptMap_tapTile_sideDoorsIntoLessonWithFromConcept', async () => {
+    // Arrange: nothing done — pick a dormant tile (捉雙 / fork → lesson id `fork`).
+    seed()
+    const { wrapper: w, router } = await mountAt()
+    // Act: tap the tile.
+    await tileWithText(w, 'concept-tile-dormant', '捉雙').trigger('click')
+    await flushPromises()
+    // Assert: navigates to the tactic's lesson via the Concept side-door.
+    expect(router.currentRoute.value.path).toBe('/learn/fork')
+    expect(router.currentRoute.value.query.from).toBe('concept')
   })
 })

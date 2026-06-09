@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check, Lock, ChevronRight } from 'lucide-vue-next'
 import { lessons } from '@/data/lessons'
-import { LESSON_TIER_LABELS, COACH } from '@/types/lesson'
+import { LESSON_TIER_LABELS } from '@/types/lesson'
 import type { Lesson, LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { DarkPanel, ChapterBadge } from '@/components/ui/gambit'
@@ -80,12 +80,9 @@ function openChapter(c: Chapter): void {
   <div class="mx-auto max-w-md pb-8">
     <!-- 總進度標頭 -->
     <header class="border-b border-line-subtle px-[18px] pb-3 pt-5">
-      <p class="mb-0.5 font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-ink-faint">
-        教練 · {{ COACH.name }}
-      </p>
-      <LearnTabs v-if="SHOW_CONCEPT_MAP" class="mb-3.5 mt-2" />
-      <div class="flex items-baseline justify-between gap-3">
-        <h1 class="font-display text-2xl font-bold text-ink" tabindex="-1">棋藝課程</h1>
+      <LearnTabs v-if="SHOW_CONCEPT_MAP" class="mb-3.5" />
+      <h1 class="sr-only" tabindex="-1">棋藝課程</h1>
+      <div class="flex justify-end">
         <span class="shrink-0 font-num text-sm tabular-nums text-ink-muted">
           {{ progress.completedCount }} / {{ progress.totalCount }} 課
         </span>

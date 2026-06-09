@@ -202,6 +202,35 @@ export const useDataSyncStore = defineStore('dataSync', () => {
   }
 
   /**
+   * Fetch the user's Concept side-door learns. Returns [] when not logged in or on error
+   * (degrades to the local cache; a read failure must never surface). Kept separate from
+   * lesson_progress so side-door learns never leak into linear unlock. ADR-0011.
+   */
+  async function loadSideLearned(): Promise<string[]> {
+    const authStore = useAuthStore()
+    if (!authStore.userId) return []
+    const { data, error } = await supabase.from('lesson_side_learned').select('lesson_id')
+    if (error) return []
+    return (data ?? []).map((r) => r.lesson_id as string)
+  }
+
+  /**
+   * Idempotently persist Concept side-door learns for the logged-in user. No-op (returns false)
+   * when not logged in — the caller keeps them in localStorage and re-flushes on the next login.
+   * Learning is monotonic, so duplicates are ignored by the PK.
+   */
+  async function upsertSideLearned(lessonIds: string[]): Promise<boolean> {
+    const authStore = useAuthStore()
+    const userId = authStore.userId
+    if (!userId || lessonIds.length === 0) return false
+    const rows = lessonIds.map((lesson_id) => ({ user_id: userId, lesson_id }))
+    const { error } = await supabase
+      .from('lesson_side_learned')
+      .upsert(rows, { onConflict: 'user_id,lesson_id', ignoreDuplicates: true })
+    return !error
+  }
+
+  /**
    * Fetch the user's solved puzzles (id + hint_used). Returns [] when not logged in or
    * on error (dungeon progress degrades to the local cache; a read failure must never
    * surface). All dungeon_progress supabase.from() calls live here per ADR-0011.
@@ -244,6 +273,8 @@ export const useDataSyncStore = defineStore('dataSync', () => {
     loadGameHistory,
     loadLessonProgress,
     upsertLessonProgress,
+    loadSideLearned,
+    upsertSideLearned,
     loadDungeonProgress,
     upsertDungeonProgress,
   }

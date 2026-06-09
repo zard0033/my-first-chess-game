@@ -1,22 +1,22 @@
 <script setup lang="ts">
 /**
- * Concept Map (Learning Loop #20, Phase B — GDD §3.5). The loop's calm navigation hub: it shows
- * which concepts you've met (課程) and drilled (試煉), replacing the score-chasing loops rivals use.
+ * Concept Map (Learning Loop #20). Two jobs, additive (GDD §3.5 + quick-spec concept-tab-tactic-entry):
+ *  1. A calm REFLECTION of which tactics you've met (已學) and drilled (已練) — no score, no ranking,
+ *     un-started tactics kept visually quiet, never「未達成」.
+ *  2. A by-tactic LEARNING ENTRY: tapping any tactic opens its lesson via the Concept side-door
+ *     (`?from=concept`), so a non-beginner can jump straight to a tactic even if it's linearly locked.
+ *     The side-door lights 已學 through a separate signal and never advances linear progress (D1 pattern).
  *
- * Calm rules (GDD §3.5, enforced by gambit-compliance.test): two boolean states only (課程 dot /
- * 試煉 dot); none of the competitive-progress mechanics and no「X/8」framing; un-started concepts
- * are kept visually quiet under a「之後會遇到」zone — never rendered as「未達成」/locked; lesson-only
- * concepts (no drill puzzles) surface as 課程-only and never half-lit. The Map is also a navigation
- * hub — a lit tile links to its teaching lesson, and its practice CTA deep-links into practice mode.
+ * No practice (試煉) entry lives here on purpose: one tactic maps to many puzzles, so there is no single
+ * right target. Practice stays in the lesson-completion Bridge-1 invitation and the Dungeon.
  */
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight } from 'lucide-vue-next'
 import LearnTabs from '@/components/learn-tabs.vue'
-import { concepts, getConceptById, conceptToMotifs } from '@/data/concepts'
+import { concepts, getConceptById } from '@/data/concepts'
 import type { ChessConcept } from '@/types/concept'
 import { learned, practiced } from '@/modules/learning-loop/mastery'
-import { practiceTarget } from '@/modules/learning-loop/recommend'
 import { puzzles } from '@/data/puzzles'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
@@ -33,13 +33,13 @@ const CONCEPT_PIECE: Record<ChessConcept, string> = {
   skewer: 'bR', discovered: 'bB', defense: 'bP', center: 'bN',
 }
 const CONCEPT_BLURB: Record<ChessConcept, string> = {
-  material: '得失與無保護的子',
-  fork: '一子攻兩子',
-  pin: '釘住不能動的子',
-  mate: '基本殺王與底線',
-  skewer: '逼開前子吃後子',
-  discovered: '移子讓後方發動',
-  defense: '讓子彼此撐腰',
+  material: '沒被保護的子',
+  fork: '一次攻兩個子',
+  pin: '釘住對方的子',
+  mate: '把國王將死',
+  skewer: '前子讓開吃後子',
+  discovered: '移開子露出攻擊',
+  defense: '讓子互相保護',
   center: '佔住棋盤中央',
 }
 
@@ -56,17 +56,14 @@ interface ConceptVM {
   lit: boolean
   isLearned: boolean
   isPracticed: boolean
-  hasPuzzles: boolean
   lessonId: string | undefined
-  practiceTargetId: string | null
 }
 
 const allVM = computed<ConceptVM[]>(() =>
   concepts.map((c) => {
-    const isLearned = learned(c.id, (id) => lessonProgress.isCompleted(id))
+    // 已學 reads the union of linear completion AND Concept-tab side-door learns (store.isLearned).
+    const isLearned = learned(c.id, (id) => lessonProgress.isLearned(id))
     const isPracticed = practiced(c.id, puzzles, isSolved)
-    const hasPuzzles = conceptToMotifs(c.id).length > 0
-    const target = hasPuzzles ? practiceTarget(c.id, puzzles, isSolved) : null
     return {
       id: c.id,
       label: c.label,
@@ -75,9 +72,7 @@ const allVM = computed<ConceptVM[]>(() =>
       lit: isLearned || isPracticed,
       isLearned,
       isPracticed,
-      hasPuzzles,
       lessonId: getConceptById(c.id)?.teaches[0],
-      practiceTargetId: target?.id ?? null,
     }
   }),
 )
@@ -85,12 +80,9 @@ const allVM = computed<ConceptVM[]>(() =>
 const litConcepts = computed(() => allVM.value.filter((v) => v.lit))
 const dormantConcepts = computed(() => allVM.value.filter((v) => !v.lit))
 
-function reviewLesson(v: ConceptVM): void {
-  if (v.lessonId) router.push(`/learn/${v.lessonId}`)
-}
-
-function practise(v: ConceptVM): void {
-  if (v.practiceTargetId) router.push(`/dungeon/${v.practiceTargetId}?from=lesson`)
+// Tap-to-learn: open the tactic's lesson via the Concept side-door (bypasses the linear lock).
+function learnConcept(v: ConceptVM): void {
+  if (v.lessonId) router.push(`/learn/${v.lessonId}?from=concept`)
 }
 
 const base = import.meta.env.BASE_URL
@@ -103,41 +95,35 @@ const maskStyle = (piece: string) => ({
 <template>
   <div class="mx-auto max-w-md pb-8">
     <div class="px-[18px] pt-5">
-      <p class="mb-2.5 font-sans text-[11px] font-medium uppercase tracking-[0.12em] text-ink-faint">學習迴圈</p>
       <LearnTabs />
     </div>
 
     <header class="px-[18px] pt-3.5">
-      <h1 class="font-display text-2xl font-bold text-ink" tabindex="-1">概念地圖</h1>
-      <p class="mt-1.5 font-lesson text-sm leading-relaxed text-ink-muted">
-        這些是你已經熟悉的棋藝概念。沒有分數、沒有排名——只是你和這些圖案越來越熟的軌跡。
+      <h1 class="sr-only" tabindex="-1">概念地圖</h1>
+      <p class="font-lesson text-sm leading-relaxed text-ink-muted">
+        你熟悉的棋藝概念都在這裡。想學哪個戰術，點下去就開始。
       </p>
     </header>
 
-    <!-- Lit concepts -->
+    <!-- Familiar tactics — learned and/or practised -->
     <template v-if="litConcepts.length">
-      <p class="px-[18px] pb-2 pt-4 font-sans text-[11px] font-bold tracking-[0.1em] text-primary">你已點亮的概念</p>
+      <p class="px-[18px] pb-2 pt-4 font-sans text-[11px] font-bold tracking-[0.1em] text-primary">你熟悉的概念</p>
       <div class="grid grid-cols-2 gap-2.5 px-[14px]">
-        <div
+        <button
           v-for="v in litConcepts"
           :key="v.id"
+          type="button"
           data-testid="concept-tile-lit"
-          class="relative flex min-h-[118px] flex-col gap-2.5 overflow-hidden rounded-2xl border border-line-subtle bg-surface-card p-3 shadow-card"
+          class="relative flex min-h-[112px] flex-col gap-2.5 overflow-hidden rounded-2xl border border-line-subtle bg-surface-card p-3 text-left shadow-card transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          :aria-label="`學習「${v.label}」`"
+          @click="learnConcept(v)"
         >
-          <!-- Stretched primary link: review the concept's lesson. Sits behind the content so the
-               whole tile is one tap target without nesting an interactive inside an interactive. -->
-          <button
-            type="button"
-            class="absolute inset-0 z-0 rounded-2xl transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-            :aria-label="`複習「${v.label}」`"
-            @click="reviewLesson(v)"
-          />
           <span
-            class="pointer-events-none absolute -right-3 -top-2.5 z-0 block h-16 w-16 bg-primary opacity-[0.09]"
+            class="pointer-events-none absolute -right-3 -top-2.5 block h-16 w-16 bg-primary opacity-[0.09]"
             aria-hidden="true"
             :style="{ ...maskStyle(v.piece), WebkitMaskRepeat:'no-repeat', maskRepeat:'no-repeat', WebkitMaskPosition:'center', maskPosition:'center', WebkitMaskSize:'contain', maskSize:'contain' }"
           />
-          <div class="pointer-events-none relative z-[1] flex items-center gap-2.5">
+          <div class="relative z-[1] flex items-center gap-2.5">
             <span class="coin">
               <span class="block h-5 w-5 bg-primary" aria-hidden="true"
                 :style="{ ...maskStyle(v.piece), WebkitMaskRepeat:'no-repeat', maskRepeat:'no-repeat', WebkitMaskPosition:'center', maskPosition:'center', WebkitMaskSize:'contain', maskSize:'contain' }" />
@@ -148,32 +134,30 @@ const maskStyle = (piece: string) => ({
             </div>
           </div>
 
-          <div class="relative z-[1] mt-auto flex flex-col gap-1.5">
-            <span v-if="v.isLearned" class="state state-learned pointer-events-none"><span class="dot" />課程</span>
-            <span v-if="v.isPracticed" class="state state-practiced pointer-events-none"><span class="dot" />試煉</span>
-            <button
-              v-if="v.isLearned && !v.isPracticed && v.practiceTargetId"
-              type="button"
-              data-testid="concept-practise-cta"
-              class="relative z-[1] inline-flex min-h-[44px] items-center gap-0.5 self-start rounded font-sans text-xs font-bold text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-              @click="practise(v)"
-            >去試煉<ChevronRight :size="13" :stroke-width="2" /></button>
+          <!-- Achievement chips: shown ONLY when earned (no empty placeholder dots → no checklist read) -->
+          <div class="relative z-[1] mt-auto flex flex-row flex-wrap items-center gap-x-3 gap-y-1">
+            <span v-if="v.isLearned" class="state state-learned"><span class="dot" />已學</span>
+            <span v-if="v.isPracticed" class="state state-practiced"><span class="dot" />已練</span>
           </div>
-        </div>
+        </button>
       </div>
     </template>
 
-    <p v-else class="px-[18px] pt-5 font-lesson text-sm text-ink-muted">完成第一課，這裡就會開始點亮。</p>
-
-    <!-- Dormant concepts — quiet, informational, never「未達成」 -->
+    <!-- Other tactics — quiet, never「未達成」, but still tappable to learn early (side-door) -->
     <template v-if="dormantConcepts.length">
-      <p class="px-[18px] pb-2 pt-5 font-sans text-[11px] font-bold tracking-[0.1em] text-ink-faint">之後的課程會帶你認識</p>
-      <div class="grid grid-cols-2 gap-2.5 px-[14px]">
-        <div
+      <p
+        v-if="litConcepts.length"
+        class="px-[18px] pb-2 pt-5 font-sans text-[11px] font-bold tracking-[0.1em] text-ink-faint"
+      >其他戰術</p>
+      <div class="grid grid-cols-2 gap-2.5 px-[14px]" :class="litConcepts.length ? '' : 'pt-4'">
+        <button
           v-for="v in dormantConcepts"
           :key="v.id"
+          type="button"
           data-testid="concept-tile-dormant"
-          class="flex min-h-[110px] flex-col gap-2.5 rounded-2xl border border-line-subtle bg-surface-card p-3"
+          class="flex min-h-[104px] flex-col gap-2.5 rounded-2xl border border-line-subtle bg-surface-card p-3 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          :aria-label="`學習「${v.label}」`"
+          @click="learnConcept(v)"
         >
           <div class="flex items-center gap-2.5">
             <span class="coin coin-dim">
@@ -185,8 +169,11 @@ const maskStyle = (piece: string) => ({
               <div class="mt-0.5 font-sans text-[10px] text-ink-faint">{{ v.blurb }}</div>
             </div>
           </div>
-          <p class="mt-auto font-sans text-[10.5px] text-ink-faint">學了這一課就會點亮</p>
-        </div>
+          <!-- Quiet directional cue: signals "tap to learn" without shouting -->
+          <span class="mt-auto inline-flex items-center gap-0.5 self-start font-sans text-[11px] text-ink-faint">
+            去學<ChevronRight :size="12" :stroke-width="2" />
+          </span>
+        </button>
       </div>
     </template>
   </div>

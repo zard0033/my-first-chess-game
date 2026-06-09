@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { House, BookOpen, Target, Swords, CircleUserRound } from 'lucide-vue-next'
 import { useRoute } from 'vue-router'
 import brandMark from '@/assets/brand-mark.svg'
@@ -10,6 +11,10 @@ const route = useRoute()
 // Mobile floating pill shows the label only on the active tab (icon-only otherwise), so we need the
 // active state in script. Matches RouterLink semantics: exact for 首頁 (/), prefix for the rest.
 const isActive = (to: string): boolean => (to === '/' ? route.path === '/' : route.path.startsWith(to))
+
+// Index of the active tab → drives the sliding jade indicator's translateX. -1 = no tab active
+// (e.g. /profile, /review), indicator hidden.
+const activeIndex = computed(() => NAV_ITEMS.findIndex((i) => isActive(i.to)))
 
 // Primary destinations — 首頁 + the three core features (學習 / 試煉 / 對局). Account/profile lives in
 // the top-right header instead of a tab. Shared by the desktop top bar and the mobile bottom tab bar.
@@ -76,29 +81,39 @@ const NAV_ITEMS = [
     </div>
   </header>
 
-  <!-- Mobile bottom nav — floating jade pill. Icon-only; the active tab expands to show its label.
-       Wrapper is pointer-events-none so taps beside the pill still reach content. -->
+  <!-- Mobile bottom nav — floating jade pill. Equal-width tabs with a single jade indicator that
+       slides (translateX) between them; the active tab shows its label. Solid jade (no backdrop-blur:
+       on iOS the blur repaints every frame and stutters). pointer-events-none wrapper so taps beside
+       the pill still reach content. -->
   <nav
     class="md:hidden fixed inset-x-0 bottom-0 z-30 px-4 pb-[calc(0.875rem+env(safe-area-inset-bottom))] pointer-events-none"
     aria-label="主要導覽"
   >
-    <!-- Solid jade (no backdrop-blur): on iOS the blur repaints every frame and makes the
-         tab-switch + page transition stutter. Solid keeps the dark-anchor look at no GPU cost. -->
     <div
-      class="pointer-events-auto flex items-center justify-around gap-1 rounded-full border border-white/[0.16] bg-[#142F28] px-2.5 py-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_30px_rgba(0,0,0,0.45)]"
+      class="pointer-events-auto rounded-full border border-white/[0.16] bg-[#142F28] p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_10px_30px_rgba(0,0,0,0.45)]"
     >
-      <RouterLink
-        v-for="item in NAV_ITEMS"
-        :key="item.to"
-        :to="item.to"
-        :aria-label="item.label"
-        :aria-current="isActive(item.to) ? 'page' : undefined"
-        class="flex h-11 items-center gap-1.5 rounded-full px-3.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-        :class="isActive(item.to) ? 'bg-primary text-white px-4' : 'text-ink-on-deep-dim'"
-      >
-        <component :is="item.icon" :size="23" :stroke-width="1.8" aria-hidden="true" />
-        <span v-if="isActive(item.to)" class="text-[13px] font-bold">{{ item.label }}</span>
-      </RouterLink>
+      <div class="relative flex">
+        <!-- Sliding jade indicator: one slot wide, translateX by activeIndex. -->
+        <div
+          class="pointer-events-none absolute inset-y-0 left-0 w-1/4 transition-transform duration-300 ease-out motion-reduce:transition-none"
+          :class="activeIndex < 0 ? 'opacity-0' : 'opacity-100'"
+          :style="{ transform: `translateX(${Math.max(activeIndex, 0) * 100}%)` }"
+        >
+          <div class="mx-1 h-full rounded-full bg-primary" />
+        </div>
+        <RouterLink
+          v-for="item in NAV_ITEMS"
+          :key="item.to"
+          :to="item.to"
+          :aria-label="item.label"
+          :aria-current="isActive(item.to) ? 'page' : undefined"
+          class="relative z-10 flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          :class="isActive(item.to) ? 'text-white' : 'text-ink-on-deep-dim'"
+        >
+          <component :is="item.icon" :size="23" :stroke-width="1.8" aria-hidden="true" />
+          <span v-if="isActive(item.to)" class="text-[13px] font-bold">{{ item.label }}</span>
+        </RouterLink>
+      </div>
     </div>
   </nav>
 </template>
