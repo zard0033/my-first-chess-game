@@ -1,4 +1,4 @@
-import{j as M,x as V,s as u,a as F,c as B,A as L,F as S}from"./index-DbmKyjjo.js";import{u as j}from"./use-reduced-motion-CZOVIqhi.js";import{l as N,H as P,i as n,f as e,k as m,a2 as r,X as c,A as i,F as b,Q as R,d as x,L as o,h as k,g as y,j as I,y as E}from"./chess-board-CKnImvKx.js";import{_ as H}from"./_plugin-vue_export-helper-DlAUqK2U.js";/**
+import{j as M,x as V,s as u,a as F,c as B,A as L,F as S}from"./index-BRKQshFn.js";import{u as j}from"./use-reduced-motion-CZOVIqhi.js";import{l as N,H as P,i as n,f as e,k as m,a2 as r,X as c,A as i,F as b,Q as R,d as x,L as o,h as k,g as y,j as I,y as E}from"./chess-board-CKnImvKx.js";import{_ as H}from"./_plugin-vue_export-helper-DlAUqK2U.js";/**
  * @license lucide-vue-next v1.0.0 - ISC
  *
  * This source code is licensed under the ISC license.
