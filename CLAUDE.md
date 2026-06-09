@@ -37,6 +37,13 @@ See `~/interviews/chess-training-companion-brief.md` for the full concept brief.
 > WebSocket，會在測試載入階段（import supabase 的 suite）直接拋錯使 CI 失敗，
 > 但本機 Node 22 看不出來。降版本前先改成裝 `ws` 並注入 transport。
 
+> **部署 base path 護欄**：站台部署在 GitHub Pages 子路徑 `/my-first-chess-game/`
+> （CI 以 `VITE_BASE_URL` 注入）。**寫在 JS / inline-style 的資產路徑**——
+> `:style` 的 `url(...)`、`<img :src>`、`mask-image`、`background-image`——
+> **必須前綴 `import.meta.env.BASE_URL`**，否則部署站 404。只有 `.css` 檔裡的
+> `url()` 會被 Vite 自動補 base；JS 字串不會。本機 dev（base=`/`）看不出來，
+> 只在部署站爆。曾誤判成「iOS Safari 渲染 bug」繞兩輪——先 curl 部署 URL 再下結論。
+
 ### Phase 2 Reserved (not yet integrated)
 
 - **PGN Viewer**: pgn-viewer (lichess open source) — for game replay UI
