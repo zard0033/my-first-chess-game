@@ -77,9 +77,9 @@ function openChapter(c: Chapter): void {
 </script>
 
 <template>
-  <div class="mx-auto max-w-md pb-8">
+  <div class="mx-auto max-w-md lg:max-w-2xl pb-8">
     <!-- 總進度標頭 -->
-    <header class="border-b border-line-subtle px-[18px] pb-3 pt-5">
+    <header class="border-b border-line px-[18px] pb-3 pt-5">
       <LearnTabs v-if="SHOW_CONCEPT_MAP" class="mb-3.5" />
       <h1 class="sr-only" tabindex="-1">棋藝課程</h1>
       <div class="flex justify-end">
@@ -105,7 +105,7 @@ function openChapter(c: Chapter): void {
           <DarkPanel no-pad>
             <div class="px-3.5 pb-3 pt-3.5">
               <div class="mb-2.5 flex items-center gap-2.5">
-                <ChapterBadge :piece="TIER_PIECE[c.tier]" :size="42" />
+                <ChapterBadge :piece="TIER_PIECE[c.tier]" :size="40" />
                 <div class="min-w-0 flex-1">
                   <p
                     class="mb-0.5 font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-gold"
@@ -170,7 +170,7 @@ function openChapter(c: Chapter): void {
               </span>
 
               <span
-                class="flex-1 truncate font-sans text-xs"
+                class="flex-1 line-clamp-2 font-sans text-xs"
                 :class="{
                   'font-bold text-ink': lessonState(l) === 'current',
                   'text-ink-faint line-through decoration-ink-faint/35': lessonState(l) === 'done',
@@ -180,11 +180,11 @@ function openChapter(c: Chapter): void {
 
               <span
                 v-if="lessonState(l) === 'current'"
-                class="shrink-0 rounded-full bg-[linear-gradient(180deg,#ffc94d,#f8b500)] px-2 py-0.5 font-sans text-[9px] font-bold text-gold-ink"
+                class="shrink-0 rounded-full bg-[linear-gradient(180deg,#ffc94d,#f8b500)] px-2.5 py-1 font-sans text-[11px] font-bold text-gold-ink"
               >繼續</span>
               <span
                 v-else-if="lessonState(l) === 'done'"
-                class="shrink-0 font-sans text-[9px] text-ink-faint"
+                class="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 font-sans text-[11px] font-bold text-primary"
               >完成</span>
             </button>
           </div>
@@ -221,12 +221,12 @@ function openChapter(c: Chapter): void {
             />
           </span>
           <div class="min-w-0 flex-1">
-            <p class="mb-0.5 font-sans text-[9px] text-ink-faint">第{{ TIER_NUM[c.tier] }}章</p>
+            <p class="mb-0.5 font-sans text-[11px] text-ink-faint">第{{ TIER_NUM[c.tier] }}章</p>
             <p
               class="font-display text-sm font-bold"
               :class="chapterStatus(c) === 'done' ? 'text-ink' : 'text-ink-muted'"
             >{{ LESSON_TIER_LABELS[c.tier] }}</p>
-            <p class="mt-0.5 font-sans text-[10px] text-ink-faint">
+            <p class="mt-0.5 font-sans text-[11px] text-ink-faint">
               <template v-if="chapterStatus(c) === 'done'">{{ c.done }}/{{ c.total }} · 已完成</template>
               <template v-else>{{ c.total }} 課</template>
             </p>

@@ -26,7 +26,7 @@ function go(to: string): void {
 </script>
 
 <template>
-  <div class="flex gap-1 rounded-full bg-[#ddd0b8] p-1">
+  <div class="flex gap-1 rounded-full bg-surface-mid p-1">
     <button
       v-for="t in tabs"
       :key="t.to"

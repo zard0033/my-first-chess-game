@@ -58,11 +58,15 @@
 - 共用元件動到：`section-label.vue` 加 `class` 透傳（桌機覆寫 `md:mt-0`，Phase 3/4 沿用）；`stat-card.vue` 加 Lock + locked 改 icon 頂對齊 + 文字置中、`label` 改 optional。
 - 注意：首頁「開始新對局」卡 `@click` 開全域 modal（Phase 1），未改回 router.push。
 
-## Phase 3 — 學習 LearnView + ConceptMapView + LessonView　⏳ TODO
+## Phase 3 — 學習 LearnView + ConceptMapView + LessonView　✅ DONE（未 commit）
 
-- **High**：LearnView 加 deep-jade 沉點；頁頭分隔 `border-line-subtle`→`border-line`；ConceptMapView 全 cream 加沉點；LessonView 完成卡漸層加深。
-- **Medium**：桌機響應（LearnView `lg:max-w-2xl`、ConceptMap `lg:grid-cols-4`）；卡片/tabs 套 `.glass-panel`；ChapterBadge 尺寸統一 40px；字級收斂。
-- **Low**：`.coin` 抽元件、課名 line-clamp、提示 alert 邊框、陰影柔化。LessonView 桌機響應已佳，僅微調。
+`/redesign` 對 375/1280 實審後施工。vue-tsc 0、645 passed、Playwright 雙寬三頁實測。
+
+- **ConceptMapView（重點）**：頂部 deep-jade 介紹 banner（複用 `DarkPanel`，方案 A，跨有/無熟悉概念狀態都成立）作沉點；概念卡（lit+dormant）套 `.glass-panel`（Eason 拍板，cream 上呈亮白玻璃感、邊界清晰、對比足夠）；桌機 `lg:grid-cols-4` + 容器 `lg:max-w-3xl`；intro 14→16px。
+- **LearnView**：頁頭分隔 `border-line-subtle`→`border-line`；桌機 `lg:max-w-2xl`；ChapterBadge 42→40；字級收斂（繼續/完成/章節標注 9–10px→11px）；課名 `truncate`→`line-clamp-2`。**不另加深色沉點**（已有 DarkPanel 章節卡，與 Phase 2 HomeView 降級決策一致）。
+- **LessonView 完成卡**：scrim `bg-black/60`→`rgba(16,48,41,0.72)` deep-jade 調；shadow 純黑→暖棕 `rgba(61,34,16,0.45)`；漸層 `#1E4D3E,#142E26`→`#163929,#0C2118` 加深。
+- **共用**：`learn-tabs.vue` 軌道硬編碼 `#ddd0b8`→`bg-surface-mid` token 化。
+- **刻意不做**：`.coin` 抽元件（純技術債、僅一處用）；Alert 邊框柔化（variants 已用 light 底 + 半透邊框 `/40`–`/60`，已合理）。
 
 ## Phase 4 — 試煉 DungeonMapView + DungeonPuzzleView　⏳ TODO
 

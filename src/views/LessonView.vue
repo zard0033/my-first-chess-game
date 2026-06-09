@@ -434,9 +434,9 @@ function prev(): void {
     <div
       v-if="completed"
       data-testid="lesson-completion-card"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-6"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(16,48,41,0.72)] px-6"
     >
-      <div class="flex w-full max-w-[340px] flex-col items-center gap-5 rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#1E4D3E,#142E26)] p-7 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+      <div class="flex w-full max-w-[340px] flex-col items-center gap-5 rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#163929,#0C2118)] p-7 shadow-[0_12px_40px_rgba(61,34,16,0.45)]">
         <div class="flex h-14 w-14 items-center justify-center rounded-full bg-success/25 ring-2 ring-success">
           <Check :size="28" :stroke-width="2.5" class="text-success" />
         </div>

@@ -1,7 +1,7 @@
 <!-- STATUS -->
 Epic: 跨頁 UI Redesign（2026-06-09）— 主計畫見 repo 內 `production/redesign-2026-06.md`（Phase 0–4，含進度）
-Feature: Phase 0+1（共用語言/對局頁）已 commit（6e35394）。Phase 2 首頁 HomeView = DONE 且驗證；**未 commit**。下一步 = Phase 3 學習
-Task: Phase 2 完成（桌機 hero|繼續學習 雙欄等高+總覽全寬 / 問候 16px / StatCard grid+lock / CTA 箭頭 18 / max-w-4xl）
+Feature: Phase 0+1+2 已 commit（→ ff4a675）。Phase 3 學習頁 = DONE 且驗證；**未 commit**。下一步 = Phase 4 試煉
+Task: Phase 3 完成（ConceptMap jade banner 沉點+概念卡 glass+桌機4欄 / LearnView 分隔線+lg:max-w-2xl+字級收斂 / LessonView 完成卡暖調 / learn-tabs token 化）
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。

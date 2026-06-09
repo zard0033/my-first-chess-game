@@ -14,6 +14,7 @@ import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronRight } from 'lucide-vue-next'
 import LearnTabs from '@/components/learn-tabs.vue'
+import { DarkPanel } from '@/components/ui/gambit'
 import { concepts, getConceptById } from '@/data/concepts'
 import type { ChessConcept } from '@/types/concept'
 import { learned, practiced } from '@/modules/learning-loop/mastery'
@@ -93,28 +94,31 @@ const maskStyle = (piece: string) => ({
 </script>
 
 <template>
-  <div class="mx-auto max-w-md pb-8">
+  <div class="mx-auto max-w-md lg:max-w-3xl pb-8">
     <div class="px-[18px] pt-5">
       <LearnTabs />
     </div>
 
-    <header class="px-[18px] pt-3.5">
+    <header class="px-[14px] pt-3.5">
       <h1 class="sr-only" tabindex="-1">概念地圖</h1>
-      <p class="font-lesson text-sm leading-relaxed text-ink-muted">
-        你熟悉的棋藝概念都在這裡。想學哪個戰術，點下去就開始。
-      </p>
+      <DarkPanel>
+        <p class="font-display text-[15px] font-bold leading-tight text-ink-on-deep">概念地圖</p>
+        <p class="mt-1.5 font-lesson text-base leading-relaxed text-ink-on-deep-dim">
+          你熟悉的棋藝概念都在這裡。想學哪個戰術，點下去就開始。
+        </p>
+      </DarkPanel>
     </header>
 
     <!-- Familiar tactics — learned and/or practised -->
     <template v-if="litConcepts.length">
       <p class="px-[18px] pb-2 pt-4 font-sans text-[11px] font-bold tracking-[0.1em] text-primary">你熟悉的概念</p>
-      <div class="grid grid-cols-2 gap-2.5 px-[14px]">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 px-[14px]">
         <button
           v-for="v in litConcepts"
           :key="v.id"
           type="button"
           data-testid="concept-tile-lit"
-          class="relative flex min-h-[112px] flex-col gap-2.5 overflow-hidden rounded-2xl border border-line-subtle bg-surface-card p-3 text-left shadow-card transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          class="glass-panel relative flex min-h-[112px] flex-col gap-2.5 overflow-hidden rounded-2xl p-3 text-left transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           :aria-label="`學習「${v.label}」`"
           @click="learnConcept(v)"
         >
@@ -149,13 +153,13 @@ const maskStyle = (piece: string) => ({
         v-if="litConcepts.length"
         class="px-[18px] pb-2 pt-5 font-sans text-[11px] font-bold tracking-[0.1em] text-ink-faint"
       >其他戰術</p>
-      <div class="grid grid-cols-2 gap-2.5 px-[14px]" :class="litConcepts.length ? '' : 'pt-4'">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 px-[14px]" :class="litConcepts.length ? '' : 'pt-4'">
         <button
           v-for="v in dormantConcepts"
           :key="v.id"
           type="button"
           data-testid="concept-tile-dormant"
-          class="flex min-h-[104px] flex-col gap-2.5 rounded-2xl border border-line-subtle bg-surface-card p-3 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          class="glass-panel flex min-h-[104px] flex-col gap-2.5 rounded-2xl p-3 text-left transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           :aria-label="`學習「${v.label}」`"
           @click="learnConcept(v)"
         >
