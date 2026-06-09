@@ -1,11 +1,12 @@
 <script setup lang="ts">
-withDefaults(defineProps<{ tone?: 'jade' | 'deep' | 'cream' | 'hint' }>(), { tone: 'cream' })
+withDefaults(defineProps<{ tone?: 'jade' | 'deep' | 'cream' | 'hint' | 'glass' }>(), { tone: 'cream' })
 
 const TONES = {
   jade: 'bg-primary text-white',
   deep: 'bg-surface-deep text-ink-on-deep-dim',
   cream: 'bg-surface-card text-ink-muted border border-line',
   hint: 'bg-hint-light text-hint',
+  glass: 'glass-panel !rounded-full text-ink-on-deep-dim',
 } as const
 </script>
 

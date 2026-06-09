@@ -40,6 +40,12 @@
   .font-display {
     font-family: theme('fontFamily.display');
   }
+  /* Tailwind 對 `num` key 產出空的 `.font-num {}`（其餘 font-* 正常），導致 Cubic 11
+     全站退回 Sarasa。比照 .font-display 手動補上，用顯式字串避開該生成 bug。 */
+  .font-num {
+    font-family: 'Cubic 11', 'Sarasa UI TC', ui-monospace, SFMono-Regular, Menlo, Monaco,
+      Consolas, 'Courier New', monospace;
+  }
   /* Programmatic focus targets (route focus-reset on h1[tabindex="-1"], P-02)
      are never reached by keyboard Tab, so the focus ring is just visual noise. */
   [tabindex='-1']:focus {
@@ -75,6 +81,16 @@
   }
   .card {
     @apply bg-surface-card border border-line rounded-card shadow-card;
+  }
+  /* Gambit signature glass — frosted panel for deep/jade zones (turn badges, info panels,
+     puzzle cards). Full spec: translucent white fill + blur + hairline + top sheen + warm
+     outer shadow. Not an animation, so unaffected by prefers-reduced-motion. */
+  .glass-panel {
+    @apply rounded-card border border-white/[0.16] backdrop-blur-[10px];
+    background-color: rgba(255, 255, 255, 0.07);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 6px 20px rgba(10, 30, 24, 0.3);
   }
   .card-interactive {
     @apply card transition-shadow duration-200 hover:shadow-card-hover;

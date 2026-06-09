@@ -7,6 +7,7 @@ import { LESSON_TIER_LABELS } from '@/types/lesson'
 import type { LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
+import { useUiStore } from '@/stores/ui-store'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DarkPanel, ChapterBadge, StatCard, SectionLabel, ProgressBar } from '@/components/ui/gambit'
@@ -14,6 +15,7 @@ import { DarkPanel, ChapterBadge, StatCard, SectionLabel, ProgressBar } from '@/
 const router = useRouter()
 const progress = useLessonProgressStore()
 const dungeon = useDungeonProgressStore()
+const uiStore = useUiStore()
 
 // 棋子徽章：用棋盤同一套 Gioco Wood 棋子（依課程 tier 變化），與盤面風格統一。
 const TIER_PIECE: Record<LessonTier, string> = { 1: 'bP', 2: 'bN', 3: 'bR', 4: 'bK' }
@@ -34,7 +36,8 @@ const nextLesson = computed(
 const lessonOrdinal = computed(() => progress.completedCount + 1)
 
 function startGame() {
-  router.push('/play')
+  // Open the setup modal over the home page; navigation to /play happens after the player confirms.
+  uiStore.openPlaySetup()
 }
 function continueLearning() {
   router.push(nextLesson.value ? `/learn/${nextLesson.value.id}` : '/learn')
