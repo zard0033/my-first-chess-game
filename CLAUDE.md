@@ -101,11 +101,12 @@ See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 
 ## UI 質感 Skill 路由（潤飾專用）
 
-當 Eason 提到下列關鍵詞時，主動採用對應 skill。**兩條鐵則優先於一切**：
+當 Eason 提到下列關鍵詞時，主動採用對應 skill。**三條鐵則優先於一切**：
 
 1. **Gambit 是裁判**：任何 UI 潤飾前先讀 `design/gambit-design-system/`。`ui-ux-pro-max` / `web-design-engineer`
    的產出**不得覆蓋** Gambit 的配色 / 字型 / 金色（focus·reward only）規則；它們只供想法，採用前一律對齊 Gambit。
 2. **單純小修不觸發重型 skill**：改一個字、調一格間距等，依「最小可行解 / 勿動沒壞的」直接做，不啟動下表。
+3. **redesign 先報告後施工**：redesign / 潤飾類任務，**即使 repo 已有 H/M/L 計畫（如 `production/redesign-2026-06.md`），仍須先跑 `/redesign` 對真實畫面出報告 → Eason 拍板 → 才施工**。不可因「計畫已寫好」就直接動手。
 
 | 關鍵詞 | 採用 skill | 行為 |
 | --- | --- | --- |
