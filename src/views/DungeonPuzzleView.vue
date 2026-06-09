@@ -166,10 +166,10 @@ function goNext(): void {
       >
         <ArrowLeft :size="16" :stroke-width="1.8" /> {{ isPractice ? '課程' : '地圖' }}
       </button>
-      <div class="flex-1 text-center font-num text-[11px] text-ink-on-deep-dim">
+      <div class="flex-1 text-center font-num text-xs text-ink-on-deep-dim">
         Level {{ puzzle.level }} <span v-if="positionLabel">· {{ positionLabel }}</span>
       </div>
-      <div class="rounded-full bg-white/[0.06] px-2.5 py-1 font-num text-xs font-bold text-ink-on-deep-dim">
+      <div class="glass-panel rounded-full px-2.5 py-1 font-num text-xs font-bold text-ink-on-deep-dim">
         {{ progress.solvedCount }}/{{ progress.totalCount }}
       </div>
     </header>
@@ -200,17 +200,17 @@ function goNext(): void {
 
     <!-- Prompt + actions -->
     <div class="mx-auto max-w-[420px] px-4 pt-3">
-      <div class="rounded-[14px] border border-white/[0.06] bg-white/[0.03] p-4">
+      <div class="glass-panel rounded-[14px] p-4">
         <p class="font-sans text-[10px] tracking-[0.08em] text-ink-on-deep-dim">謎題 · {{ puzzle.title }}</p>
         <p class="mt-1 font-display text-base font-bold text-ink-on-deep">{{ puzzle.prompt }}</p>
 
         <!-- Wrong feedback (non-punishing) -->
-        <p v-if="wrongActive" class="mt-3 font-sans text-sm text-gold/80">再想想——這一步不是答案。</p>
+        <p v-if="wrongActive" class="mt-3 font-sans text-sm text-ink-on-deep">再想想——這一步不是答案。</p>
 
         <!-- Hint text (stage 1+) -->
-        <p v-else-if="hintStage >= 1" class="mt-3 rounded-lg bg-gold/10 px-3 py-2 font-sans text-sm leading-relaxed text-[#F5D070] ring-1 ring-gold/20">
+        <p v-else-if="hintStage >= 1" class="mt-3 rounded-lg bg-gold/10 px-3 py-2 font-sans text-sm leading-relaxed text-ink-on-deep ring-1 ring-gold/20">
           {{ puzzle.hint }}
-          <span v-if="hintStage >= 2" class="mt-1 block text-[#F5D070]/70">答案箭頭已畫在棋盤上。</span>
+          <span v-if="hintStage >= 2" class="mt-1 block text-ink-on-deep-dim">答案箭頭已畫在棋盤上。</span>
         </p>
 
         <div class="mt-3 h-px bg-white/[0.08]" />
@@ -244,7 +244,7 @@ function goNext(): void {
       v-if="pz.phase.value === 'solved'"
       class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6"
     >
-      <div class="flex w-full max-w-[320px] flex-col items-center gap-4 rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#1E4D3E,#142E26)] p-7 shadow-[0_12px_40px_rgba(0,0,0,0.5)]">
+      <div class="flex w-full max-w-[320px] flex-col items-center gap-4 rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#163929,#0C2118)] p-7 shadow-[0_12px_40px_rgba(61,34,16,0.45)]">
         <div class="flex h-14 w-14 items-center justify-center rounded-full bg-success/25 ring-2 ring-success">
           <Check :size="28" :stroke-width="2.5" class="text-success" />
         </div>

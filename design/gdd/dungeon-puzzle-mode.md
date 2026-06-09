@@ -16,8 +16,9 @@ idea — win material, land a fork, deliver mate. A puzzle presents a position w
 side-to-move being the player's; the player plays moves on the real board, the mode
 validates each against the authored solution line (auto-playing the opponent's scripted
 replies for multi-move puzzles), and on completion shows a calm "正確" with the
-transferable principle. Puzzles are grouped into **levels** shown as a diamond-node
-**map**; clearing puzzles unlocks the next node linearly. v0 scope: static, clean-room
+transferable principle. Puzzles are grouped into **levels** shown as a vertical **climb
+map** (a bottom-to-top serpentine path that recedes into perspective toward a distant
+summit); clearing puzzles unlocks the next node linearly. v0 scope: static, clean-room
 authored puzzle data (no AI, no backend engine call required for validation) with
 localStorage progress that mirrors the Lesson System's progress-store pattern (optional
 Supabase sync deferred to a follow-up story).
@@ -56,9 +57,18 @@ GPL-3.0 — strong copyleft). All FENs include both kings (chess.js) and pass th
 ### 3.1 Structure
 
 - The mode has two views, mirroring the blueprint:
-  - **Map view** (`/dungeon`): a vertical diamond-node path. Each node = one puzzle.
-    Nodes have a `state`: `done` / `current` / `locked`. Tapping the `current` node
-    enters its puzzle. `done` nodes are replayable; `locked` nodes are not enterable.
+  - **Map view** (`/dungeon`): a vertical **climb** — a bottom-to-top serpentine path of
+    circular jade "coin" nodes that funnels in perspective from a wide, near base (order 1)
+    to a narrow, far summit (the highest locked levels), fading into a distance haze. Each
+    node = one puzzle with a `state`: `done` / `current` / `locked`. Tapping the `current`
+    node enters its puzzle; `done` nodes are replayable; `locked` nodes are not enterable.
+    The three `level` groups are marked by floor-threshold dividers crossed while climbing.
+    Done + current nodes stay full-size (legibility + ≥44px touch); only the locked future
+    tapers smaller/dimmer to read as "far away". On load the map centres the current node.
+    *(Deviation from the original "vertical diamond-node path": the diamond/zig-zag read
+    as casual-mobile-game and flattened the level structure; the climb-funnel keeps the
+    intended bottom-to-top accumulation + light game-feel while aligning with Gambit's
+    calm, mature tone and surfacing the 3-level structure. Approved 2026-06-09.)*
   - **Puzzle view** (`/dungeon/:puzzleId`): the board + a prompt panel + 提示 / actions.
 - Puzzles carry a `level` (1–3 for v0) used only for grouping/labelling on the map and
   in the puzzle header. **Unlock is global and linear by `order`** (level is display
@@ -238,8 +248,9 @@ solved when p ≥ L − 1 after a correct final player move
 - **chess.js** (bundled with vue3-chessboard) — rules authority for legality and
   `isCheckmate()` validation. No new dependency added.
 - **Gambit Design System** — visual SoT; the screen follows `DungeonScreen.jsx` minus
-  the streak elements. Dark dungeon surface, jade diamond nodes, gold for the current
-  node only.
+  the streak elements. Dark dungeon surface, jade "coin" climb nodes (same beveled
+  map-tile vocabulary as the Concept Map), gold for the current node + CTA + the
+  already-climbed trail only.
 - **Data Sync (#11) + Authentication (#9)** — cross-device progress sync via the data-sync
   store and a new `dungeon_progress` table (ADR-0011), mirroring `lesson_progress`. Progress
   is local-first; sync reconciles (union) on login. *(Reciprocal: supabase-integration GDD
@@ -303,11 +314,12 @@ standards); puzzle content lives in a `data/puzzles/` module, never hardcoded in
 10. **Data integrity**: an automated test asserts every puzzle FEN is legal (both kings,
     parseable by chess.js), every `solution` is a legal line from the FEN, `solution`
     length is odd, and `order` values are unique and contiguous. *(Blocking data test.)*
-11. **Gambit compliance**: dark dungeon surface, jade diamond nodes, gold only on the
-    current node/CTA; Lucide icons (no emoji); 西洋棋用語 (后/城堡/騎士/主教); touch
-    targets ≥ 44×44px. *(Visual review against blueprint.)*
-12. **Reduced motion**: with `prefers-reduced-motion`, opponent replies and the breathe
-    ring are instant/static. *(Walkthrough.)*
+11. **Gambit compliance**: dark dungeon surface, jade "coin" climb nodes, gold only on the
+    current node/CTA/already-climbed trail (never as body text); bottom-to-top perspective
+    funnel centred on screen; 3-level floor dividers; Lucide icons (no emoji); 西洋棋用語
+    (后/城堡/騎士/主教); interactive (done/current) touch targets ≥ 44×44px. *(Visual review.)*
+12. **Reduced motion**: with `prefers-reduced-motion`, the puzzle view's opponent replies
+    are instant. (The climb map carries no looping animation.) *(Walkthrough.)*
 
 ---
 
