@@ -20,20 +20,24 @@ onMounted(() => {
 // ── funnel geometry ──────────────────────────────────────────────────────────
 const W = 340
 const ROW = 82
-const PAD_B = 80
-const PAD_T = 120
+const PAD_B = 40 // start sits near the bottom — minimal dead space below it
+const PAD_T = 16 // the climbing line runs right up to meet the header (試煉之峰)
 const BAND = 58
 const AMP_MAX = 0.3 // bottom — widest spread
 const AMP_MIN = 0.045 // top — converges toward the centre vanishing point
+
+// Ghost rungs above the apex carry the climbing LINE on toward未開放關卡（無錢幣、無文字）：它收斂到
+// 消失點，讓峰頂讀作「還在長」而非硬天花板（期待感，不是牆）。短促即可，不需拖太長。
+const GHOST_COUNT = 2
+const GHOST_ROW = ROW * 0.6
 
 const LEVEL_NAMES: Record<number, string> = { 1: '入門', 2: '戰術', 3: '進階' }
 
 const ordered = computed(() => puzzles.slice().sort((a, b) => a.order - b.order))
 
-const currentOrder = computed(() => {
-  const cur = ordered.value.find((p) => progress.nodeState(p) === 'current')
-  return cur?.order ?? progress.solvedCount + 1
-})
+const currentPuzzle = computed(() => ordered.value.find((p) => progress.nodeState(p) === 'current') ?? null)
+
+const currentOrder = computed(() => currentPuzzle.value?.order ?? progress.solvedCount + 1)
 
 type MapNode = {
   puzzle: (typeof puzzles)[number]
@@ -43,6 +47,8 @@ type MapNode = {
   opacity: number
   state: 'done' | 'current' | 'locked'
 }
+
+type GhostNode = { x: number; y: number }
 
 const layout = computed(() => {
   const list = ordered.value
@@ -81,15 +87,27 @@ const layout = computed(() => {
     ;(nodes[nodes.length - 1] as MapNode & { _yb: number })._yb = yFromBottom - ROW / 2
   })
 
+  // Ghost rungs drive the climbing LINE only (no coins): converge toward the centre vanishing point.
+  const ghosts: (GhostNode & { _yb: number })[] = []
+  for (let g = 0; g < GHOST_COUNT; g++) {
+    yFromBottom += GHOST_ROW
+    const amp = AMP_MIN * Math.pow(0.62, g + 1)
+    const side = (n + g) % 2 === 0 ? -1 : 1
+    ghosts.push({ x: W / 2 + side * amp * W, y: 0, _yb: yFromBottom - GHOST_ROW / 2 })
+  }
+
   const totalHeight = yFromBottom + PAD_B + PAD_T
   nodes.forEach((nd) => {
     nd.y = totalHeight - PAD_B - (nd as MapNode & { _yb: number })._yb
+  })
+  ghosts.forEach((gh) => {
+    gh.y = totalHeight - PAD_B - gh._yb
   })
   bands.forEach((b) => {
     b.y = totalHeight - PAD_B - b.y
   })
 
-  return { nodes, bands, totalHeight }
+  return { nodes, bands, ghosts, totalHeight }
 })
 
 const mapHeight = computed(() => layout.value.totalHeight)
@@ -111,9 +129,15 @@ const sortedTopDown = computed(() => layout.value.nodes.slice().sort((a, b) => a
 const climbedPath = computed(() =>
   smoothPath(sortedTopDown.value.filter((p) => p.puzzle.order <= currentOrder.value)),
 )
-const aheadPath = computed(() =>
-  smoothPath(sortedTopDown.value.filter((p) => p.puzzle.order >= currentOrder.value)),
-)
+const aheadPath = computed(() => {
+  const pts = [
+    ...layout.value.ghosts.map((g) => ({ x: g.x, y: g.y })),
+    ...layout.value.nodes
+      .filter((p) => p.puzzle.order >= currentOrder.value)
+      .map((p) => ({ x: p.x, y: p.y })),
+  ].sort((a, b) => a.y - b.y)
+  return smoothPath(pts)
+})
 
 function coinBackground(state: MapNode['state']): string {
   if (state === 'done') return 'radial-gradient(120% 120% at 50% 18%,#3AB894,#167A5E 55%,#0C5840)'
@@ -133,21 +157,8 @@ function enter(node: MapNode): void {
     class="min-h-dvh overflow-x-hidden pb-24 lg:pb-8"
     style="background: linear-gradient(to top, #0a1f1a 0%, #103029 38%, #15392f 78%, #1a4a3d 100%)"
   >
-    <!-- Header -->
-    <header class="flex items-center gap-2.5 border-b border-white/[0.06] px-4 py-3.5">
-      <span
-        class="flex h-[30px] w-[30px] items-center justify-center rounded-lg bg-gold/10 text-gold ring-1 ring-gold/20"
-        aria-hidden="true"
-      ><Shield :size="15" :stroke-width="1.8" /></span>
-      <div class="flex-1">
-        <p class="font-sans text-[9px] font-bold uppercase tracking-[0.12em] text-gold/60">試煉道場</p>
-        <h1 class="font-display text-base text-ink-on-deep" tabindex="-1">登上試煉之峰</h1>
-      </div>
-      <!-- 平靜進度（無 streak / timer / leaderboard） -->
-      <div class="glass-panel rounded-full px-3 py-1 font-num text-xs font-bold text-ink-on-deep">
-        {{ progress.solvedCount }}/{{ progress.totalCount }}
-      </div>
-    </header>
+    <!-- 頂部淨空（option A）：身分／進度／入口都下放到底部固定 CTA。此處只留 a11y 焦點標題。 -->
+    <h1 class="sr-only" tabindex="-1">登上試煉之峰</h1>
 
     <!-- Empty state -->
     <div v-if="puzzles.length === 0" class="px-6 py-20 text-center">
@@ -163,14 +174,12 @@ function enter(node: MapNode): void {
           <path :d="climbedPath" fill="none" stroke="rgba(248,181,0,0.45)" stroke-width="3" stroke-dasharray="2 11" stroke-linecap="round" />
         </svg>
 
-        <!-- Distance fog — the far end fades into the summit haze -->
+        <!-- Distance haze — the climbing line softly recedes as it meets the header (試煉之峰) -->
         <div
-          class="pointer-events-none absolute inset-x-0 top-0 z-10 h-[200px]"
+          class="pointer-events-none absolute inset-x-0 top-0 z-10 h-[90px]"
           aria-hidden="true"
-          style="background: linear-gradient(to top, transparent, rgba(22, 58, 47, 0.65) 55%, rgba(26, 74, 61, 0.92))"
+          style="background: linear-gradient(to top, transparent, rgba(22, 58, 47, 0.45) 60%, rgba(26, 74, 61, 0.7))"
         />
-        <p class="absolute left-1/2 z-10 -translate-x-1/2 text-[10px] uppercase tracking-[0.22em] text-ink-on-deep-dim" style="top: 70px">‧ 峰頂 ‧</p>
-        <p class="absolute left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-[0.16em] text-ink-on-deep-dim" :style="{ top: `${mapHeight - 30}px` }">起點</p>
 
         <!-- Floor thresholds -->
         <div
@@ -181,7 +190,7 @@ function enter(node: MapNode): void {
         >
           <span class="h-px flex-1" style="background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent)" />
           <span class="flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 backdrop-blur-[8px]">
-            <span class="font-display text-[13px] text-ink-on-deep">{{ LEVEL_NAMES[band.level] }}</span>
+            <span class="font-num text-[13px] text-ink-on-deep">{{ LEVEL_NAMES[band.level] }}</span>
             <span class="text-[9px] font-bold uppercase tracking-[0.1em] text-ink-on-deep-dim">Lv {{ band.level }}</span>
             <span class="font-num text-[11px] text-ink-on-deep-dim">{{ band.solved }}/{{ band.total }}</span>
           </span>
@@ -189,18 +198,7 @@ function enter(node: MapNode): void {
         </div>
 
         <template v-for="node in layout.nodes" :key="node.puzzle.id">
-          <!-- CTA bubble (current) -->
-          <button
-            v-if="node.state === 'current'"
-            type="button"
-            class="absolute z-20 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-gradient-to-b from-gold-light to-gold px-3 py-1.5 font-sans text-[11px] font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.5)] transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dungeon"
-            :style="{ left: `${node.x}px`, top: `${node.y - node.size / 2 - 30}px` }"
-            @click="enter(node)"
-          >
-            進入試煉 <ArrowRight :size="12" />
-          </button>
-
-          <!-- Coin node -->
+          <!-- Coin node（當前節點保留金色＋編號當「你在這」定位；進入動作集中到底部固定 CTA） -->
           <button
             type="button"
             :data-dungeon-current="node.state === 'current' ? '' : undefined"
@@ -246,6 +244,47 @@ function enter(node: MapNode): void {
             >{{ node.puzzle.title }}</p>
           </div>
         </template>
+      </div>
+    </div>
+
+    <!-- 固定底部「目前試煉」錨點：路徑越長越需要常駐入口，使用者不必上下滑找當前關卡。
+         固定在浮島 nav 上方（桌機無底部 nav → lg:bottom-6）。 -->
+    <div
+      v-if="puzzles.length"
+      class="fixed inset-x-0 z-30 px-3 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] lg:bottom-6"
+    >
+      <div
+        class="mx-auto flex max-w-md items-center gap-3 rounded-2xl border border-white/[0.14] bg-[linear-gradient(160deg,#1E5043,#15392F)] px-3.5 py-3 shadow-[0_10px_30px_rgba(0,0,0,0.45),inset_0_1px_0_rgba(255,255,255,0.12)]"
+      >
+        <span
+          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/[0.12] text-gold ring-1 ring-gold/25"
+          aria-hidden="true"
+        ><Shield :size="18" :stroke-width="1.8" /></span>
+
+        <template v-if="currentPuzzle">
+          <div class="min-w-0 flex-1">
+            <p class="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-gold/70">
+              目前試煉 · {{ LEVEL_NAMES[currentPuzzle.level] }} · {{ progress.solvedCount }}/{{ progress.totalCount }}
+            </p>
+            <p class="truncate font-display text-[15px] font-bold leading-tight text-ink-on-deep">
+              第 {{ currentPuzzle.order }} 關 · {{ currentPuzzle.title }}
+            </p>
+          </div>
+          <button
+            type="button"
+            class="flex min-h-[44px] shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-gradient-to-b from-gold-light to-gold px-4 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.45)] transition-transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-dungeon"
+            @click="router.push(`/dungeon/${currentPuzzle.id}`)"
+          >
+            進入試煉 <ArrowRight :size="15" />
+          </button>
+        </template>
+
+        <div v-else class="min-w-0 flex-1">
+          <p class="font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-gold/70">
+            登頂 · {{ progress.solvedCount }}/{{ progress.totalCount }}
+          </p>
+          <p class="font-display text-[15px] font-bold leading-tight text-ink-on-deep">試煉全數完成</p>
+        </div>
       </div>
     </div>
   </div>
