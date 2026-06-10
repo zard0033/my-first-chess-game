@@ -39,10 +39,13 @@ function setActive(i: number): void {
   if (route.path !== PATHS[i]) void router.replace(PATHS[i])
 }
 
-// Tap a tab → jump instantly (no slide special effect), per spec.
+// Tap a tab → smooth slide (mirrors the swipe feel); activeIndex + route update immediately
+// so the tab highlight changes right away, while progress animates via onScroll.
 function onSelect(i: number): void {
-  scrollToIndex(i, false)
-  setActive(i)
+  if (i === activeIndex.value) return
+  activeIndex.value = i
+  if (route.path !== PATHS[i]) void router.replace(PATHS[i])
+  scrollToIndex(i, true)
 }
 
 // Native scroll drives the indicator live; debounce the settle to sync the active tab + route.

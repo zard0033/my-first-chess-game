@@ -23,7 +23,7 @@ const indicatorPos = computed(() => props.progress ?? props.activeIndex)
 </script>
 
 <template>
-  <div class="relative flex rounded-full bg-surface-mid p-1 ring-1 ring-line">
+  <div class="relative flex rounded-full bg-surface-mid p-1">
     <!-- Sliding card indicator: one tab wide, translateX tracks the pan position. -->
     <div
       class="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/2)]"

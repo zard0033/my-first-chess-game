@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Check, Lock, Shield, ArrowRight } from 'lucide-vue-next'
+import { Check, Lock, Target, ArrowRight } from 'lucide-vue-next'
 import { puzzles } from '@/data/puzzles'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 
@@ -259,7 +259,7 @@ function enter(node: MapNode): void {
         <span
           class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gold/[0.12] text-gold ring-1 ring-gold/25"
           aria-hidden="true"
-        ><Shield :size="18" :stroke-width="1.8" /></span>
+        ><Target :size="18" :stroke-width="1.8" /></span>
 
         <template v-if="currentPuzzle">
           <div class="min-w-0 flex-1">
