@@ -8,8 +8,9 @@ import { useAuthStore } from '@/stores/auth'
 export const routes = [
   { path: '/',                name: 'home',      component: HomeView },
   { path: '/play',            name: 'play',      component: () => import('@/views/PlayView.vue') },
-  { path: '/learn',           name: 'learn',     component: () => import('@/views/LearnView.vue') },
-  { path: '/learn/concepts',  name: 'concepts',  component: () => import('@/views/ConceptMapView.vue') },
+  // /learn 與 /learn/concepts 都渲染 LearnPager（同一元件 → 切子頁籤時 pager 實例不重繪，indicator 才能跟手滑動）。
+  { path: '/learn',           name: 'learn',     component: () => import('@/views/LearnPager.vue') },
+  { path: '/learn/concepts',  name: 'concepts',  component: () => import('@/views/LearnPager.vue') },
   { path: '/learn/:lessonId', name: 'lesson',    component: () => import('@/views/LessonView.vue'), meta: { fullBleed: true } },
   { path: '/dungeon',          name: 'dungeon',     component: () => import('@/views/DungeonMapView.vue') },
   { path: '/dungeon/:puzzleId', name: 'puzzle',     component: () => import('@/views/DungeonPuzzleView.vue'), meta: { fullBleed: true } },

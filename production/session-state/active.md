@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: 跨頁 UI Redesign（2026-06-09）— 主計畫見 repo 內 `production/redesign-2026-06.md`（Phase 0–4，含進度）
-Feature: Phase 0–4 全部完成。Phase 4 試煉地圖＝F（透視登高 funnel）已實作、驗證，等 commit + push
-Task: 準備 push（commit message 已列，等 Eason 確認）
+Epic: Redesign 回饋修正（2026-06-10）— Eason 對 Phase 0–4 成果的 feedback
+Feature: A1/B2/B4 機械批次 ＋ 試煉地圖 chrome redesign ＋ 學習頁 IG 滑動分頁 — 已 push，Eason 測試中
+Task: B5（課程內頁＋試煉內頁 redesign，先 interview）＋ B3（概念地圖分類）仍待規劃
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -26,11 +26,14 @@ Task: 準備 push（commit message 已列，等 Eason 確認）
 - **Phase 0 共用語言 + Phase 1 對局頁 PlayView**：done，已 commit（`6e35394`）。
 - **Phase 2 首頁 HomeView**：done，已 commit（`ff4a675`）。桌機 hero｜繼續學習 雙欄等高 + 總覽全寬、問候 16px、StatCard grid+lock+置中、CTA 箭頭 18、`md:max-w-4xl`。
 - **Phase 3 學習（LearnView + ConceptMapView + LessonView）**：done，已 commit（`727ec56`）。ConceptMap jade banner 沉點 + 概念卡 glass + 桌機 4 欄；LearnView 分隔線 + `lg:max-w-2xl` + 字級收斂 + 繼續/完成等高 pill；LessonView 完成卡暖棕調；learn-tabs token 化。vue-tsc 0、645 passed、Playwright 375/1280 實測。
-- **Phase 4 試煉（DungeonMapView + DungeonPuzzleView）**：✅ **實作完成，待 push**。`/redesign` 出 A–F 六個 mockup（d:\tmp\dungeon-map-mockup，throwaway），Eason 選定 **F＝蜿蜒登高 · 透視縱深**。
+- **Phase 4 試煉（DungeonMapView + DungeonPuzzleView）**：✅ **已完成並 push**。`/redesign` 出 A–F 六個 mockup，Eason 選定 **F＝蜿蜒登高 · 透視縱深**。
   - **實作內容**：DungeonMapView 完整重寫為透視 funnel（W=340, AMP_MAX=0.30→AMP_MIN=0.045，jade 立體金幣節點，3 樓層分段，起點/峰頂文字，距離霧化，locked 深度縮放/變淡，由下而上捲動至 current）；DungeonPuzzleView H/M 修正（金色內文→ink-on-deep 3 處，glass-panel 套用，字級修正，Modal 漸層加深）；GDD §3.1+AC-11/12+Dependencies 更新，記偏離理由（2026-06-09 拍板）。
   - **驗證**：vue-tsc 0、vitest 645 passed、Playwright 375/1280 截圖確認。
-  - **待辦**：等 push 確認 → commit + git push origin main → 清 d:\tmp\dungeon-map-mockup。
-- 流程鐵則：redesign 類任務先跑 `/redesign` 對真實畫面出 H/M/L 報告 → Eason 拍板 → 才施工，即使計畫檔已有清單。
+- **Redesign 回饋 A1/B2/B4/C + 試煉地圖 chrome + 學習頁 IG 分頁**：✅ **2026-06-10 push 完成，Eason 測試中**。
+  - A1: header h-12→h-14；B2: 概念地圖 DarkPanel banner；B4: 課程內頁 font-lesson/font-sans；
+  - C: 試煉地圖 chrome redesign Option A（ghost 延伸線、頂部淨空、底部固定 CTA）；
+  - IG pager: LearnPager.vue（scroll-snap），learn-tabs 受控元件，/learn + /learn/concepts 同指向同元件，桌機版寬度限制修正。
+- 流程鐵則：redesign 類任務先跑 `/redesign` 對真實畫面出 H/M/L 報告 → Eason 拍板 → 才施工，**即使 Eason 在對話中已給明確方向也不例外**。
 
 ## 🚧 待辦 / 開放項
 

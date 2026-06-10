@@ -31,6 +31,9 @@ function onSetupClose(): void {
 // 沉浸式全屏頁（登入）不套 app chrome：無頂部品牌列、無底部 tab。
 const fullBleed = computed(() => route.meta.fullBleed === true)
 
+// 學習 pager（/learn、/learn/concepts）自管高度與內部捲動，main 不可再加底部 nav padding，否則高度溢位。
+const isLearnPager = computed(() => route.path === '/learn' || route.path === '/learn/concepts')
+
 // 頁面底色套在 <main> 上：深色頁（試煉/對局）的底部 nav 留白區若無底色會露出 body 的 cream
 // （試煉底部未填色 bug）。套在 main 讓 padding 區與內容同色。
 const pageBg = computed(() => {
@@ -62,7 +65,7 @@ onMounted(() => {
   // only loads the module — PlayView's Stockfish init still waits for the view to actually mount.
   const prefetch = (): void => {
     void import('@/views/PlayView.vue')
-    void import('@/views/LearnView.vue')
+    void import('@/views/LearnPager.vue')
     void import('@/views/DungeonMapView.vue')
   }
   if ('requestIdleCallback' in window) window.requestIdleCallback(prefetch)
@@ -73,7 +76,7 @@ onMounted(() => {
 <template>
   <div class="min-h-dvh flex flex-col">
     <AppNav v-if="!fullBleed" />
-    <main class="flex-1" :class="[fullBleed ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0', pageBg]">
+    <main class="flex-1" :class="[fullBleed || isLearnPager ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0', pageBg]">
       <RouterView />
     </main>
 

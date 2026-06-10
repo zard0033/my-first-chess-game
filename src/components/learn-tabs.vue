@@ -1,40 +1,44 @@
 <script setup lang="ts">
 /**
- * Learn-section segmented control (Learning Loop #20, Phase B). Two peer lenses on the same
- * learning: 課程 (the linear curriculum, /learn) and 概念 (the Concept Map mastery view,
- * /learn/concepts). Route-driven so each view is deep-linkable; the active tab is derived from
- * the current route, never local state.
+ * Learn-section segmented control. Controlled by the parent pager: the parent supplies the active
+ * index and the live pan position (`progress`, 0..1, fractional during a swipe) so the indicator
+ * tracks the finger, and `select` is emitted on tap. Route handling lives in the pager (single
+ * source of truth) — this component is presentational only.
  */
-import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
 import { GraduationCap, Compass } from 'lucide-vue-next'
 
-const route = useRoute()
-const router = useRouter()
+const props = withDefaults(defineProps<{ activeIndex: number; progress?: number }>(), {
+  progress: undefined,
+})
+const emit = defineEmits<{ select: [index: number] }>()
 
 const tabs = [
-  { label: '課程', to: '/learn', icon: GraduationCap },
-  { label: '概念', to: '/learn/concepts', icon: Compass },
+  { label: '課程', icon: GraduationCap },
+  { label: '概念', icon: Compass },
 ] as const
 
-function isActive(to: string): boolean {
-  return to === '/learn/concepts' ? route.path === '/learn/concepts' : route.path === '/learn'
-}
-
-function go(to: string): void {
-  if (!isActive(to)) router.push(to)
-}
+// Indicator position: live pan progress while swiping (follows the finger), else the active index.
+const indicatorPos = computed(() => props.progress ?? props.activeIndex)
 </script>
 
 <template>
-  <div class="flex gap-1 rounded-full bg-surface-mid p-1">
+  <div class="relative flex rounded-full bg-surface-mid p-1 ring-1 ring-line">
+    <!-- Sliding card indicator: one tab wide, translateX tracks the pan position. -->
+    <div
+      class="pointer-events-none absolute inset-y-1 left-1 w-[calc((100%-0.5rem)/2)]"
+      :style="{ transform: `translateX(${Math.min(1, Math.max(0, indicatorPos)) * 100}%)` }"
+    >
+      <div class="h-full rounded-full bg-surface-card shadow-[0_2px_6px_rgba(61,34,16,0.2)] ring-1 ring-black/[0.04]" />
+    </div>
     <button
-      v-for="t in tabs"
-      :key="t.to"
+      v-for="(t, i) in tabs"
+      :key="t.label"
       type="button"
-      class="flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-full py-2 font-sans text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
-      :class="isActive(t.to) ? 'bg-surface-card text-primary-dark shadow-[0_1px_4px_rgba(61,34,16,0.14)]' : 'text-ink-muted'"
-      :aria-current="isActive(t.to) ? 'page' : undefined"
-      @click="go(t.to)"
+      class="relative z-10 flex min-h-[44px] flex-1 items-center justify-center gap-1.5 rounded-full py-2 font-sans text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+      :class="i === activeIndex ? 'text-primary-dark' : 'text-ink-muted'"
+      :aria-current="i === activeIndex ? 'page' : undefined"
+      @click="emit('select', i)"
     ><component :is="t.icon" :size="16" :stroke-width="2" aria-hidden="true" />{{ t.label }}</button>
   </div>
 </template>
