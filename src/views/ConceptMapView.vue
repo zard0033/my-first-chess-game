@@ -12,8 +12,7 @@
  */
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ChevronRight } from 'lucide-vue-next'
-import LearnTabs from '@/components/learn-tabs.vue'
+import { ChevronRight, Compass } from 'lucide-vue-next'
 import { DarkPanel } from '@/components/ui/gambit'
 import { concepts, getConceptById } from '@/data/concepts'
 import type { ChessConcept } from '@/types/concept'
@@ -81,6 +80,10 @@ const allVM = computed<ConceptVM[]>(() =>
 const litConcepts = computed(() => allVM.value.filter((v) => v.lit))
 const dormantConcepts = computed(() => allVM.value.filter((v) => !v.lit))
 
+// Banner progress (calm reflection, not a score): how many tactics you've met so far.
+const familiarCount = computed(() => litConcepts.value.length)
+const totalConcepts = computed(() => allVM.value.length)
+
 // Tap-to-learn: open the tactic's lesson via the Concept side-door (bypasses the linear lock).
 function learnConcept(v: ConceptVM): void {
   if (v.lessonId) router.push(`/learn/${v.lessonId}?from=concept`)
@@ -95,18 +98,38 @@ const maskStyle = (piece: string) => ({
 
 <template>
   <div class="mx-auto max-w-md lg:max-w-3xl pb-8">
-    <div class="px-[18px] pt-5">
-      <LearnTabs />
-    </div>
-
-    <header class="px-[14px] pt-3.5">
+    <header class="px-[14px] pt-4">
       <h1 class="sr-only" tabindex="-1">概念地圖</h1>
-      <DarkPanel>
-        <p class="font-display text-[15px] font-bold leading-tight text-ink-on-deep">概念地圖</p>
-        <p class="mt-1.5 font-lesson text-base leading-relaxed text-ink-on-deep-dim">
-          你熟悉的棋藝概念都在這裡。想學哪個戰術，點下去就開始。
-        </p>
-      </DarkPanel>
+      <!-- 與課程章節牌卡共用視覺語言：錢幣徽章 + kicker + 進度 + 漸層進度條 -->
+      <div class="overflow-hidden rounded-[14px] shadow-[0_6px_20px_rgba(10,30,24,0.28)]">
+        <DarkPanel no-pad>
+          <div class="px-3.5 pb-3 pt-3.5">
+            <div class="mb-2.5 flex items-center gap-2.5">
+              <span
+                class="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-surface-card shadow-[0_0_0_2.5px_#f8b500,0_4px_14px_rgba(61,34,16,0.16),inset_0_1px_0_rgba(255,255,255,0.9)]"
+              >
+                <Compass :size="20" :stroke-width="1.8" class="text-primary" aria-hidden="true" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <p class="mb-0.5 font-sans text-[10px] font-bold uppercase tracking-[0.1em] text-gold">
+                  戰術熟悉度
+                </p>
+                <p class="font-display text-[15px] font-bold leading-tight text-ink-on-deep">概念地圖</p>
+                <p class="mt-0.5 font-sans text-[10px] text-ink-on-deep-dim">點任一戰術即可開始學習</p>
+              </div>
+              <span class="shrink-0 font-num text-[11px] text-ink-on-deep-dim">
+                {{ familiarCount }}/{{ totalConcepts }}
+              </span>
+            </div>
+            <div class="h-[3px] overflow-hidden rounded-full bg-white/[0.12]">
+              <div
+                class="h-full rounded-full bg-[linear-gradient(90deg,#3AB894,#F8B500)] transition-[width] duration-300 motion-reduce:transition-none"
+                :style="{ width: `${totalConcepts ? (familiarCount / totalConcepts) * 100 : 0}%` }"
+              />
+            </div>
+          </div>
+        </DarkPanel>
+      </div>
     </header>
 
     <!-- Familiar tactics — learned and/or practised -->

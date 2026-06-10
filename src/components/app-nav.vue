@@ -31,7 +31,7 @@ const NAV_ITEMS = [
   <header
     class="sticky top-0 z-30 border-b border-white/[0.06] bg-[linear-gradient(180deg,#1E5043_0%,#183E35_100%)] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]"
   >
-    <div class="max-w-6xl mx-auto flex items-center gap-1 px-4 h-12">
+    <div class="max-w-6xl mx-auto flex items-center gap-1 px-4 h-14">
       <!-- 品牌字標：金徽（國王剪影）+ Cinzel GAMBIT wordmark -->
       <RouterLink to="/" class="flex items-center gap-2 mr-3" aria-label="GAMBIT 首頁">
         <img

@@ -301,11 +301,11 @@ function prev(): void {
           <!-- Scenario (step 0 only) -->
           <p
             v-if="stepIndex === 0 && lesson.scenario"
-            class="mb-4 border-l-2 border-primary/40 pl-4 font-display text-base leading-relaxed text-ink-muted"
+            class="mb-4 border-l-2 border-primary/40 pl-4 font-lesson text-base leading-relaxed text-ink-muted"
           >{{ lesson.scenario }}</p>
 
           <!-- Step narration -->
-          <p class="mb-4 font-lesson text-base leading-loose text-ink">{{ currentStep?.text }}</p>
+          <p class="mb-4 font-sans text-base leading-loose text-ink">{{ currentStep?.text }}</p>
 
           <!-- Wrong-move feedback (no buttons — they're in the sticky bar) -->
           <Alert v-if="wrongMove" variant="danger" class="mb-4">
