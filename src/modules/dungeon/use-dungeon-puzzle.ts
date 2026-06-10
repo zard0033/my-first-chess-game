@@ -14,8 +14,8 @@ import type { Puzzle, PuzzleMove } from '@/types/puzzle'
  */
 export type SubmitResult =
   | { kind: 'wrong' }
-  | { kind: 'correct-solved' }
-  | { kind: 'correct-advance'; opponentReply: PuzzleMove }
+  | { kind: 'correct-solved'; piece: string; captured?: string }
+  | { kind: 'correct-advance'; opponentReply: PuzzleMove; piece: string; captured?: string }
 
 export function useDungeonPuzzle(puzzle: Puzzle) {
   const chess = new Chess(puzzle.fen)
@@ -65,17 +65,22 @@ export function useDungeonPuzzle(puzzle: Puzzle) {
     }
 
     wrong.value = false
-    chess.move({ from: move.from, to: move.to, promotion: move.promotion })
+    const applied = chess.move({ from: move.from, to: move.to, promotion: move.promotion })
     fen.value = chess.fen()
 
     const isFinalPly = plyIndex.value >= puzzle.solution.length - 1
     if (isFinalPly) {
       phase.value = 'solved'
-      return { kind: 'correct-solved' }
+      return { kind: 'correct-solved', piece: applied.piece, captured: applied.captured }
     }
 
     awaitingOpponent.value = true
-    return { kind: 'correct-advance', opponentReply: puzzle.solution[plyIndex.value + 1] }
+    return {
+      kind: 'correct-advance',
+      opponentReply: puzzle.solution[plyIndex.value + 1],
+      piece: applied.piece,
+      captured: applied.captured,
+    }
   }
 
   /** Apply the scripted opponent reply and advance to the next player ply. */

@@ -97,7 +97,7 @@ interface ArrowGeometry {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  bestMove: '#3d7bcf',   // teal/blue
+  bestMove: '#c4882a',   // muted amber — answer/best-move arrow, harmonised with the hint colour (全站統一)
   playedMove: '#888888', // neutral gray
   alternateLine: '#3d7bcf',
   threat: '#c4882a',     // muted amber

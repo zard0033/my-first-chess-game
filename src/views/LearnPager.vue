@@ -78,7 +78,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex h-[calc(100dvh-3.5rem)] flex-col">
+  <div class="flex h-[calc(100dvh-3.5rem)] w-full flex-col overflow-x-hidden">
     <div class="mx-auto w-full max-w-md shrink-0 px-[18px] pb-1.5 pt-4 lg:max-w-sm">
       <h1 class="sr-only" tabindex="-1">學習</h1>
       <LearnTabs :active-index="activeIndex" :progress="progress" @select="onSelect" />

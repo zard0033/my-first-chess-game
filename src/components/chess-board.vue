@@ -203,6 +203,26 @@ function squareToRect(square: string): Rect | null {
   return computeSquareRect(square, el.offsetWidth, props.playerColor)
 }
 
+/**
+ * Snap the board back to the current `fen` prop (undo a rejected move). MUST be called AFTER the
+ * player's move animation has settled — calling it mid-animation lets chessground's in-flight
+ * animation overwrite it (the wrong piece stays put, which read as "no snap-back"). The dungeon
+ * view delays this until WRONG_TINT_DURATION_MS so the snap lands cleanly; the lesson retry button
+ * is a user click long after the move animation, so it's already safe.
+ */
+function resetPosition(): void {
+  boardApi.value?.setPosition(props.fen)
+}
+
+/**
+ * Force the board to the current `fen` prop even when the FEN string is unchanged — used when
+ * the lesson steps between two positions that share the same FEN (Vue's `watch(props.fen)` won't
+ * fire on an identical string, so the board would otherwise keep the player's last move on screen).
+ */
+function reapplyFen(): void {
+  boardApi.value?.setPosition(props.fen)
+}
+
 // ---- Keyboard navigation (ADR-0009, S4-09) ----
 
 const keyboardAnnouncement = ref('')
@@ -228,7 +248,7 @@ const keyboard = useBoardKeyboard({
 
 const focusCellRect = computed(() => squareToRect(keyboard.currentSquare.value))
 
-defineExpose({ boardRef, squareToRect })
+defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
 </script>
 
 <template>

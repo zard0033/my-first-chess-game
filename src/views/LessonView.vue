@@ -5,7 +5,6 @@ import { ArrowLeft, ArrowRight, RotateCw, Lightbulb, Check, X } from 'lucide-vue
 import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { getLessonById } from '@/data/lessons'
 import { COACH } from '@/types/lesson'
@@ -52,20 +51,27 @@ const wrongMove = ref<{ from: string; to: string } | null>(null)
 const everWrong = ref(false)
 const hintShown = ref(false)
 const answerRevealed = ref(false)
-const boardNonce = ref(0)
 
-watch(stepIndex, () => {
+watch(stepIndex, async () => {
   solved.value = false
   wrongMove.value = null
   everWrong.value = false
   hintShown.value = false
   answerRevealed.value = false
+  // Force the board onto the new step's FEN even when it's an identical string to the previous
+  // step (Vue won't re-fire watch(props.fen); the player's last move would otherwise stay on the
+  // board — 上一步沒把棋子移回修正).
+  await nextTick()
+  board.value?.reapplyFen()
 })
 
-const boardKey = computed(() => `${stepIndex.value}:${boardNonce.value}`)
+// Board key is the lesson id (NOT the step) so stepping never remounts the board — chessground
+// syncs each step's FEN via setPosition (smooth), instead of a full rebuild that replays the
+// piece entry animation (上一步/下一步換步棋盤 dash 修正).
+const boardKey = computed(() => lesson?.id ?? '')
 const boardDisabled = computed(() => !isInteractive.value || solved.value || !!wrongMove.value)
 
-const board = ref<{ boardRef: HTMLElement | null; squareToRect: (s: string) => Rect | null } | null>(null)
+const board = ref<{ boardRef: HTMLElement | null; squareToRect: (s: string) => Rect | null; resetPosition: () => void; reapplyFen: () => void } | null>(null)
 const geomTick = ref(0)
 const boardEl = computed<HTMLElement | null>(() => {
   void geomTick.value
@@ -97,7 +103,8 @@ const annotations = computed<Annotation[]>(() => {
   for (const sq of step.highlights ?? []) {
     out.push({ kind: 'highlight', role: 'keySquare', square: sq })
   }
-  const showArrows = !isInteractive.value || answerRevealed.value
+  // Once solved, drop the answer arrow — the player already made the move (走子後箭頭消失).
+  const showArrows = !isInteractive.value || (answerRevealed.value && !solved.value)
   if (showArrows) {
     for (const a of step.arrows ?? []) {
       out.push({ kind: 'arrow', role: 'bestMove', from: a.orig, to: a.dest })
@@ -146,7 +153,7 @@ function handleMove(payload: MoveMadePayload): void {
 
 function retry(): void {
   wrongMove.value = null
-  boardNonce.value++
+  board.value?.resetPosition() // snap the wrong piece home without remounting (no entry-animation replay)
 }
 
 const canAdvance = computed(() => !isInteractive.value || solved.value)
@@ -199,38 +206,39 @@ function prev(): void {
 </script>
 
 <template>
-  <!-- Full-height flex column — no outer horizontal padding so the board can go edge-to-edge.
-       fullBleed route (no global top/bottom nav): the sticky action bar sits at the very bottom. -->
-  <div v-if="lesson" class="flex min-h-dvh flex-col">
+  <!-- 課程內頁：整頁錨進 deep-jade，棋盤浮在 jade 上聚焦；課文收進底部暖色教練氣泡（IG 對話框語彙）。
+       固定視口高 flex column：header / 棋盤(shrink-0 不被擠) / 氣泡(flex-1 自捲、捲軸隱藏) / CTA(shrink-0 固定底)。 -->
+  <div v-if="lesson" class="flex h-dvh flex-col bg-surface-deep text-ink-on-deep">
 
     <!-- Header: back + title + step counter -->
-    <header class="flex shrink-0 items-center gap-3 px-4 py-3">
-      <Button
-        variant="ghost"
-        size="icon"
+    <header class="flex shrink-0 items-center gap-3 px-4 pb-2 pt-[calc(0.625rem+env(safe-area-inset-top))]">
+      <button
+        type="button"
         :aria-label="fromConcept ? '返回概念' : '返回課程清單'"
+        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-white/[0.08] text-ink-on-deep transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold active:scale-95"
         @click="router.push(backTo)"
-      ><ArrowLeft :size="20" :stroke-width="1.8" /></Button>
-      <h1 class="flex-1 font-display text-xl font-semibold text-ink" tabindex="-1">{{ lesson.title }}</h1>
-      <span class="shrink-0 text-sm tabular-nums text-ink-faint">
-        {{ stepIndex + 1 }} / {{ lesson.steps.length }}
-      </span>
+      ><ArrowLeft :size="20" :stroke-width="1.8" /></button>
+      <h1 class="flex-1 truncate font-display text-lg font-bold text-ink-on-deep" tabindex="-1">{{ lesson.title }}</h1>
     </header>
 
     <!-- Side-door context note: quiet, neutral — never judges the out-of-order entry -->
     <p
       v-if="fromConcept"
       data-testid="lesson-from-concept-note"
-      class="shrink-0 px-4 pb-1 font-sans text-xs text-ink-faint"
+      class="shrink-0 px-4 pb-1 font-sans text-xs text-ink-on-deep-dim"
     >你從概念地圖提前學這個戰術</p>
 
-    <!-- Content area: board left, coach right on desktop -->
-    <div class="flex flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-4">
+    <!-- Content: board (fixed) on mobile stacked, side-by-side on desktop -->
+    <div class="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-2">
 
-      <!-- Board: capped to a share of viewport height on mobile so the coach's narration stays
-           above the fold (board is square, so an uncapped full-width board eats the whole screen);
-           auto on desktop where board + coach sit side by side. -->
-      <div class="relative mx-auto w-full max-w-[min(100%,54dvh)] lg:mx-0 lg:w-auto lg:max-w-none lg:shrink-0 lg:self-start">
+      <!-- Board floats on jade; capped so the coach bubble keeps room on the first screen.
+           Padding/size live on the OUTER box; the inner `relative` box hugs the board so the
+           annotation overlay (absolute inset-0) aligns with the squares — padding on the positioned
+           ancestor would shift every arrow sideways (課程答案箭頭偏移修正). -->
+      <div class="mx-auto w-full max-w-[min(100%,46dvh)] shrink-0 px-6 pt-1 lg:mx-0 lg:max-w-none lg:flex-1 lg:self-start lg:px-0 lg:pt-1">
+        <!-- wooden tray：棋盤木框（與試煉／對局同款木盤） -->
+        <div class="rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-2 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)]">
+        <div class="relative board-fit">
         <ChessBoard
           :key="boardKey"
           ref="board"
@@ -284,31 +292,33 @@ function prev(): void {
           :style="{ left: `${correctBadge.left}px`, top: `${correctBadge.top}px`, width: `${correctBadge.size}px`, height: `${correctBadge.size}px` }"
           aria-hidden="true"
         ><Check :size="correctBadge.size * 0.62" :stroke-width="3" /></div>
+        </div>
+        </div>
       </div>
 
-      <!-- Coach panel: scrollable content (no action buttons here on mobile) -->
-      <div class="flex-1 min-w-0 px-4 py-3 lg:px-0 lg:py-0">
-        <Card class="p-4 lg:p-6">
-          <!-- Coach avatar -->
-          <div class="mb-3 flex items-center gap-2.5">
-            <span
-              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-base leading-none text-primary-fg"
-              aria-hidden="true"
-            >貝</span>
-            <span class="text-sm font-medium text-ink">教練 · {{ COACH.name }}</span>
+      <!-- Coach bubble:暖色對話框浮在 jade；內容過長時自己捲動（捲軸隱藏），棋盤與 CTA 都不被擠。 -->
+      <div class="coach-scroll flex min-h-0 flex-1 items-start gap-2.5 overflow-y-auto px-4 pb-3 pt-1 lg:w-[26rem] lg:flex-none lg:px-0 lg:pt-0">
+        <span
+          class="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display text-base leading-none text-primary-fg"
+          aria-hidden="true"
+        >貝</span>
+        <div class="min-w-0 flex-1 rounded-[6px_18px_18px_18px] bg-surface-card p-4 shadow-[0_6px_20px_rgba(8,24,18,0.28)]">
+          <div class="mb-2.5 flex items-center justify-between gap-2 font-sans text-xs font-medium text-ink-muted">
+            <span>教練 · {{ COACH.name }}</span>
+            <span class="shrink-0 font-num text-ink-faint">{{ stepIndex + 1 }} / {{ lesson.steps.length }}</span>
           </div>
 
           <!-- Scenario (step 0 only) -->
           <p
             v-if="stepIndex === 0 && lesson.scenario"
-            class="mb-4 border-l-2 border-primary/40 pl-4 font-lesson text-base leading-relaxed text-ink-muted"
+            class="mb-3 border-l-2 border-primary/40 pl-3 font-lesson text-[15px] leading-relaxed text-ink-muted"
           >{{ lesson.scenario }}</p>
 
           <!-- Step narration -->
-          <p class="mb-4 font-sans text-base leading-loose text-ink">{{ currentStep?.text }}</p>
+          <p class="font-sans text-base leading-loose text-ink">{{ currentStep?.text }}</p>
 
           <!-- Wrong-move feedback (no buttons — they're in the sticky bar) -->
-          <Alert v-if="wrongMove" variant="danger" class="mb-4">
+          <Alert v-if="wrongMove" variant="danger" class="mt-3">
             <AlertTitle class="text-danger">這一步不是答案</AlertTitle>
             <AlertDescription v-if="currentStep?.hint" class="text-ink">{{ currentStep.hint }}</AlertDescription>
             <p v-if="answerRevealed" class="mt-2 text-sm text-hint">
@@ -317,8 +327,8 @@ function prev(): void {
           </Alert>
 
           <!-- Hint text (no reveal button — in sticky bar) -->
-          <div v-else-if="isInteractive && !solved">
-            <p class="mb-3 text-sm text-ink-muted">輪到你了——在棋盤上走一步。</p>
+          <div v-else-if="isInteractive && !solved" class="mt-3">
+            <p class="mb-2 font-sans text-sm text-ink-muted">輪到你了——在棋盤上走一步。</p>
             <Alert v-if="hintShown" variant="hint">
               <AlertDescription class="text-hint-fg">{{ currentStep?.hint }}</AlertDescription>
               <p v-if="answerRevealed" class="mt-2 text-sm text-hint">答案已畫在棋盤上——照著箭頭走走看。</p>
@@ -326,12 +336,13 @@ function prev(): void {
           </div>
 
           <!-- Success -->
-          <Alert v-if="solved && currentStep?.successText" variant="success" class="mb-4">
+          <Alert v-if="solved && currentStep?.successText" variant="success" class="mt-3">
             <AlertDescription class="text-success">{{ currentStep.successText }}</AlertDescription>
           </Alert>
 
-          <!-- Desktop-only inline action buttons (hidden on mobile — see sticky bar) -->
-          <div class="hidden items-center gap-2 pt-2 lg:flex">
+          <!-- Desktop-only inline action buttons (hidden on mobile — see sticky bar). Bubble is a fixed
+               26rem on desktop — wide enough for all buttons on one row (prev/next grouped no-wrap). -->
+          <div class="mt-4 hidden items-center gap-2 lg:flex">
             <Button
               v-if="wrongMove"
               variant="danger"
@@ -344,8 +355,9 @@ function prev(): void {
               class="text-sm"
               @click="answerRevealed = true"
             >揭曉答案</Button>
+            <!-- 提示按下後「替換」成揭曉答案（非並存），換步才還原 -->
             <Button
-              v-if="isInteractive && !solved && !wrongMove"
+              v-if="isInteractive && !solved && !wrongMove && !hintShown"
               variant="outline"
               class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
               :class="{ 'lightbulb-glow': lightbulbGlowing }"
@@ -354,34 +366,35 @@ function prev(): void {
               <Lightbulb :size="15" :stroke-width="1.8" /> 提示
             </Button>
             <Button
-              v-if="hintShown && !answerRevealed && !wrongMove"
+              v-else-if="isInteractive && !solved && !wrongMove && hintShown && !answerRevealed"
               class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
               @click="answerRevealed = true"
             >揭曉答案</Button>
-            <div class="flex-1" />
-            <Button
-              v-if="stepIndex > 0"
-              variant="secondary"
-              class="text-sm"
-              @click="prev"
-            ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
-            <Button
-              class="text-sm"
-              :variant="isLastStep ? 'gold' : 'default'"
-              :disabled="!canAdvance"
-              @click="next"
-            >
-              <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
-              <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
-            </Button>
+            <!-- prev/next 包成不換行的導航群組，永遠並排（桌機氣泡窄時 contextual 換行，但兩顆導航鈕不拆） -->
+            <div class="ml-auto flex shrink-0 gap-2">
+              <Button
+                v-if="stepIndex > 0"
+                variant="secondary"
+                class="text-sm"
+                @click="prev"
+              ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
+              <Button
+                class="text-sm"
+                :variant="isLastStep ? 'gold' : 'default'"
+                :disabled="!canAdvance"
+                @click="next"
+              >
+                <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
+                <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
+              </Button>
+            </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
 
-    <!-- Sticky bottom action bar — mobile only. fullBleed route: no tab nav below, so it sits at
-         the very bottom (+ iOS safe-area inset). -->
-    <div class="sticky bottom-0 z-20 flex shrink-0 items-center gap-2 border-t border-line bg-surface-base px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+    <!-- CTA bar — mobile only. 固定底部、gradient 上緣讓氣泡內容滑到後面自然淡出（暗示可捲）。 -->
+    <div class="flex shrink-0 items-center gap-2 bg-gradient-to-t from-surface-deep from-60% to-transparent px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-5 lg:hidden">
       <!-- Contextual: wrong-move state -->
       <template v-if="wrongMove">
         <Button variant="danger" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
@@ -393,9 +406,10 @@ function prev(): void {
         >揭曉答案</Button>
       </template>
 
-      <!-- Contextual: interactive hint state -->
+      <!-- Contextual: interactive hint state — 提示按下後「替換」成揭曉答案（非並存） -->
       <template v-else-if="isInteractive && !solved">
         <Button
+          v-if="!hintShown"
           variant="outline"
           class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
           :class="{ 'lightbulb-glow': lightbulbGlowing }"
@@ -404,7 +418,7 @@ function prev(): void {
           <Lightbulb :size="15" :stroke-width="1.8" /> 提示
         </Button>
         <Button
-          v-if="hintShown && !answerRevealed"
+          v-else-if="!answerRevealed"
           class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
           @click="answerRevealed = true"
         >揭曉答案</Button>
@@ -477,6 +491,20 @@ function prev(): void {
 </template>
 
 <style scoped>
+/* vue3-chessboard 的 .main-wrap 被釘死 700px（撐爆容器、桌機棋盤過大溢出）。強制它跟著外層寬度走，
+   底下的 main-board(aspect)→cg-board 才會一起 follow 成正方（桌機棋盤過大修正）。 */
+.board-fit :deep(.main-wrap) {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+/* Coach bubble scrolls when narration is long; hide the scrollbar — the gradient fade is the cue. */
+.coach-scroll {
+  scrollbar-width: none;
+}
+.coach-scroll::-webkit-scrollbar {
+  display: none;
+}
 @keyframes lightbulb-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(201, 135, 46, 0.0); }
   50%      { box-shadow: 0 0 0 4px rgba(201, 135, 46, 0.45); }
