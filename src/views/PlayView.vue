@@ -3,7 +3,6 @@ import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import ChessBoard from '@/components/chess-board.vue'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { DarkPanel } from '@/components/ui/gambit'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
@@ -41,7 +40,7 @@ const confirmAction = ref<'undo' | 'resign' | null>(null)
 const confirmOverlay = ref<HTMLElement | null>(null)
 const CONFIRM_COPY = {
   undo: { title: '確定要悔棋嗎？', body: '這會收回你和對手的上一步。', cta: '確定悔棋', danger: false },
-  resign: { title: '確定要認輸嗎？', body: '這盤棋會以認輸結束，無法復原。', cta: '確定認輸', danger: true },
+  resign: { title: '確定要投降嗎？', body: '這盤棋會以投降結束，無法復原。', cta: '確定投降', danger: true },
 } as const
 // Move-record scroll container — auto-scrolled to the latest move.
 const moveScroll = ref<HTMLElement | null>(null)
@@ -213,7 +212,7 @@ const endReasonLabel = computed(() => {
     threefold: '三次重複局面',
     'insufficient-material': '子力不足',
     'fifty-move': '五十步和棋',
-    resignation: '認輸',
+    resignation: '投降',
   }
   const reason = terminal.value?.endReason
   return reason ? (map[reason] ?? reason) : ''
@@ -270,37 +269,34 @@ if (isDev) {
           :last-move="lastMove"
           @move-made="handleMoveMade"
         />
-
-        <!-- GAME_OVER overlay — covers the board (leaves the wood frame visible) -->
-        <div
-          v-if="phase === 'GAME_OVER'"
-          class="game-over-overlay absolute inset-2 z-50 flex flex-col items-center justify-center rounded-[6px] bg-ink/60"
-        >
-          <Card :accent="playerWon" class="go-card z-50 min-w-[240px] p-6 text-center shadow-card-hover">
-            <p
-              class="mb-1 font-display text-xl font-bold"
-              :class="playerWon ? 'text-gold-dark' : 'text-ink'"
-            >{{ resultLabel }}</p>
-            <p class="mb-5 text-sm text-ink-muted">{{ endReasonLabel }}</p>
-            <div class="flex justify-center gap-3">
-              <Button :variant="playerWon ? 'gold' : 'default'" @click="handleNewGame">再來一局</Button>
-              <Button variant="secondary" @click="handleReview">複盤</Button>
-            </div>
-          </Card>
-        </div>
       </div>
 
-      <!-- Right column: info panel (對手 + 棋譜 + 悔棋/投降), adjacent to the board on desktop. -->
+      <!-- Right column: info panel (結果／對手 + 棋譜 + 悔棋/投降), below the board on mobile,
+           adjacent on desktop. Shown during play AND game-over (完局結果 inline，不蓋棋盤彈窗). -->
       <div
-        v-if="phase === 'PLAYER_TURN' || phase === 'AI_THINKING'"
+        v-if="phase !== 'SETUP'"
         class="w-full max-w-[min(92vw,28rem)] md:w-[20rem] md:max-w-none"
       >
         <DarkPanel>
           <!-- 側板文字統一 Cubic 11（font-num），與 eval 一致 -->
           <div class="font-num">
+          <!-- 完局結果（inline，取代蓋棋盤彈窗）：結果 + 原因 + 再來一局／複盤 -->
+          <div
+            v-if="phase === 'GAME_OVER'"
+            class="mb-3 rounded-[10px] border border-white/10 bg-white/[0.05] p-3.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
+          >
+            <p class="font-display text-xl font-bold" :class="playerWon ? 'text-gold' : 'text-ink-on-deep'">{{ resultLabel }}</p>
+            <p class="mt-1 font-sans text-[13px] text-ink-on-deep-dim">{{ endReasonLabel }}</p>
+            <div class="mt-3.5 flex gap-2">
+              <Button :variant="playerWon ? 'gold' : 'default'" size="sm" class="flex-1" @click="handleNewGame">再來一局</Button>
+              <Button variant="secondary" size="sm" class="flex-1" @click="handleReview">複盤</Button>
+            </div>
+          </div>
+
           <!-- 密度列：回合狀態 ｜ 身分（執子 + 對手等級）合併成一條，省垂直空間，手機一屏可見。
                輪到你以金色 indicator 強調（Gambit 金＝focus/reward）；AI 思考時左段換成呼吸點。 -->
           <div
+            v-if="phase !== 'GAME_OVER'"
             class="mb-3 flex items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-white/10 bg-white/[0.05] px-3 py-2 text-[14px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
           >
             <template v-if="phase === 'PLAYER_TURN'">
@@ -350,8 +346,8 @@ if (isDev) {
             </div>
           </div>
 
-          <!-- 控制：悔棋（中性）/ 投降（紅色 destructive）；兩者皆彈窗二次確認，防誤觸 -->
-          <div class="mt-3 flex gap-2">
+          <!-- 控制：悔棋（中性）/ 投降（紅色 destructive）；兩者皆彈窗二次確認，防誤觸。完局後隱藏。 -->
+          <div v-if="phase !== 'GAME_OVER'" class="mt-3 flex gap-2">
             <button
               type="button"
               class="min-h-[44px] flex-1 rounded-btn border border-white/10 bg-white/[0.06] text-sm font-semibold text-ink-on-deep transition-colors hover:bg-white/[0.10] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:pointer-events-none disabled:opacity-40"
@@ -381,9 +377,10 @@ if (isDev) {
       @keydown.esc="confirmAction = null"
       @click.self="confirmAction = null"
     >
-      <Card class="go-card w-full max-w-[300px] p-6 text-center shadow-card-hover">
-        <p class="mb-1 font-display text-lg font-bold text-ink">{{ CONFIRM_COPY[confirmAction].title }}</p>
-        <p class="mb-5 text-sm text-ink-muted">{{ CONFIRM_COPY[confirmAction].body }}</p>
+      <!-- 深色卡，與課程完成卡同一全站 modal 語彙（對局畫面是深色，cream 卡會跳） -->
+      <div class="go-card w-full max-w-[320px] rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#163929,#0C2118)] p-6 text-center shadow-[0_16px_40px_rgba(8,24,18,0.5)]">
+        <p class="mb-1.5 font-display text-lg font-bold text-ink-on-deep">{{ CONFIRM_COPY[confirmAction].title }}</p>
+        <p class="mb-5 font-sans text-sm text-ink-on-deep-dim">{{ CONFIRM_COPY[confirmAction].body }}</p>
         <div class="flex justify-center gap-3">
           <Button variant="secondary" class="flex-1" @click="confirmAction = null">取消</Button>
           <Button
@@ -392,7 +389,7 @@ if (isDev) {
             @click="runConfirm"
           >{{ CONFIRM_COPY[confirmAction].cta }}</Button>
         </div>
-      </Card>
+      </div>
     </div>
 
     <!-- DEV ONLY: FEN injection tool — hidden by default, toggle with Ctrl+Shift+F -->

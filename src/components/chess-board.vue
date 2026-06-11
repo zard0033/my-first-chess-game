@@ -372,7 +372,7 @@ defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
 
 <template>
   <div
-    class="relative min-w-[352px]"
+    class="relative min-w-0 sm:min-w-[352px]"
     role="grid"
     aria-label="Chess board"
     aria-rowcount="8"

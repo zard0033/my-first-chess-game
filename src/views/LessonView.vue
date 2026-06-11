@@ -238,7 +238,7 @@ function prev(): void {
            Padding/size live on the OUTER box; the inner `relative` box hugs the board so the
            annotation overlay (absolute inset-0) aligns with the squares — padding on the positioned
            ancestor would shift every arrow sideways (課程答案箭頭偏移修正). -->
-      <div class="mx-auto w-full max-w-[min(100%,46dvh)] shrink-0 px-6 pt-1 lg:mx-0 lg:max-w-none lg:flex-1 lg:self-start lg:px-0 lg:pt-1">
+      <div class="mx-auto w-full shrink-0 px-4 pt-1 lg:mx-0 lg:max-w-none lg:flex-1 lg:self-start lg:px-0 lg:pt-1">
         <!-- wooden tray：棋盤木框（與試煉／對局同款木盤） -->
         <div class="rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-3 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)]">
         <div ref="boardFit" class="relative board-fit">
@@ -396,55 +396,59 @@ function prev(): void {
       </div>
     </div>
 
-    <!-- CTA bar — mobile only. 固定底部、gradient 上緣讓氣泡內容滑到後面自然淡出（暗示可捲）。 -->
-    <div class="flex shrink-0 items-center gap-2 bg-gradient-to-t from-surface-deep from-60% to-transparent px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-5 lg:hidden">
-      <!-- Contextual: wrong-move state -->
+    <!-- CTA bar — mobile only. 固定底部、gradient 上緣讓氣泡內容滑到後面自然淡出（暗示可捲）。
+         底部留白加大（safe-area + 1rem）避免 iPhone 圓角／home indicator 吃到按鈕。 -->
+    <div class="flex shrink-0 items-center gap-2 bg-gradient-to-t from-surface-deep from-60% to-transparent px-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-5 lg:hidden">
+      <!-- 走錯：只留 揭曉答案 + 重試（重試靠右為主行動），不顯示上一步／下一步，專注修正當前步 -->
       <template v-if="wrongMove">
-        <Button variant="danger" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
+        <div class="flex-1" />
         <Button
           v-if="!answerRevealed"
           variant="secondary"
           class="text-sm"
           @click="answerRevealed = true"
         >揭曉答案</Button>
+        <Button variant="danger" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
       </template>
 
-      <!-- Contextual: interactive hint state — 提示按下後「替換」成揭曉答案（非並存） -->
-      <template v-else-if="isInteractive && !solved">
+      <template v-else>
+        <!-- Contextual: interactive hint state — 提示按下後「替換」成揭曉答案（非並存） -->
+        <template v-if="isInteractive && !solved">
+          <Button
+            v-if="!hintShown"
+            variant="outline"
+            class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
+            :class="{ 'lightbulb-glow': lightbulbGlowing }"
+            @click="hintShown = true"
+          >
+            <Lightbulb :size="15" :stroke-width="1.8" /> 提示
+          </Button>
+          <Button
+            v-else-if="!answerRevealed"
+            class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
+            @click="answerRevealed = true"
+          >揭曉答案</Button>
+        </template>
+
+        <div class="flex-1" />
+
+        <!-- prev / next -->
         <Button
-          v-if="!hintShown"
-          variant="outline"
-          class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
-          :class="{ 'lightbulb-glow': lightbulbGlowing }"
-          @click="hintShown = true"
+          v-if="stepIndex > 0"
+          variant="secondary"
+          class="text-sm"
+          @click="prev"
+        ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
+        <Button
+          class="text-sm"
+          :variant="isLastStep ? 'gold' : 'default'"
+          :disabled="!canAdvance"
+          @click="next"
         >
-          <Lightbulb :size="15" :stroke-width="1.8" /> 提示
+          <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
+          <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
         </Button>
-        <Button
-          v-else-if="!answerRevealed"
-          class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
-          @click="answerRevealed = true"
-        >揭曉答案</Button>
       </template>
-
-      <div class="flex-1" />
-
-      <!-- Always: prev / next -->
-      <Button
-        v-if="stepIndex > 0"
-        variant="secondary"
-        class="text-sm"
-        @click="prev"
-      ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
-      <Button
-        class="text-sm"
-        :variant="isLastStep ? 'gold' : 'default'"
-        :disabled="!canAdvance"
-        @click="next"
-      >
-        <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
-        <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
-      </Button>
     </div>
 
     <!-- Bridge 1: lesson completion card (Learning Loop #20) -->
