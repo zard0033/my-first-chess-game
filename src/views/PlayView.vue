@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { onBeforeRouteLeave } from 'vue-router'
-import { storeToRefs } from 'pinia'
 import ChessBoard from '@/components/chess-board.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -13,12 +11,12 @@ import { useGameLifecycle } from '@/modules/game-lifecycle/use-game-lifecycle'
 import { usePlayEngine } from '@/modules/chess-engine/play-engine'
 import { useGameStore } from '@/stores/game-store'
 import { useUiStore } from '@/stores/ui-store'
-import { createLeaveGuard, useNavigationGuards } from '@/composables/use-navigation-guards'
+import { useResumeGameStore } from '@/stores/resume-game'
 
 const router = useRouter()
 const gameStore = useGameStore()
 const uiStore = useUiStore()
-const { isGameInProgress } = storeToRefs(gameStore)
+const resumeStore = useResumeGameStore()
 
 // NOTE: router is NOT passed to useGameLifecycle intentionally.
 // onGameTerminal() disarms the navigation guard (setGameInProgress(false)) and writes
@@ -80,19 +78,48 @@ const engine = usePlayEngine()
 // Skill Level (0–20) chosen for the current game — used for engine.play and win-recording.
 const chosenLevel = ref(3)
 
-onBeforeRouteLeave(createLeaveGuard(() => gameStore.isGameInProgress))
-useNavigationGuards(isGameInProgress, (path) => router.push(path))
-
 // Board is playable only on the player's turn (disabled while AI thinks, game over, or no game).
 const boardDisabled = computed(() => phase.value !== 'PLAYER_TURN')
 
 /** Start a game from a confirmed setup payload (from the global modal via the ui store). */
 function startFromPayload(payload: { color: 'white' | 'black'; level: number }): void {
+  void resumeStore.clear() // a fresh game replaces any saved in-progress one (含「另開新對局」)
   chosenLevel.value = payload.level
   lifecycle.startGame(payload.color, payload.level)
   // Player chose black → engine moves first.
   if (lifecycle.phase.value === 'AI_THINKING') void requestAiMove()
 }
+
+/** Restore the saved in-progress game (from the home "繼續對局" card). Returns false if it failed. */
+function resumeSavedGame(): boolean {
+  const snap = resumeStore.current
+  if (!snap || !lifecycle.restoreGame(snap)) return false
+  chosenLevel.value = snap.level
+  gameStore.setGameInProgress(true)
+  if (lifecycle.phase.value === 'AI_THINKING') void requestAiMove()
+  return true
+}
+
+// Persist after every move so a refresh / tab-close / crash can still resume. Threshold: at least one
+// move played (an untouched board is not worth a "繼續對局" card). Skipped once the game is over.
+watch(
+  () => moveHistory.value.length,
+  (len) => {
+    if (len >= 1 && (phase.value === 'PLAYER_TURN' || phase.value === 'AI_THINKING')) {
+      resumeStore.saveLocal(lifecycle.getResumeSnapshot())
+    }
+  },
+)
+
+// Game finished → it is no longer resumable; drop the saved snapshot (local + cloud).
+watch(terminal, (t) => {
+  if (t) void resumeStore.clear()
+})
+
+// Leaving the board → push the latest local snapshot to the cloud (best-effort; no-op logged out).
+onBeforeUnmount(() => {
+  if (resumeStore.hasResume) void resumeStore.syncToCloud()
+})
 
 /** Consume a pending setup (set by the global modal) and start the game. */
 function consumePending(): void {
@@ -116,8 +143,11 @@ onMounted(async () => {
   } catch {
     console.warn('Stockfish unavailable — playing without AI')
   }
-  // Arrived from a setup confirmation → start straight away; otherwise open the setup modal.
-  if (uiStore.pendingGame) consumePending()
+  // Resume intent (home "繼續對局") → restore the saved game; else a setup confirmation → start;
+  // else open the setup modal. A failed restore falls back to setup so the player is never stuck.
+  if (uiStore.consumeResume()) {
+    if (!resumeSavedGame()) uiStore.openPlaySetup()
+  } else if (uiStore.pendingGame) consumePending()
   else if (!gameStore.isGameInProgress) uiStore.openPlaySetup()
 })
 

@@ -6,6 +6,7 @@ import type { CompletedGame } from '@/stores/game-store'
 import { UNSYNCED_QUEUE_MAX } from '@/config/sync-tuning'
 import { HISTORY_LOAD_LIMIT } from '@/config/history-config'
 import type { Cursor } from '@/types/game-history'
+import type { ResumeSnapshot } from '@/types/resume'
 import { buildPgn } from '@/modules/game-export/assembler'
 
 export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error'
@@ -81,6 +82,33 @@ export const useDataSyncStore = defineStore('dataSync', () => {
       .sort()
   }
 
+  /**
+   * Read the guest's locally-queued games as DB-shaped rows so the same mappers/cursor that serve
+   * the cloud path work unchanged (訪客完局紀錄讀取). `created_at` is synthesised from `played_at`
+   * (the queue has no separate insert time); ordering mirrors the cloud query — played_at desc, id asc.
+   */
+  function _readUnsyncedRows(): Record<string, unknown>[] {
+    const rows: Record<string, unknown>[] = []
+    for (const key of _getUnsyncedKeys()) {
+      const raw = localStorage.getItem(key)
+      if (!raw) continue
+      try {
+        const game = JSON.parse(raw) as QueuedGame
+        const playedAt = new Date(game.completedAt).toISOString()
+        rows.push({ ...buildRow(game, ''), created_at: playedAt })
+      } catch {
+        // Skip a corrupt entry — a single bad row must not blank the whole history.
+      }
+    }
+    rows.sort((a, b) => {
+      const pa = a.played_at as string
+      const pb = b.played_at as string
+      if (pa !== pb) return pa < pb ? 1 : -1
+      return (a.id as string) < (b.id as string) ? -1 : 1
+    })
+    return rows
+  }
+
   function _writeToUnsyncedQueue(game: QueuedGame): void {
     if (typeof localStorage === 'undefined') return
     const keys = _getUnsyncedKeys()
@@ -149,7 +177,19 @@ export const useDataSyncStore = defineStore('dataSync', () => {
    */
   async function loadGameHistory(cursor?: Cursor): Promise<Record<string, unknown>[]> {
     const authStore = useAuthStore()
-    if (!authStore.userId) return []
+    if (!authStore.userId) {
+      // Guest: serve the local queue (the same games that flush to cloud on login). Paginate in
+      // JS to mirror the cloud cursor semantics, so a guest with >1 page still loads more correctly.
+      let rows = _readUnsyncedRows()
+      if (cursor) {
+        rows = rows.filter((r) => {
+          const pa = r.played_at as string
+          if (pa < cursor.playedAt) return true
+          return pa === cursor.playedAt && (r.id as string) > cursor.id
+        })
+      }
+      return rows.slice(0, HISTORY_LOAD_LIMIT)
+    }
 
     let query = supabase
       .from('game_sessions')
@@ -265,12 +305,68 @@ export const useDataSyncStore = defineStore('dataSync', () => {
     return !error
   }
 
+  /**
+   * Fetch the player's single in-progress game (續玩對局). Returns null when logged out or on error
+   * (resume degrades to the local cache; a read failure must never surface). All in_progress_game
+   * supabase.from() calls live here per ADR-0011.
+   */
+  async function loadResumeGame(): Promise<ResumeSnapshot | null> {
+    const authStore = useAuthStore()
+    if (!authStore.userId) return null
+    const { data, error } = await supabase
+      .from('in_progress_game')
+      .select('moves, player_color, level, player_move_times, updated_at')
+      .maybeSingle()
+    if (error || !data) return null
+    return {
+      moves: (data.moves ?? []) as string[],
+      playerColor: data.player_color as 'white' | 'black',
+      level: data.level as number,
+      playerMoveTimes: (data.player_move_times ?? []) as number[],
+      updatedAt: new Date(data.updated_at as string).getTime(),
+    }
+  }
+
+  /**
+   * Persist the player's in-progress game (one row per user, replaced on conflict). No-op (false)
+   * when logged out — the caller keeps it in localStorage and re-pushes on the next login.
+   */
+  async function upsertResumeGame(snapshot: ResumeSnapshot): Promise<boolean> {
+    const authStore = useAuthStore()
+    const userId = authStore.userId
+    if (!userId) return false
+    const { error } = await supabase.from('in_progress_game').upsert(
+      {
+        user_id: userId,
+        moves: snapshot.moves,
+        player_color: snapshot.playerColor,
+        level: snapshot.level,
+        player_move_times: snapshot.playerMoveTimes,
+        updated_at: new Date(snapshot.updatedAt).toISOString(),
+      },
+      { onConflict: 'user_id' },
+    )
+    return !error
+  }
+
+  /** Delete the player's in-progress game (on completion or new game). No-op (false) when logged out. */
+  async function deleteResumeGame(): Promise<boolean> {
+    const authStore = useAuthStore()
+    const userId = authStore.userId
+    if (!userId) return false
+    const { error } = await supabase.from('in_progress_game').delete().eq('user_id', userId)
+    return !error
+  }
+
   return {
     syncStatus,
     lastSyncedGameId,
     syncGame,
     flushUnsyncedQueue,
     loadGameHistory,
+    loadResumeGame,
+    upsertResumeGame,
+    deleteResumeGame,
     loadLessonProgress,
     upsertLessonProgress,
     loadSideLearned,

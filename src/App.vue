@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useDataSyncStore } from '@/stores/data-sync'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
+import { useResumeGameStore } from '@/stores/resume-game'
 import { useUiStore } from '@/stores/ui-store'
 import type { PendingGame } from '@/stores/ui-store'
 import AppNav from '@/components/app-nav.vue'
@@ -14,6 +15,7 @@ const authStore = useAuthStore()
 const dataSyncStore = useDataSyncStore()
 const lessonProgressStore = useLessonProgressStore()
 const dungeonProgressStore = useDungeonProgressStore()
+const resumeGameStore = useResumeGameStore()
 const uiStore = useUiStore()
 const route = useRoute()
 const router = useRouter()
@@ -63,6 +65,7 @@ watch(() => authStore.userId, (userId) => {
     dataSyncStore.flushUnsyncedQueue()
     lessonProgressStore.reconcileOnLogin()
     dungeonProgressStore.reconcileOnLogin()
+    resumeGameStore.reconcileOnLogin()
   }
 })
 

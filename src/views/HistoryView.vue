@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { RotateCw } from 'lucide-vue-next'
 import { useGameHistoryStore } from '@/stores/game-history'
+import { useAuthStore } from '@/stores/auth'
 import HistoryRow from '@/components/history-row.vue'
 import { HISTORY_SKELETON_ROWS } from '@/config/history-config'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { DarkPanel } from '@/components/ui/gambit'
 
 const store = useGameHistoryStore()
+const authStore = useAuthStore()
+
+const isGuest = computed(() => !authStore.userId)
 
 const loadMoreError = ref<string | null>(null)
 const loadMoreAnnouncement = ref('')
@@ -81,6 +85,15 @@ onMounted(() => {
         @click="onRefresh"
       ><RotateCw :size="18" :stroke-width="1.8" /></Button>
     </header>
+
+    <!-- 訪客資料定位：存此裝置，登入即雲端備份 -->
+    <p
+      v-if="isGuest && !store.isLoading && store.entries.length > 0"
+      class="px-[18px] pb-1 font-sans text-xs text-ink-muted"
+    >
+      訪客資料存於此裝置 ·
+      <RouterLink to="/sign-in" class="font-medium text-primary underline-offset-2 hover:underline">登入即雲端備份</RouterLink>
+    </p>
 
     <!-- 戰績摘要 — 深青瓷 -->
     <div v-if="store.entries.length > 0" class="px-[18px] pb-1 pt-1">

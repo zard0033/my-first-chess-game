@@ -13,6 +13,7 @@ import { Chess } from 'chess.js'
 import { useGameStore } from '../../stores/game-store'
 import type { CompletedGame } from '../../stores/game-store'
 import { useDataSyncStore } from '../../stores/data-sync'
+import type { ResumePayload } from '../../types/resume'
 
 // ---- Types ----
 
@@ -324,6 +325,56 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     }
   }
 
+  /**
+   * Restore an in-progress game from a saved snapshot (續玩對局). Replays the UCI move list into a
+   * fresh chess.js so the full internal state — undo stack, threefold history, SAN record — is rebuilt
+   * (storing only the FEN would lose all three). Phase is derived from whose turn it is. Returns false
+   * (state untouched) on a corrupt move list or an already-terminal position, so a bad snapshot can
+   * never strand the player on a dead board.
+   */
+  function restoreGame(snapshot: ResumePayload): boolean {
+    const next = new Chess()
+    const sans: string[] = []
+    try {
+      for (const uci of snapshot.moves) {
+        const move = next.move({
+          from: uci.slice(0, 2),
+          to: uci.slice(2, 4),
+          promotion: uci.length === 5 ? (uci[4] as 'q' | 'r' | 'b' | 'n') : undefined,
+        })
+        sans.push(move.san)
+      }
+    } catch {
+      return false
+    }
+    if (detectTerminal(next)) return false
+
+    chess = next
+    playerColor.value = snapshot.playerColor
+    aiSkillLevel.value = snapshot.level
+    fen.value = next.fen()
+    terminal.value = null
+    _moves = [...snapshot.moves]
+    _playerMoveTimes = [...snapshot.playerMoveTimes]
+    moveHistory.value = sans
+    const last = snapshot.moves[snapshot.moves.length - 1]
+    lastMove.value = last ? [last.slice(0, 2), last.slice(2, 4)] : null
+    const turn = next.turn() === 'w' ? 'white' : 'black'
+    if (turn === snapshot.playerColor) enterPlayerTurn()
+    else phase.value = 'AI_THINKING'
+    return true
+  }
+
+  /** Snapshot the live game for the resume store. Caller stamps updatedAt. */
+  function getResumeSnapshot(): ResumePayload {
+    return {
+      moves: [..._moves],
+      playerColor: playerColor.value,
+      level: aiSkillLevel.value,
+      playerMoveTimes: [..._playerMoveTimes],
+    }
+  }
+
   return {
     phase: readonly(phase),
     playerColor: readonly(playerColor),
@@ -339,6 +390,8 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     undo,
     resetToSetup,
     setDevFen,
+    restoreGame,
+    getResumeSnapshot,
     /** Internal chess instance accessor — exposed only for unit tests (non-reactivity assertion). */
     _getChess: (): Chess => chess,
     /** Internal moves array accessor — exposed only for unit tests. */

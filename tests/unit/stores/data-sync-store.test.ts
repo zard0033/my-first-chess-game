@@ -19,6 +19,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
 import { useDataSyncStore } from '@/stores/data-sync'
 import type { CompletedGame } from '@/stores/game-store'
+import { HISTORY_LOAD_LIMIT } from '@/config/history-config'
 
 function mockFrom(upsertResult: { error: unknown } = { error: null }) {
   const upsertFn = vi.fn().mockResolvedValueOnce(upsertResult)
@@ -469,6 +470,175 @@ describe('useDataSyncStore', () => {
       ).toBe(true)
       const [rows] = upsertFn.mock.calls[0]
       expect(rows).toEqual([{ user_id: 'uid-1', puzzle_id: 'l1-capture-queen', hint_used: true }])
+    })
+  })
+
+  // ── loadGameHistory — guest reads the local unsynced queue (訪客完局紀錄) ──
+  describe('loadGameHistory — guest (local unsynced queue)', () => {
+    function queueGame(id: string, completedAt: number): void {
+      localStorage.setItem(
+        `chess:unsynced:${id}`,
+        JSON.stringify({ ...makeGame({ completedAt }), id }),
+      )
+    }
+
+    it('returns queued games as DB-shaped rows without touching supabase', async () => {
+      queueGame('aaaaaaaa-0000-0000-0000-000000000001', 1_700_000_000_000)
+      const store = useDataSyncStore()
+
+      const rows = await store.loadGameHistory()
+
+      expect(supabase.from).not.toHaveBeenCalled()
+      expect(rows).toHaveLength(1)
+      expect(rows[0]).toMatchObject({
+        id: 'aaaaaaaa-0000-0000-0000-000000000001',
+        result: 'white_wins',
+        player_color: 'white',
+        move_count: 3,
+      })
+      expect(rows[0].played_at).toBe(new Date(1_700_000_000_000).toISOString())
+      expect(rows[0].created_at).toBe(rows[0].played_at)
+    })
+
+    it('orders rows by played_at descending (newest first)', async () => {
+      queueGame('aaaaaaaa-0000-0000-0000-000000000001', 1_000_000)
+      queueGame('aaaaaaaa-0000-0000-0000-000000000002', 3_000_000)
+      queueGame('aaaaaaaa-0000-0000-0000-000000000003', 2_000_000)
+      const store = useDataSyncStore()
+
+      const rows = await store.loadGameHistory()
+
+      expect(rows.map((r) => r.id)).toEqual([
+        'aaaaaaaa-0000-0000-0000-000000000002',
+        'aaaaaaaa-0000-0000-0000-000000000003',
+        'aaaaaaaa-0000-0000-0000-000000000001',
+      ])
+    })
+
+    it('skips a corrupt queue entry instead of blanking the whole history', async () => {
+      queueGame('aaaaaaaa-0000-0000-0000-000000000001', 1_000_000)
+      localStorage.setItem('chess:unsynced:bad', '{not valid json')
+      const store = useDataSyncStore()
+
+      const rows = await store.loadGameHistory()
+      expect(rows).toHaveLength(1)
+    })
+
+    it('paginates: first page caps at HISTORY_LOAD_LIMIT, cursor fetches the remainder with no overlap', async () => {
+      const total = HISTORY_LOAD_LIMIT + 5
+      for (let i = 0; i < total; i++) {
+        const id = `aaaaaaaa-0000-0000-0000-${String(i).padStart(12, '0')}`
+        queueGame(id, 1_000_000 + i * 1000)
+      }
+      const store = useDataSyncStore()
+
+      const page1 = await store.loadGameHistory()
+      expect(page1).toHaveLength(HISTORY_LOAD_LIMIT)
+
+      const last = page1[page1.length - 1]
+      const cursor = {
+        playedAt: last.played_at as string,
+        createdAt: last.created_at as string,
+        id: last.id as string,
+      }
+      const page2 = await store.loadGameHistory(cursor)
+      expect(page2).toHaveLength(5)
+
+      const page1Ids = new Set(page1.map((r) => r.id))
+      expect(page2.every((r) => !page1Ids.has(r.id as string))).toBe(true)
+    })
+  })
+
+  // ── in_progress_game (續玩對局 cross-device) ────────────────────────────
+  describe('resume game CRUD', () => {
+    const snapshot = {
+      moves: ['e2e4', 'e7e5'],
+      playerColor: 'white' as const,
+      level: 7,
+      playerMoveTimes: [1200],
+      updatedAt: 1_700_000_000_000,
+    }
+
+    describe('loadResumeGame', () => {
+      it('returns null when logged out without touching supabase', async () => {
+        const store = useDataSyncStore()
+        expect(await store.loadResumeGame()).toBeNull()
+        expect(supabase.from).not.toHaveBeenCalled()
+      })
+
+      it('maps the row to a ResumeSnapshot when logged in', async () => {
+        const maybeSingle = vi.fn().mockResolvedValueOnce({
+          data: {
+            moves: ['e2e4', 'e7e5'],
+            player_color: 'white',
+            level: 7,
+            player_move_times: [1200],
+            updated_at: new Date(1_700_000_000_000).toISOString(),
+          },
+          error: null,
+        })
+        const select = vi.fn().mockReturnValueOnce({ maybeSingle })
+        vi.mocked(supabase.from).mockReturnValueOnce({ select } as never)
+        useAuthStore().userId = 'uid-1'
+
+        const store = useDataSyncStore()
+        expect(await store.loadResumeGame()).toEqual(snapshot)
+      })
+
+      it('returns null on error (degrades to local cache)', async () => {
+        const maybeSingle = vi.fn().mockResolvedValueOnce({ data: null, error: { message: 'boom' } })
+        const select = vi.fn().mockReturnValueOnce({ maybeSingle })
+        vi.mocked(supabase.from).mockReturnValueOnce({ select } as never)
+        useAuthStore().userId = 'uid-1'
+
+        const store = useDataSyncStore()
+        expect(await store.loadResumeGame()).toBeNull()
+      })
+    })
+
+    describe('upsertResumeGame', () => {
+      it('no-ops (false) when logged out', async () => {
+        const store = useDataSyncStore()
+        expect(await store.upsertResumeGame(snapshot)).toBe(false)
+        expect(supabase.from).not.toHaveBeenCalled()
+      })
+
+      it('upserts a user-scoped row on conflict user_id and returns true', async () => {
+        const upsertFn = vi.fn().mockResolvedValueOnce({ error: null })
+        vi.mocked(supabase.from).mockReturnValueOnce({ upsert: upsertFn } as never)
+        useAuthStore().userId = 'uid-1'
+
+        const store = useDataSyncStore()
+        expect(await store.upsertResumeGame(snapshot)).toBe(true)
+        const [row, opts] = upsertFn.mock.calls[0]
+        expect(row).toMatchObject({
+          user_id: 'uid-1',
+          moves: ['e2e4', 'e7e5'],
+          player_color: 'white',
+          level: 7,
+          player_move_times: [1200],
+        })
+        expect(opts).toMatchObject({ onConflict: 'user_id' })
+      })
+    })
+
+    describe('deleteResumeGame', () => {
+      it('no-ops (false) when logged out', async () => {
+        const store = useDataSyncStore()
+        expect(await store.deleteResumeGame()).toBe(false)
+        expect(supabase.from).not.toHaveBeenCalled()
+      })
+
+      it('deletes the user-scoped row and returns true', async () => {
+        const eq = vi.fn().mockResolvedValueOnce({ error: null })
+        const del = vi.fn().mockReturnValueOnce({ eq })
+        vi.mocked(supabase.from).mockReturnValueOnce({ delete: del } as never)
+        useAuthStore().userId = 'uid-1'
+
+        const store = useDataSyncStore()
+        expect(await store.deleteResumeGame()).toBe(true)
+        expect(eq).toHaveBeenCalledWith('user_id', 'uid-1')
+      })
     })
   })
 })

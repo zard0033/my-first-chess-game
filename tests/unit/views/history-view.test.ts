@@ -29,6 +29,7 @@ function makeRouter() {
       { path: '/play', component: { template: '<div/>' } },
       { path: '/history', component: HistoryView },
       { path: '/replay/:gameId', component: { template: '<div/>' } },
+      { path: '/sign-in', component: { template: '<div/>' } },
     ],
   })
 }

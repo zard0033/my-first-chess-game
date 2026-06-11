@@ -8,6 +8,7 @@ import type { LessonTier } from '@/types/lesson'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 import { useUiStore } from '@/stores/ui-store'
+import { useResumeGameStore } from '@/stores/resume-game'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { DarkPanel, ChapterBadge, StatCard, SectionLabel, ProgressBar } from '@/components/ui/gambit'
@@ -16,6 +17,19 @@ const router = useRouter()
 const progress = useLessonProgressStore()
 const dungeon = useDungeonProgressStore()
 const uiStore = useUiStore()
+const resume = useResumeGameStore()
+
+// 續玩對局（續玩對局）：有進行中對局時，hero 卡換成「繼續對局」。
+const resumeInfo = computed(() => {
+  const r = resume.current
+  if (!r) return null
+  return {
+    moveCount: r.moves.length,
+    colorLabel: r.playerColor === 'white' ? '白' : '黑',
+    piece: r.playerColor === 'white' ? 'wP' : 'bP',
+    level: r.level,
+  }
+})
 
 // 棋子徽章：用棋盤同一套 Gioco Wood 棋子（依課程 tier 變化），與盤面風格統一。
 const TIER_PIECE: Record<LessonTier, string> = { 1: 'bP', 2: 'bN', 3: 'bR', 4: 'bK' }
@@ -39,6 +53,12 @@ function startGame() {
   // Open the setup modal over the home page; navigation to /play happens after the player confirms.
   uiStore.openPlaySetup()
 }
+function continueGame() {
+  uiStore.requestResume()
+  router.push('/play')
+}
+// 另開新對局：只開設定 modal，不在此清除 resume——真正的清除在 PlayView 確認開局時（startFromPayload）
+// 才做。否則使用者只是點開、又關掉 modal 沒開成，進行中對局會被誤刪。
 function continueLearning() {
   router.push(nextLesson.value ? `/learn/${nextLesson.value.id}` : '/learn')
 }
@@ -54,8 +74,41 @@ function continueLearning() {
 
     <!-- 主區：桌機 hero | 繼續學習 雙欄等高；手機堆疊 -->
     <div class="mt-4 md:mt-6 md:grid md:grid-cols-2 md:gap-5 md:items-stretch">
-      <!-- 新對局 — 深青瓷焦點卡（桌機填滿欄高，內容垂直置中） -->
-      <DarkPanel class="cursor-pointer md:h-full md:flex md:flex-col md:justify-center" @click="startGame">
+      <!-- 進行中對局 → 繼續對局卡；否則 開始新對局卡（深青瓷焦點卡，桌機填滿欄高、內容垂直置中） -->
+      <DarkPanel
+        v-if="resumeInfo"
+        accent-left
+        class="cursor-pointer md:h-full md:flex md:flex-col md:justify-center"
+        @click="continueGame"
+      >
+        <div class="flex items-center gap-3.5">
+          <div class="flex-1 min-w-0">
+            <!-- 進行中狀態 pill（取代 NEW GAME 的金色 eyebrow，一眼區隔出「存著的對局」；靜態點守平靜鐵則） -->
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.08] px-2.5 py-1 font-sans text-[11px] font-medium text-ink-on-deep-dim">
+              <span class="h-1.5 w-1.5 rounded-full bg-[#7EBEA5]" aria-hidden="true" />進行中
+            </span>
+            <p class="font-display font-bold text-[22px] text-ink-on-deep mt-2">繼續對局</p>
+            <!-- 重點資訊改成可掃讀的 stat chips：手數 / 執色 / 強度 -->
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              <span class="inline-flex items-center rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 font-num text-[12px] tabular-nums text-ink-on-deep">第 {{ resumeInfo.moveCount }} 手</span>
+              <span class="inline-flex items-center rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 font-num text-[12px] text-ink-on-deep">執{{ resumeInfo.colorLabel }}</span>
+              <span class="inline-flex items-center rounded-md border border-white/10 bg-white/[0.06] px-2 py-0.5 font-num text-[12px] tabular-nums text-ink-on-deep">Lv.{{ resumeInfo.level }}</span>
+            </div>
+            <div class="mt-3.5 flex items-center gap-3">
+              <Button variant="gold" size="sm" @click.stop="continueGame">
+                繼續 <ArrowRight :size="18" />
+              </Button>
+              <button
+                type="button"
+                class="font-sans text-[13px] text-ink-on-deep-dim underline-offset-2 transition-colors hover:text-ink-on-deep hover:underline"
+                @click.stop="startGame"
+              >另開新對局</button>
+            </div>
+          </div>
+          <ChapterBadge :piece="resumeInfo.piece" :size="62" />
+        </div>
+      </DarkPanel>
+      <DarkPanel v-else class="cursor-pointer md:h-full md:flex md:flex-col md:justify-center" @click="startGame">
         <div class="flex items-center gap-3.5">
           <div class="flex-1 min-w-0">
             <p class="font-sans text-[11px] font-bold tracking-[0.12em] text-gold">NEW GAME</p>

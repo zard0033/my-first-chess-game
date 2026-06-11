@@ -28,7 +28,12 @@ async function handleSubmit() {
       <h1 class="mb-1.5 font-brand text-[32px] font-black tracking-[0.08em] text-ink-on-deep" tabindex="-1">
         GAMBIT
       </h1>
-      <p class="mb-[52px] font-display text-sm tracking-[0.22em] text-ink-on-deep-dim">棋 局 即 道 場</p>
+      <p class="mb-9 font-display text-sm tracking-[0.22em] text-ink-on-deep-dim">棋 局 即 道 場</p>
+
+      <p
+        v-if="!authStore.pendingEmail"
+        class="mb-6 max-w-sm text-center font-sans text-sm leading-relaxed text-ink-on-deep-dim"
+      >登入後，對局與學習進度將雲端備份、跨裝置同步</p>
 
       <form
         v-if="!authStore.pendingEmail"

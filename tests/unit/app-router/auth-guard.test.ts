@@ -36,7 +36,9 @@ describe('auth route guard', () => {
     mockAuthSubscription()
   })
 
-  it('test_authGuard_unauthenticated_historyRoute_redirectsHome (SUPA-AC-10)', async () => {
+  // Guest mode (訪客完局紀錄): history/profile are now public — guests read their games from
+  // localStorage. These two previously asserted a redirect to home (SUPA-AC-10, now superseded).
+  it('test_authGuard_guest_historyRoute_allowsNavigation', async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
       data: { session: null }, error: null,
     })
@@ -45,11 +47,11 @@ describe('auth route guard', () => {
     await authStore.initAuth()
 
     await router.push('/history')
-    expect(router.currentRoute.value.name).toBe('home')
-    expect(router.currentRoute.value.query.login).toBe('required')
+    expect(router.currentRoute.value.name).toBe('history')
+    expect(router.currentRoute.value.query.login).toBeUndefined()
   })
 
-  it('test_authGuard_unauthenticated_profileRoute_redirectsHome (SUPA-AC-10)', async () => {
+  it('test_authGuard_guest_profileRoute_allowsNavigation', async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
       data: { session: null }, error: null,
     })
@@ -58,8 +60,8 @@ describe('auth route guard', () => {
     await authStore.initAuth()
 
     await router.push('/profile')
-    expect(router.currentRoute.value.name).toBe('home')
-    expect(router.currentRoute.value.query.login).toBe('required')
+    expect(router.currentRoute.value.name).toBe('profile')
+    expect(router.currentRoute.value.query.login).toBeUndefined()
   })
 
   it('test_authGuard_authenticated_historyRoute_allowsNavigation (AC-S5-03)', async () => {
@@ -98,8 +100,9 @@ describe('auth route guard', () => {
     expect(router.currentRoute.value.name).toBe('play')
   })
 
-  it('test_authGuard_isAuthLoadingTrue_waitsBeforeDeciding (AC-S5-02)', async () => {
-    // Guard must not redirect while auth is still loading
+  it('test_authGuard_isAuthLoadingTrue_doesNotBlockPublicNav', async () => {
+    // With no auth-only routes, the guard never blocks — navigating mid-auth-load resolves
+    // straight through without redirect or hang.
     let resolveSession!: (v: unknown) => void
     vi.mocked(supabase.auth.getSession).mockReturnValueOnce(
       new Promise(r => { resolveSession = r as typeof resolveSession })
@@ -107,20 +110,16 @@ describe('auth route guard', () => {
     const router = makeRouter()
     const authStore = useAuthStore()
 
-    // Start initAuth (won't finish until resolveSession is called)
     const initPromise = authStore.initAuth()
     expect(authStore.isAuthLoading).toBe(true)
 
-    // Start navigation while loading — guard must wait
     const navPromise = router.push('/history')
 
-    // Resolve auth with no session
     resolveSession({ data: { session: null }, error: null })
     await initPromise
     await navPromise
 
-    // Guard should now redirect (no session)
-    expect(router.currentRoute.value.name).toBe('home')
-    expect(router.currentRoute.value.query.login).toBe('required')
+    expect(router.currentRoute.value.name).toBe('history')
+    expect(router.currentRoute.value.query.login).toBeUndefined()
   })
 })

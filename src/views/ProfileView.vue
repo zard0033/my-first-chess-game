@@ -8,6 +8,7 @@ import {
   ShieldCheck,
   Settings,
   LogOut,
+  LogIn,
   ChevronRight,
   Star,
 } from 'lucide-vue-next'
@@ -16,7 +17,8 @@ import { useAuthStore } from '@/stores/auth'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const displayName = computed(() => authStore.email?.split('@')[0] ?? '玩家')
+const isGuest = computed(() => !authStore.userId)
+const displayName = computed(() => authStore.email?.split('@')[0] ?? '訪客')
 
 // 戰績統計尚未實作 → placeholder
 const stats = [
@@ -41,7 +43,7 @@ interface MenuRow {
   onClick?: () => void
 }
 
-const menuGroups: { title: string; rows: MenuRow[] }[] = [
+const menuGroups = computed<{ title: string; rows: MenuRow[] }[]>(() => [
   {
     title: '我的',
     rows: [
@@ -55,10 +57,12 @@ const menuGroups: { title: string; rows: MenuRow[] }[] = [
     rows: [
       { icon: ShieldCheck, label: '帳號安全', badge: '即將推出', locked: true },
       { icon: Settings, label: '偏好設定', badge: '即將推出', locked: true },
-      { icon: LogOut, label: '登出', destructive: true, onClick: handleSignOut },
+      isGuest.value
+        ? { icon: LogIn, label: '登入', to: '/sign-in' }
+        : { icon: LogOut, label: '登出', destructive: true, onClick: handleSignOut },
     ],
   },
-]
+])
 
 function handleRow(row: MenuRow) {
   if (row.locked) return
@@ -81,7 +85,7 @@ function handleRow(row: MenuRow) {
           ♚
         </div>
         <div>
-          <p class="mb-0.5 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-gold">玩家</p>
+          <p class="mb-0.5 font-sans text-[11px] font-bold uppercase tracking-[0.12em] text-gold">{{ isGuest ? '訪客' : '玩家' }}</p>
           <h1 class="mb-1.5 font-display text-[22px] font-bold leading-tight text-ink-on-deep" tabindex="-1">
             {{ displayName }}
           </h1>
@@ -106,6 +110,23 @@ function handleRow(row: MenuRow) {
         </div>
       </div>
     </div>
+
+    <!-- 訪客：登入價值定位＝雲端備份・跨裝置同步 -->
+    <button
+      v-if="isGuest"
+      type="button"
+      class="mx-[18px] mt-4 flex w-[calc(100%-36px)] items-center gap-3 rounded-[14px] border border-gold/40 bg-gold/[0.08] px-4 py-3.5 text-left transition-colors hover:bg-gold/[0.14] active:scale-[0.99]"
+      @click="router.push('/sign-in')"
+    >
+      <span class="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[9px] bg-gold/20 text-gold">
+        <LogIn :size="17" :stroke-width="1.8" />
+      </span>
+      <span class="flex-1">
+        <span class="block font-sans text-[15px] font-bold text-ink">登入以雲端備份・跨裝置同步</span>
+        <span class="block font-sans text-xs text-ink-muted">訪客資料存於此裝置</span>
+      </span>
+      <ChevronRight :size="15" class="text-gold" :stroke-width="1.8" />
+    </button>
 
     <!-- 選單群組 -->
     <div v-for="group in menuGroups" :key="group.title" class="px-[18px] pt-4">

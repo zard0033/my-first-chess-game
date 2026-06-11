@@ -22,6 +22,9 @@ export const useUiStore = defineStore('ui', () => {
   // only after the player confirms do we navigate to /play and start the game.
   const showPlaySetup = ref(false)
   const pendingGame = ref<PendingGame | null>(null)
+  // Set when the home "繼續對局" card is tapped → PlayView restores the saved game instead of
+  // opening the setup modal (續玩對局).
+  const pendingResume = ref(false)
 
   function openPlaySetup(): void {
     showPlaySetup.value = true
@@ -39,6 +42,15 @@ export const useUiStore = defineStore('ui', () => {
     const g = pendingGame.value
     pendingGame.value = null
     return g
+  }
+  /** Home requests resuming the saved game; PlayView consumes the flag on mount. */
+  function requestResume(): void {
+    pendingResume.value = true
+  }
+  function consumeResume(): boolean {
+    const r = pendingResume.value
+    pendingResume.value = false
+    return r
   }
 
   watch(highestBeatenLevel, (value) => {
@@ -58,9 +70,12 @@ export const useUiStore = defineStore('ui', () => {
     recordWin,
     showPlaySetup,
     pendingGame,
+    pendingResume,
     openPlaySetup,
     closePlaySetup,
     requestGame,
     consumePendingGame,
+    requestResume,
+    consumeResume,
   }
 })

@@ -24,7 +24,10 @@ export const routes = [
 
 export const scrollBehavior: RouterScrollBehavior = (_to, _from, savedPosition) => savedPosition ?? { top: 0 }
 
-const AUTH_REQUIRED_ROUTES = new Set(['history', 'profile'])
+// Guest mode: every route is reachable without login — completed games, history, and profile all
+// work from localStorage and back up to the cloud on login (訪客完局紀錄). The guard infrastructure
+// below is retained (empty set) so a future genuinely auth-only route can opt in by name.
+const AUTH_REQUIRED_ROUTES = new Set<string>([])
 
 // Factory function: must be called AFTER any history.replaceState() call so that
 // createWebHistory() reads the correct URL (replaceState does not fire popstate).
