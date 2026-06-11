@@ -230,7 +230,7 @@ if (isDev) {
       <!-- framed board (wooden tray) + GAME_OVER overlay; scales by viewport height, capped so the
            adjacent panel still fits (no overlap / overflow). -->
       <div
-        class="relative w-full max-w-[min(92vw,28rem)] rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-3 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)] md:w-[min(74vh,calc(100vw_-_26rem),56rem)] md:max-w-none"
+        class="relative w-full shrink-0 max-w-[min(92vw,28rem)] rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-3 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)] md:w-[min(74vh,calc(100vw_-_26rem),56rem)] md:max-w-none"
       >
         <ChessBoard
           :fen="fen"
@@ -268,46 +268,44 @@ if (isDev) {
         <DarkPanel>
           <!-- 側板文字統一 Cubic 11（font-num），與 eval 一致 -->
           <div class="font-num">
-          <!-- 回合徽章（置於側板頂端，與棋盤同高；輪到你以金色 indicator 強調） -->
+          <!-- 密度列：回合狀態 ｜ 身分（執子 + 對手等級）合併成一條，省垂直空間，手機一屏可見。
+               輪到你以金色 indicator 強調（Gambit 金＝focus/reward）；AI 思考時左段換成呼吸點。 -->
           <div
-            v-if="phase === 'PLAYER_TURN'"
-            class="mb-3 flex items-center justify-center gap-2 rounded-[10px] bg-[linear-gradient(180deg,#2A8468,#1C7059)] px-4 py-2.5 text-[15px] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18),0_0_0_1px_rgba(248,181,0,0.40),0_3px_16px_rgba(248,181,0,0.22)]"
+            class="mb-3 flex items-center gap-1.5 whitespace-nowrap rounded-[10px] border border-white/10 bg-white/[0.05] px-3 py-2 text-[14px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
           >
-            <span
-              class="turn-dot h-2.5 w-2.5 rounded-full bg-gold shadow-[0_0_8px_rgba(248,181,0,0.85)]"
-              aria-hidden="true"
-            />
-            輪到你
-          </div>
-          <div
-            v-else
-            class="ai-breathe glass-panel mb-3 flex items-center justify-center gap-2 !rounded-[10px] px-4 py-2.5 text-[14px] text-ink-on-deep-dim"
-          >
-            AI 思考中 <span class="thinking-dots tracking-[2px]" aria-hidden="true">●●●</span>
-          </div>
+            <template v-if="phase === 'PLAYER_TURN'">
+              <span
+                class="turn-dot h-2.5 w-2.5 shrink-0 rounded-full bg-gold shadow-[0_0_8px_rgba(248,181,0,0.85)]"
+                aria-hidden="true"
+              />
+              <span class="id-text shrink-0 font-bold text-ink-on-deep">輪到你</span>
+            </template>
+            <template v-else>
+              <span class="id-text ai-breathe shrink-0 text-ink-on-deep-dim">思考中</span>
+              <span class="thinking-dots shrink-0 tracking-[2px] text-ink-on-deep-dim" aria-hidden="true">●●●</span>
+            </template>
 
-          <!-- 身分列：框起來與其他區塊一致；你執白/黑（棋子圖示 + 吸棋子色文字）· 對手 Lv. -->
-          <div
-            class="mb-3 flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-2 text-[15px] tabular-nums shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
-          >
+            <span class="mx-0.5 h-3.5 w-px shrink-0 bg-white/15" aria-hidden="true" />
+
             <span
-              class="inline-block h-7 w-7 shrink-0 bg-contain bg-center bg-no-repeat"
+              class="inline-block h-5 w-5 shrink-0 bg-contain bg-center bg-no-repeat"
               :style="{
                 backgroundImage: `url(${playerPawnSrc})`,
                 ...(playerColor === 'black' ? { filter: 'brightness(var(--piece-dark-brightness))' } : {}),
               }"
               aria-hidden="true"
             />
-            <span class="id-text font-bold text-ink-on-deep">{{ sideLabel }}</span>
-            <span class="id-text text-ink-on-deep-dim">· 對手 Lv.{{ chosenLevel }}</span>
+            <span class="id-text shrink-0 font-bold text-ink-on-deep">{{ sideLabel }}</span>
+            <span class="id-text min-w-0 shrink-0 truncate text-ink-on-deep-dim">· Lv.{{ chosenLevel }}</span>
           </div>
 
-          <!-- 棋譜表：標題列收進框內（代碼區塊感）；下方序號 | 白 | 黑 -->
+          <!-- 棋譜表：標題列收進框內（代碼區塊感）；下方序號 | 白 | 黑。
+               面板貼合內容高度；棋譜捲動區加上限（手機 9rem、桌機 12rem），超出內捲、不撐大側板。 -->
           <div class="rounded-lg border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
             <p class="border-b border-white/10 px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-wider text-ink-on-deep-dim">棋譜</p>
             <div
               ref="moveScroll"
-              class="max-h-[34vh] overflow-y-auto p-2.5 font-num text-[14px] leading-relaxed tabular-nums text-ink-on-deep md:max-h-[16rem]"
+              class="max-h-[9rem] overflow-y-auto p-2.5 font-num text-[14px] leading-relaxed tabular-nums text-ink-on-deep md:max-h-[12rem]"
             >
               <p v-if="!movePairs.length" class="text-ink-on-deep-dim">尚無棋步</p>
               <div
