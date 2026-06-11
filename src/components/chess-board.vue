@@ -254,6 +254,9 @@ function resetPosition(): void {
  */
 function reapplyFen(): void {
   boardApi.value?.setPosition(props.fen)
+  // Stepping to another lesson position must drop the player's prior-move green highlight —
+  // setPosition keeps chessground's native lastMove, so clear it explicitly (上一步/下一步殘留綠格修正).
+  boardApi.value?.setConfig({ lastMove: undefined }, false)
 }
 
 // ---- Keyboard navigation (ADR-0009, S4-09) ----
