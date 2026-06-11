@@ -190,6 +190,10 @@ function handleReview(): void {
   router.push('/review')
 }
 
+function goHome(): void {
+  router.push('/')
+}
+
 // ---- Result display helpers ----
 
 const playerWon = computed(() => {
@@ -205,17 +209,18 @@ const resultLabel = computed(() => {
   return isDraw.value ? '和局' : playerWon.value ? '你贏了！' : '你輸了'
 })
 
-const endReasonLabel = computed(() => {
-  const map: Record<string, string> = {
-    checkmate: '將死',
-    stalemate: '逼和',
-    threefold: '三次重複局面',
-    'insufficient-material': '子力不足',
-    'fifty-move': '五十步和棋',
-    resignation: '投降',
-  }
+// 完局一句話講評（Gambit 平靜語氣，稱呼你；不長）。依結果＋結束原因給不同句子。
+const outcomeBlurb = computed(() => {
   const reason = terminal.value?.endReason
-  return reason ? (map[reason] ?? reason) : ''
+  if (isDraw.value) return '勢均力敵的一盤，各有所守。'
+  if (playerWon.value) {
+    if (reason === 'checkmate') return '漂亮的將殺，收得乾淨俐落。'
+    if (reason === 'resignation') return '對手投降了，這盤你掌握得很好。'
+    return '穩穩拿下這一盤。'
+  }
+  if (reason === 'checkmate') return '被將死了，下一盤多留意國王的安全。'
+  if (reason === 'resignation') return '這盤先投降了——輸贏都是練習的一部分，再來一盤。'
+  return '這盤輸了，調整一下節奏再戰。'
 })
 
 // Record a win at the chosen Skill Level so the setup modal can nudge to the next rung.
@@ -286,11 +291,17 @@ if (isDev) {
             class="mb-3 rounded-[10px] border border-white/10 bg-white/[0.05] p-3.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]"
           >
             <p class="font-display text-xl font-bold" :class="playerWon ? 'text-gold' : 'text-ink-on-deep'">{{ resultLabel }}</p>
-            <p class="mt-1 font-sans text-[13px] text-ink-on-deep-dim">{{ endReasonLabel }}</p>
+            <p class="mt-1.5 font-sans text-[13px] leading-relaxed text-ink-on-deep-dim">{{ outcomeBlurb }}</p>
             <div class="mt-3.5 flex gap-2">
+              <Button variant="secondary" size="sm" class="flex-1" @click="goHome">返回首頁</Button>
               <Button :variant="playerWon ? 'gold' : 'default'" size="sm" class="flex-1" @click="handleNewGame">再來一局</Button>
-              <Button variant="secondary" size="sm" class="flex-1" @click="handleReview">複盤</Button>
             </div>
+            <!-- 賽後檢討入口降級為次要連結（不佔主按鈕版面，但保留核心學習迴圈入口） -->
+            <button
+              type="button"
+              class="mt-2.5 font-sans text-xs text-ink-on-deep-dim underline-offset-2 transition-colors hover:text-ink-on-deep hover:underline"
+              @click="handleReview"
+            >查看賽後檢討</button>
           </div>
 
           <!-- 密度列：回合狀態 ｜ 身分（執子 + 對手等級）合併成一條，省垂直空間，手機一屏可見。
