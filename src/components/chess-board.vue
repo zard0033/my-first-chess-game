@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { Chess } from 'chess.js'
 import { TheChessboard } from 'vue3-chessboard'
 import type { BoardApi, BoardConfig } from 'vue3-chessboard'
 import type { Key, Elements } from 'chessground/types'
-import type { Move } from 'chess.js'
+import type { Move, Square } from 'chess.js'
 import type { MoveMadePayload } from '../composables/use-chess-board'
 import { validateFen, useBoardRenderer, PIECE_MOVE_ANIM_MS } from '../composables/use-board-renderer'
 import { BOARD_BRUSHES, buildLegalMoveShapes, buildAnimationDoneAt } from '../composables/use-board-input'
@@ -20,6 +20,13 @@ const props = defineProps<{
   disabled: boolean
   /** Show a–h / 1–8 coordinate labels around the board (default false). Native chessground coords — CSS-positioned, fully responsive. */
   coordinates?: boolean
+  /**
+   * Last move squares [from, to] for the last-move highlight. The board highlights the player's own
+   * drag natively; the opponent's move arrives via setPosition(fen), which leaves the highlight on the
+   * player's prior move — so the parent drives it here. `null` clears it; `undefined` (prop omitted)
+   * leaves chessground's native behavior untouched (Review/Replay don't pass it).
+   */
+  lastMove?: readonly [string, string] | null
 }>()
 
 const emit = defineEmits<{
@@ -38,6 +45,10 @@ const { syncFen, onMoveMade } = useBoardRenderer(() => boardApi.value)
 const pendingPromotion = ref<{ from: string; to: string } | null>(null)
 const promotionSquareRect = ref<Rect | null>(null)
 
+// Tracks the square chessground currently has selected (a tapped/picked-up piece). Drives the
+// chess.com-style castling hint: selecting the king reveals a dot on the rook square too.
+const selectedSquare = ref<string | null>(null)
+
 function clearSelectionShapes(): void {
   boardApi.value?.setConfig({ drawable: { shapes: [], brushes: BOARD_BRUSHES } }, false)
 }
@@ -46,7 +57,9 @@ function clearSelectionShapes(): void {
 const boardConfig: BoardConfig = {
   fen: validateFen(props.fen),
   orientation: props.playerColor,
-  coordinates: props.coordinates ?? false,
+  // chessground's own coords overlay-print inside edge squares and clash with pieces on them. We
+  // render coordinates ourselves on the wooden frame instead (see rankLabels / fileLabels).
+  coordinates: false,
   viewOnly: props.disabled,
   animation: { duration: PIECE_MOVE_ANIM_MS },
   // Native chessground dests: filled dots on quiet moves, rings on captures (chess.com style).
@@ -55,6 +68,7 @@ const boardConfig: BoardConfig = {
   highlight: { lastMove: true, check: true },
   events: {
     insert: (elements: Elements) => { boardRef.value = elements.wrap },
+    select: (key: Key) => { selectedSquare.value = key },
   },
 }
 
@@ -70,12 +84,13 @@ function isPromotionMove(move: Move): boolean {
 }
 
 function onMove(move: Move): void {
+  selectedSquare.value = null
   clearSelectionShapes()
   if (isPromotionMove(move)) {
     // Freeze board and show dialog — don't emit yet
     boardApi.value?.setConfig({ viewOnly: true }, false)
     pendingPromotion.value = { from: move.from, to: move.to }
-    promotionSquareRect.value = computeSquareRect(move.to, boardRef.value?.offsetWidth ?? 0, props.playerColor)
+    promotionSquareRect.value = squareToRect(move.to)
     return
   }
   onMoveMade()
@@ -137,16 +152,22 @@ watch(
 )
 
 watch(
-  () => props.coordinates,
-  (show) => { boardApi.value?.setConfig({ coordinates: !!show }, false) },
-)
-
-watch(
   () => props.disabled,
   (disabled) => {
     if (!pendingPromotion.value) {
       boardApi.value?.setConfig({ viewOnly: disabled }, false)
     }
+    if (disabled) selectedSquare.value = null
+  },
+)
+
+// Drive the last-move highlight for moves the board didn't make itself (the opponent's reply, applied
+// via setPosition which doesn't touch the highlight). `undefined` = parent opts out (Review/Replay).
+watch(
+  () => props.lastMove,
+  (lm) => {
+    if (lm === undefined) return
+    boardApi.value?.setConfig({ lastMove: lm ? ([lm[0], lm[1]] as [Key, Key]) : undefined }, false)
   },
 )
 
@@ -193,14 +214,26 @@ const kingInCheckSquare = computed((): string | null => {
 const checkRingRect = computed((): Rect | null => {
   const sq = kingInCheckSquare.value
   if (!sq || !boardRef.value) return null
-  return computeSquareRect(sq, boardRef.value.offsetWidth, props.playerColor)
+  return squareToRect(sq)
 })
 
-/** ADR-0009 Decision §4: board-local coordinates, orientation-corrected. */
+/**
+ * ADR-0009 Decision §4: board-local coordinates, orientation-corrected — measured against the ACTUAL
+ * chessground board (cg-board), not the outer wrap. chessground rounds its board DOWN to a multiple of
+ * 8 and centres it inside the wrap, so cg-board can be a few px smaller / offset; computing from the
+ * wrap width left every overlay (annotations, arrows, check ring, castle hints) a few px off the
+ * squares (全站標註/箭頭/提示對格偏移修正). We read cg-board's real size + its offset within the wrap.
+ */
 function squareToRect(square: string): Rect | null {
-  const el = boardRef.value
-  if (!el) return null
-  return computeSquareRect(square, el.offsetWidth, props.playerColor)
+  const wrap = boardRef.value
+  if (!wrap) return null
+  const cgBoard = wrap.querySelector('cg-board') as HTMLElement | null
+  if (!cgBoard) return computeSquareRect(square, wrap.offsetWidth, props.playerColor)
+  const wr = wrap.getBoundingClientRect()
+  const br = cgBoard.getBoundingClientRect()
+  const rect = computeSquareRect(square, br.width, props.playerColor)
+  if (!rect) return null
+  return { x: rect.x + (br.left - wr.left), y: rect.y + (br.top - wr.top), width: rect.width, height: rect.height }
 }
 
 /**
@@ -247,6 +280,89 @@ const keyboard = useBoardKeyboard({
 })
 
 const focusCellRect = computed(() => squareToRect(keyboard.currentSquare.value))
+
+/**
+ * chess.com / lichess-style castling: when the player picks up their king and castling is legal,
+ * show a dot on the rook square (h/a file) in addition to chessground's native two-square dot (g/c).
+ * Clicking the rook dot runs the standard king-two-square move (chess.js only accepts e1→g1/c1, never
+ * e1→h1) — so we map each rook square back to its king destination here.
+ */
+const castleHints = computed((): { rookSquare: string; kingDest: string; rect: Rect }[] => {
+  const sq = selectedSquare.value
+  if (!sq || props.disabled) return []
+  try {
+    const chess = new Chess(props.fen)
+    const piece = chess.get(sq as Square)
+    if (!piece || piece.type !== 'k') return []
+    const hints: { rookSquare: string; kingDest: string; rect: Rect }[] = []
+    for (const m of chess.moves({ square: sq as Square, verbose: true })) {
+      const kingside = m.flags.includes('k')
+      const queenside = m.flags.includes('q')
+      if (!kingside && !queenside) continue
+      const rookSquare = (kingside ? 'h' : 'a') + sq[1]
+      const rect = squareToRect(rookSquare)
+      if (rect) hints.push({ rookSquare, kingDest: m.to, rect })
+    }
+    return hints
+  } catch {
+    return []
+  }
+})
+
+function triggerCastle(kingDest: string): void {
+  const from = selectedSquare.value
+  if (!from || props.disabled) return
+  selectedSquare.value = null
+  boardApi.value?.move({ from: from as Key, to: kingDest as Key })
+}
+
+// ---- Coordinate labels on the wooden frame (replaces chessground's in-square coords) ----
+// geomTick forces the label positions to recompute once the board has a measurable size and again
+// whenever it resizes (squareToRect reads live DOM geometry, which isn't reactive on its own).
+const geomTick = ref(0)
+let geomRo: ResizeObserver | null = null
+
+const rankLabels = computed((): { label: string; y: number }[] => {
+  void geomTick.value
+  if (!props.coordinates) return []
+  const out: { label: string; y: number }[] = []
+  for (let r = 1; r <= 8; r++) {
+    const rect = squareToRect('a' + r)
+    if (rect) out.push({ label: String(r), y: rect.y + rect.height / 2 })
+  }
+  return out
+})
+
+const fileLabels = computed((): { label: string; x: number; y: number }[] => {
+  void geomTick.value
+  if (!props.coordinates) return []
+  // Bottom edge = the visually-lowest row (rank 1 for white, rank 8 for black).
+  const r1 = squareToRect('a1')
+  const r8 = squareToRect('a8')
+  if (!r1 || !r8) return []
+  // Centre the label in the bottom wood band (tray p-3 = 12px → half-band = 6px below the board edge).
+  const bottom = Math.max(r1.y, r8.y) + r1.height + 6
+  const out: { label: string; x: number; y: number }[] = []
+  for (const f of 'abcdefgh') {
+    const rect = squareToRect(f + '1')
+    if (rect) out.push({ label: f, x: rect.x + rect.width / 2, y: bottom })
+  }
+  return out
+})
+
+onMounted(() => {
+  const el = boardRef.value
+  if (el) {
+    geomRo = new ResizeObserver(() => { geomTick.value++ })
+    geomRo.observe(el)
+  }
+  geomTick.value++
+})
+
+onBeforeUnmount(() => {
+  geomRo?.disconnect()
+  geomRo = null
+})
 
 defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
 </script>
@@ -311,6 +427,38 @@ defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
       @cancel="handlePromotionCancel"
     />
 
+    <!-- Castling hints (chess.com style): a tappable dot on the rook square while the king is selected.
+         Mirrors chessground's native dest-dot look so both castling targets read identically. -->
+    <button
+      v-for="h in castleHints"
+      :key="h.rookSquare"
+      type="button"
+      class="castle-hint absolute z-20 cursor-pointer border-0 bg-transparent p-0"
+      :style="{ left: `${h.rect.x}px`, top: `${h.rect.y}px`, width: `${h.rect.width}px`, height: `${h.rect.height}px` }"
+      aria-label="王車易位"
+      @click="triggerCastle(h.kingDest)"
+    />
+
+    <!-- Coordinate labels on the wooden frame (ranks down the left gutter, files along the bottom).
+         Positioned just outside the board so they never sit on a piece; the views' tray padding
+         reserves the wood band they land in. font-num = Cubic 11, recessive warm tone on dark wood. -->
+    <template v-if="coordinates">
+      <span
+        v-for="r in rankLabels"
+        :key="`rank-${r.label}`"
+        class="cb-coord cb-coord-rank font-num"
+        :style="{ top: `${r.y}px` }"
+        aria-hidden="true"
+      >{{ r.label }}</span>
+      <span
+        v-for="f in fileLabels"
+        :key="`file-${f.label}`"
+        class="cb-coord cb-coord-file font-num"
+        :style="{ left: `${f.x}px`, top: `${f.y}px` }"
+        aria-hidden="true"
+      >{{ f.label }}</span>
+    </template>
+
     <!-- focus-cell: single roving tabindex cell (ADR-0009, S4-09) -->
     <div
       class="absolute opacity-0 pointer-events-none focus:outline-2 focus:outline-blue-500"
@@ -335,6 +483,35 @@ defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
 
 .check-glow-pulse {
   animation: check-glow-pulse 800ms ease-out forwards;
+}
+
+/* Coordinate labels on the wooden frame. Warm parchment tone, recessive (low opacity) so it reads as
+   an engraved marking — legible on the dark wood but never competing with the board or pieces. */
+.cb-coord {
+  position: absolute;
+  z-index: 5;
+  font-size: 11px;
+  line-height: 1;
+  color: rgba(233, 217, 186, 0.6);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  user-select: none;
+}
+.cb-coord-rank {
+  left: -6px;
+  transform: translate(-50%, -50%);
+}
+.cb-coord-file {
+  transform: translate(-50%, -50%);
+}
+
+/* Castling hint dot on the (occupied) rook square — matches chessground's occupied-dest ring
+   (cg-board square.oc.move-dest) so it reads identically to a native capture/occupied target. */
+.castle-hint {
+  background: radial-gradient(transparent 0%, transparent 80%, rgba(20, 85, 0, 0.3) 80%);
+}
+.castle-hint:hover {
+  background: radial-gradient(transparent 0%, transparent 79%, rgba(20, 85, 0, 0.45) 79%);
 }
 
 /* Last-move highlight contrast via chessground's .cg-last-dests class.

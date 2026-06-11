@@ -34,6 +34,16 @@ const fullBleed = computed(() => route.meta.fullBleed === true)
 // 學習 pager（/learn、/learn/concepts）自管高度與內部捲動，main 不可再加底部 nav padding，否則高度溢位。
 const isLearnPager = computed(() => route.path === '/learn' || route.path === '/learn/concepts')
 
+// RouterView key：param 路由（puzzle/lesson/replay）的 setup 只讀 route.params 一次，換 param 時 vue-router
+// 會重用同一 component instance、setup 不重跑（試煉「下一題」換題無反應的主因）。用 fullPath 當 key 強制
+// remount。learn/concepts 共用同一 LearnPager 實例（分頁滑動不可重繪），固定同一 key。其餘維持每路由一實例。
+const routeKey = computed(() => {
+  const n = route.name as string
+  if (n === 'puzzle' || n === 'lesson' || n === 'replay') return route.fullPath
+  if (n === 'learn' || n === 'concepts') return 'learn-pager'
+  return n
+})
+
 // 頁面底色套在 <main> 上：深色頁（試煉/對局）的底部 nav 留白區若無底色會露出 body 的 cream
 // （試煉底部未填色 bug）。套在 main 讓 padding 區與內容同色。
 const pageBg = computed(() => {
@@ -77,7 +87,7 @@ onMounted(() => {
   <div class="min-h-dvh flex flex-col">
     <AppNav v-if="!fullBleed" />
     <main class="flex-1" :class="[fullBleed || isLearnPager ? '' : 'pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:pb-0', pageBg]">
-      <RouterView />
+      <RouterView :key="routeKey" />
     </main>
 
     <!-- Global play-setup modal — opens over the current page (Dialog portals above everything). -->

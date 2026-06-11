@@ -25,7 +25,7 @@ const { isGameInProgress } = storeToRefs(gameStore)
 // completedGame, but does NOT auto-navigate — the GAME_OVER overlay gives the player
 // the choice to review or start a new game (ADR-0005 §5).
 const lifecycle = useGameLifecycle()
-const { phase, playerColor, fen, terminal, moveHistory } = lifecycle
+const { phase, playerColor, fen, terminal, moveHistory, lastMove } = lifecycle
 
 // In-game move record — SAN grouped into numbered pairs (white, black) for display.
 const movePairs = computed(() => {
@@ -230,13 +230,14 @@ if (isDev) {
       <!-- framed board (wooden tray) + GAME_OVER overlay; scales by viewport height, capped so the
            adjacent panel still fits (no overlap / overflow). -->
       <div
-        class="relative w-full max-w-[min(92vw,28rem)] rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-2 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)] md:w-[min(74vh,calc(100vw_-_26rem),56rem)] md:max-w-none"
+        class="relative w-full max-w-[min(92vw,28rem)] rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-3 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)] md:w-[min(74vh,calc(100vw_-_26rem),56rem)] md:max-w-none"
       >
         <ChessBoard
           :fen="fen"
           :playerColor="playerColor"
           :disabled="boardDisabled"
           :coordinates="true"
+          :last-move="lastMove"
           @move-made="handleMoveMade"
         />
 

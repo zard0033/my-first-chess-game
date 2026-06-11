@@ -12,6 +12,7 @@ import type { LessonStep } from '@/types/lesson'
 import type { Annotation } from '@/modules/move-annotation/annotation-types'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import type { Rect } from '@/utils/board-geometry'
+import { useBoardFit } from '@/composables/use-board-fit'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 import { useConceptProgressStore } from '@/stores/concept-progress'
@@ -72,6 +73,8 @@ const boardKey = computed(() => lesson?.id ?? '')
 const boardDisabled = computed(() => !isInteractive.value || solved.value || !!wrongMove.value)
 
 const board = ref<{ boardRef: HTMLElement | null; squareToRect: (s: string) => Rect | null; resetPosition: () => void; reapplyFen: () => void } | null>(null)
+const boardFit = ref<HTMLElement | null>(null)
+useBoardFit(boardFit)
 const geomTick = ref(0)
 const boardEl = computed<HTMLElement | null>(() => {
   void geomTick.value
@@ -237,8 +240,8 @@ function prev(): void {
            ancestor would shift every arrow sideways (課程答案箭頭偏移修正). -->
       <div class="mx-auto w-full max-w-[min(100%,46dvh)] shrink-0 px-6 pt-1 lg:mx-0 lg:max-w-none lg:flex-1 lg:self-start lg:px-0 lg:pt-1">
         <!-- wooden tray：棋盤木框（與試煉／對局同款木盤） -->
-        <div class="rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-2 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)]">
-        <div class="relative board-fit">
+        <div class="rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-3 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)]">
+        <div ref="boardFit" class="relative board-fit">
         <ChessBoard
           :key="boardKey"
           ref="board"

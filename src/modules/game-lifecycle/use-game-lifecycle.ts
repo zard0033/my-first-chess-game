@@ -95,6 +95,10 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
   const terminal = ref<TerminalState | null>(null)
   // Reactive SAN history for the in-game move record (城堡=O-O etc.). Mirrors _moves but in SAN.
   const moveHistory = ref<string[]>([])
+  // Last move squares [from, to] for the board's last-move highlight. The board tracks the player's
+  // own drag natively, but the opponent's move arrives via setPosition(fen) which does NOT update the
+  // highlight — so we drive it explicitly here (對手走子後綠標停在自己上一步的修正).
+  const lastMove = ref<[string, string] | null>(null)
 
   // ADR-0005 §7: internal move history (UCI strings) — cloned into CompletedGame on terminal.
   let _moves: string[] = []
@@ -163,6 +167,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     _moves = []
     _playerMoveTimes = []
     moveHistory.value = []
+    lastMove.value = null
     if (color === 'white') {
       enterPlayerTurn()
     } else {
@@ -189,6 +194,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     _playerMoveTimes.push(Date.now() - _turnStartedAt)
     _moves.push(from + to + (promotion ?? ''))
     moveHistory.value.push(move.san)
+    lastMove.value = [from, to]
 
     fen.value = chess.fen()
     const t = detectTerminal(chess)
@@ -243,6 +249,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
 
     _moves.push(from + to + (promo ?? ''))
     moveHistory.value.push(move.san)
+    lastMove.value = [from, to]
     fen.value = chess.fen()
     const t = detectTerminal(chess)
     if (t) {
@@ -267,6 +274,8 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     _moves.splice(-2)
     moveHistory.value.splice(-2)
     _playerMoveTimes.pop()
+    const prev = _moves[_moves.length - 1]
+    lastMove.value = prev ? [prev.slice(0, 2), prev.slice(2, 4)] : null
     fen.value = chess.fen()
     _turnStartedAt = Date.now()
   }
@@ -293,6 +302,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     _moves = []
     _playerMoveTimes = []
     moveHistory.value = []
+    lastMove.value = null
   }
 
   /**
@@ -308,6 +318,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
       _moves = []
       _playerMoveTimes = []
       moveHistory.value = []
+      lastMove.value = null
     } catch {
       // Invalid FEN — ignore silently
     }
@@ -320,6 +331,7 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
     fen: readonly(fen),
     terminal: readonly(terminal),
     moveHistory: readonly(moveHistory),
+    lastMove: readonly(lastMove),
     startGame,
     handlePlayerMove,
     handleAiMove,
