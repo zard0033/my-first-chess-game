@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: 訪客模式（local-first）+ 實機回饋修正
-Feature: 續玩對局 — done（未 push，待套 DB migration）
-Task: 下一項待 Eason 指定（候選：試煉題卡 brief／字型規則）
+Epic: 登入頁開場動線 + redesign
+Feature: sign-in landing gate + 極簡 redesign — done（未 commit/push）
+Task: 可 push 本輪積累（登入頁 + 字型審查）
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -17,7 +17,8 @@ Task: 下一項待 Eason 指定（候選：試煉題卡 brief／字型規則）
   賽後檢討的中立 opt-in 概念標記 v1＝mate + material）。**概念頁已改版＝「熟悉度地圖 + 按戰術切入學習」
   雙職，可側門跳學鎖住的戰術（不污染線性進度）；側門已學雲端同步（`lesson_side_learned` 表已套用）。**
 - **game-replay (#S10)**：QA APPROVED；S10-05 動畫 polish 已 deferred；剩 iPhone 實機。
-- **測試**：vue-tsc 0、vitest **645 passed**。
+- **訪客模式 local-first + 續玩對局**：done+push（`170abf0`）。訪客完局讀本地 queue、登入 flush 同步；Resume 每步存 local／離開推雲／登入 last-write-wins。**程式已 push，剩實機驗收（見待辦）**。
+- **測試**：vue-tsc 0、vitest **669 passed**。
 
 ## UI Redesign（2026-06-09～06-11，已全數 push）
 
@@ -28,21 +29,29 @@ Task: 下一項待 Eason 指定（候選：試煉題卡 brief／字型規則）
 - **Bug 2 對局側板一屏優化**：done+push（2026-06-11）。合併密度列（徽章＋身分一行，nowrap，文字精簡「思考中」「Lv.X」防窄面板溢出）+ 棋譜捲動區 `max-h-[9rem]`（桌機 12rem）+ 側板自然高度貼合內容。待 iPhone 實機驗收（AI 思考列、棋譜捲動）。
 - **鐵則**：redesign 類先跑 `/redesign` 對真實畫面出 H/M/L → Eason 拍板 → 才施工，**即使已給明確方向也不例外**。
 
-## ⏳ 本輪完成・未 push（下次 push 一起列 commit）
+## 🟡 未 commit／push（working tree，下次一起 commit）
 
-- **課程上一步/下一步殘留綠格修正**：`chess-board.vue` `reapplyFen()` 換步後清 chessground 原生 lastMove。待 iPhone 實機點一輪確認綠格消。
-- **訪客完局紀錄（local-first）done**：缺口只在讀取路徑——`data-sync.ts loadGameHistory` 訪客時改讀本地 `chess:unsynced:` queue（buildRow 映成 DB row 形狀 + 補 created_at，JS 端做 cursor 分頁）；寫入路徑與登入 flush reconcile **本來就現成**。router 解除 history/profile gate（守衛框架留空保留）。ProfileView 訪客狀態（名稱「訪客」+ 金色雲端備份 CTA + 登出↔登入切換）、HistoryView 訪客提示、SignInView 雲端備份定位文案。Replay 因讀 history store 自動跟著通、零改動。
-- **續玩對局（Resume in-progress）done**：`use-game-lifecycle.ts` 加 `restoreGame`（重播 UCI 重建完整狀態）+ `getResumeSnapshot`；新 store `resume-game.ts`（每步存 local、離開推雲、完局/新局清除、登入 **last-write-wins** reconcile，非 union）；`data-sync.ts` resume CRUD + `types/resume.ts`；migration `in_progress_game`（user_id PK 單槽 + RLS）。PlayView 拿掉 abandon/beforeunload 守衛、每步存、還原、完局/新局清除；ui-store resume 意圖、App.vue reconcile、HomeView 繼續對局卡（進行中 pill + stat chips + 兵徽章 + 左金邊條 + 「繼續」鈕，與 NEW GAME 卡區隔；過 /redesign）。**門檻：≥1 步才存；另開新對局只開 modal、確認開局才清（防誤刪）**。`use-navigation-guards.ts`（+測試）已隨 abandon 守衛移除一併刪除。
-  - **⚠️ 待 Eason 動作**：①`in_progress_game` migration 走 Dashboard SQL Editor 手動套（未套則登入跨裝置同步失敗，訪客 local 仍正常）；②真實 chessground 落子的「每步存」需實機點一輪確認（合成事件 Playwright 難觸發）。
-- **本輪測試**：vue-tsc 0、vitest **669 passed**（+20 訪客/resume 測試；-navigation-guards 舊測試）。
+> `git status` 應只剩這批。其餘本輪相關工作（訪客完局/續玩/綠格）**已 push**，細節在 git log。
+
+- **登入頁開場動線 + redesign**（`router/index.ts`、`stores/auth.ts`、`views/SignInView.vue`、`tests/unit/app-router/auth-guard.test.ts`）：
+  ①落地閘門——未登入且本 session 未選訪客 → 導向 `/sign-in`（`GUEST_ENTRY_KEY` sessionStorage flag；點「以訪客身分繼續」設 flag 後整 session 自由逛，PWA 重開才再擋；已登入者 session 還原不會看到 sign-in）。
+  ②SignInView redesign——`♚` 金徽換 `brand-mark.svg` 裸金國王剪影、極簡化（拿掉同步說明）、訪客逃生口改 bordered ghost 按鈕（或 divider）。
+  ③`auth.ts` 記住 email（`gambit:last-email`）→ SignInView 預填。guard 測試對齊新閘門 +2 測試（8 passed）。
+  - **⏳ 英文標語待定**：placeholder `MASTER THE BOARD`（`SignInView.vue` h1 下方那行），想到正式句子再換。
+- **全站字型風格審查**（`views/LearnView.vue`、`design/gambit-design-system/README.md`）：逐頁確認 5-font 一致。
+  修兩處——`LearnView.vue:164` `font-num text-[9px]`→`font-sans`；`:83` 進度單位字「課」拆出改 `font-sans`（數字仍 Cubic 11）。
+  完整字型使用規則表格已寫入 design system README（5 family × 適用/禁用/最小尺寸）。
+- `production/session-state/active.md`（本狀態檔）。
+- **驗證**：vue-tsc 0、vitest 669 passed。
 
 ## 🚧 待辦 / 開放項
 
+- **migration**：`in_progress_game` 已確認套用（2026-06-12 查 `to_regclass` 有表）。Supabase 6 張表全到位，無待套 migration。
+- **push 後待 iPhone 實機驗收（累積）**：①Resume「每步存」真實 chessground 落子（合成事件 Playwright 難觸發）；②課程換步殘留綠格已消（`f9be8df`）；③登入開場動線——Magic Link 回跳登入、PWA 冷啟動擋 sign-in／點訪客放行；④`14fa407` 那批（試煉下一題、棋盤對齊、last-move 高亮、易位點城堡、座標木框）；⑤Magic Link 登入流程（S8-06）、game-replay、apple-touch/PWA 圖標。
 - **對局頁「專注模式」自動收 navbar（Eason 提案，未來獨立任務）**：Eason 想要 IG 式「靜止縮小／滑動回復」navbar。
   結論：**捲動驅動不適用對局頁**（一屏不捲＝沒手勢叫回，會卡死）。若要做，改**狀態驅動**——對局進行中
   （PLAYER_TURN/AI_THINKING）自動收底部 nav 進專注模式、結束或底緣上滑叫回。屬**全站導覽改動**（影響每頁），
   要留意 Gambit「平靜少動效」鐵則 + iOS 底緣手勢衝突。IG 原版捲動隱藏留給會長捲的頁（學習/試煉清單）。獨立評估。
-- **2026-06-11 實機修正已 push（commit 14fa407），待 iPhone 驗收**：試煉下一題、課程棋盤對齊、對手 last-move 高亮、王車易位點城堡、座標上木框、castle hint/標註對格。
 - **vue3-chessboard 幾何/易位踩坑（技術護欄，重要）**：①棋盤容器寬須對齊 8 倍數，否則 chessground 把 cg-board floor 成 8n 偏移（`useBoardFit` ResizeObserver 解，套在木框內 `.board-fit`）；②overlay（標註/箭頭/check ring/castle hint/座標）定位要用**真實 cg-board 尺寸＋相對 cg-wrap 原點**，非 cg-wrap 寬（`chess-board.vue` squareToRect 已改，連帶修好 active 舊待辦的 annotation 2-4px 偏移）；③易位 chess.js 只收 `e1→g1/c1`，城堡格手勢要 remap 成 king 兩格目標；④`boardConfig.events.select(key)` 可偵測選子，用來觸發城堡格提示；⑤座標自繪在木框（chessground `coordinates:false`），木框 tray 用 p-3 留帶、font-num 暖米色 `rgba(233,217,186,0.6)`。
   ⑥**不可用 `max-w` 依高度硬縮棋盤**：棋盤高度被內部 pin 住，縮木框寬會把棋盤壓成非正方（h 檔被裁）。要省空間改縮周邊（合併列、棋譜上限），別碰棋盤寬。Tailwind arbitrary calc 內 `-` 兩側要用底線：`calc(100dvh_-_Nrem)`。
 
@@ -65,7 +74,6 @@ Task: 下一項待 Eason 指定（候選：試煉題卡 brief／字型規則）
   左偏 ~5px），導致 keySquare 高亮/箭頭比真實格子算大 sq、整體偏 dx≈-2 dy≈+4。修法：annotation 改用
   `elements.board`（cg-board）的尺寸＋原點，或讓 cg-board=cg-wrap（coords overlay／chessground 重繪）。牽涉
   全站箭頭/標註定位（課程/試煉/review/replay），需獨立驗證故未在 B5 收尾動。
-- **iOS 實機補測**：Magic Link 登入流程（S8-06）本輪未測；game-replay iPhone 實機；apple-touch / PWA 圖標外觀。
 - **課程內容撰寫 (S05)**：框架已好，補課文 ongoing。
 - **dead-file 稽核（Eason 喊暫緩，未動）**：src ~11 orphan（ui/checkbox·label·progress·tooltip、
   composables/use-stockfish）、模板殘留 `docs/engine-reference/`、`CCGS Skill Testing Framework/`、
@@ -73,11 +81,6 @@ Task: 下一項待 Eason 指定（候選：試煉題卡 brief／字型規則）
 - **Phase C+ / D（未排程）**：捉雙/牽制賽後偵測（需精準度實測）；Claude API 動態講解（選配，最後）。
 - **文件**：`epics/index.md` 試煉/學習迴圈狀態待補（純文件）。UI drift 報告
   `production/qa/ui-drift-audit-2026-06-07.md`：整體一致，H/M 級已套、L 級刻意不動。
-- **全站字體使用規則 redesign（Eason 指定）**：修好 `.font-num`（Tailwind 對 `num` key 產空規則的 bug，
-  已於 main.css 手動補顯式字串）後，全站數字/棋譜/評分**第一次真正顯示 Cubic 11**（先前全默默退回 Sarasa）。
-  需重新檢視並明訂全站字型使用準則：哪裡用 Cubic 11（點陣）vs Sarasa（一般 UI 數字）vs font-display/lesson，
-  逐頁掃過受影響處（首頁 stat 卡、學習/試煉進度與關卡編號、review/replay eval、history/profile 日期手數戰績、
-  progress-bar、對局側板）判斷 Cubic 是否合適，必要處設例外；最後把規則寫回 Gambit 設計系統字型章節。
 
 ## 🔑 鐵則 / 技術參考
 

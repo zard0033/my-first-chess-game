@@ -15,7 +15,7 @@ vi.mock('@/lib/supabase', () => ({
 
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/auth'
-import { createAppRouter } from '@/router/index'
+import { createAppRouter, GUEST_ENTRY_KEY } from '@/router/index'
 
 function makeRouter() {
   return createAppRouter()
@@ -34,11 +34,13 @@ describe('auth route guard', () => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
     mockAuthSubscription()
+    sessionStorage.clear()
   })
 
-  // Guest mode (訪客完局紀錄): history/profile are now public — guests read their games from
-  // localStorage. These two previously asserted a redirect to home (SUPA-AC-10, now superseded).
+  // Guest mode (訪客完局紀錄): history/profile are public once the visitor opts into guest browsing
+  // (GUEST_ENTRY_KEY set by the sign-in screen). They read their games from localStorage.
   it('test_authGuard_guest_historyRoute_allowsNavigation', async () => {
+    sessionStorage.setItem(GUEST_ENTRY_KEY, '1')
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
       data: { session: null }, error: null,
     })
@@ -52,6 +54,7 @@ describe('auth route guard', () => {
   })
 
   it('test_authGuard_guest_profileRoute_allowsNavigation', async () => {
+    sessionStorage.setItem(GUEST_ENTRY_KEY, '1')
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
       data: { session: null }, error: null,
     })
@@ -62,6 +65,32 @@ describe('auth route guard', () => {
     await router.push('/profile')
     expect(router.currentRoute.value.name).toBe('profile')
     expect(router.currentRoute.value.query.login).toBeUndefined()
+  })
+
+  // Landing gate: a cold launch (no guest flag, not signed in) is redirected to sign-in first.
+  it('test_landingGate_guest_noFlag_redirectsToSignIn', async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+      data: { session: null }, error: null,
+    })
+    const router = makeRouter()
+    const authStore = useAuthStore()
+    await authStore.initAuth()
+
+    await router.push('/history')
+    expect(router.currentRoute.value.name).toBe('sign-in')
+  })
+
+  // The sign-in screen itself is always reachable (no flag, no session) — never gates itself.
+  it('test_landingGate_signInRoute_alwaysReachable', async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+      data: { session: null }, error: null,
+    })
+    const router = makeRouter()
+    const authStore = useAuthStore()
+    await authStore.initAuth()
+
+    await router.push('/sign-in')
+    expect(router.currentRoute.value.name).toBe('sign-in')
   })
 
   it('test_authGuard_authenticated_historyRoute_allowsNavigation (AC-S5-03)', async () => {
@@ -89,6 +118,7 @@ describe('auth route guard', () => {
   })
 
   it('test_authGuard_publicRoutes_noRedirect', async () => {
+    sessionStorage.setItem(GUEST_ENTRY_KEY, '1')
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
       data: { session: null }, error: null,
     })
@@ -100,9 +130,10 @@ describe('auth route guard', () => {
     expect(router.currentRoute.value.name).toBe('play')
   })
 
-  it('test_authGuard_isAuthLoadingTrue_doesNotBlockPublicNav', async () => {
-    // With no auth-only routes, the guard never blocks — navigating mid-auth-load resolves
-    // straight through without redirect or hang.
+  it('test_authGuard_isAuthLoadingTrue_doesNotBlockGuestNav', async () => {
+    // Guest already opted in (flag set): navigating mid-auth-load resolves straight through
+    // without redirect or hang.
+    sessionStorage.setItem(GUEST_ENTRY_KEY, '1')
     let resolveSession!: (v: unknown) => void
     vi.mocked(supabase.auth.getSession).mockReturnValueOnce(
       new Promise(r => { resolveSession = r as typeof resolveSession })

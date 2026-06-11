@@ -108,13 +108,31 @@ chessboard is the warm centerpiece; the app "world" (deep jade + gold + glass) f
   everyday UI. The wooden board reads warm and tactile.
 
 ### Type
-- **Display / headings:** **Noto Serif TC** (600/700/900) — gravitas, the "殿堂感" (hall-like dignity).
-  Serif is for the heading layer only; never set body in serif (no 400 weight in the heavy serif use).
-- **Body / UI:** **Sarasa UI TC** (更紗黑體) — Regular self-hosted from `fonts/`; 500/700 fall back to
-  Noto Sans TC for now (see Typography note).
+- **Display / headings:** **BIZ UDPMincho**（明朝）+ Noto Serif TC fallback — gravitas, the "殿堂感" (hall-like dignity).
+  Serif is for the heading layer only; never set body in serif.
+- **Body / UI:** **Sarasa UI TC** (更紗黑體) — Regular + Bold self-hosted; default for all body, labels, buttons, dates.
+- **Notation / numeric:** **Cubic 11** (11px 點陣像素字) — retro game-data feel; tabular figures for棋譜, eval, counters.
+- **Lesson body:** **LXGW WenKai TC** (霞鶩文楷) — warm calligraphic feel for lesson step text and dungeon flavour copy.
+- **Brand wordmark:** **Cinzel** — GAMBIT wordmark only (`app-nav.vue`).
 - Scale (px): display 44 · display-sm 32 · h1 28 · h2 22 · h3 18 · body 16 (min) · body-sm 14 ·
   label 13 · caption 12 · notation 14 (tabular-nums). Body min **16px** to avoid iOS auto-zoom.
-- Notation / ratings / clocks use **tabular figures** so values don't shift.
+- Notation / ratings / move-counters use **tabular figures** so values don't shift.
+
+#### Font-family usage rules（Production binding）
+
+> Matches `tailwind.config.ts` (`fontFamily`) + `src/assets/main.css` (`.font-num` explicit override).
+
+| Tailwind class | Font | Use | Never use for |
+| --- | --- | --- | --- |
+| `font-display` | BIZ UDPMincho | Page h1/h2, card titles, display copy, modal headings | Body text, buttons, labels, numbers |
+| `font-sans` | Sarasa UI TC | All body, UI labels, buttons, descriptions, dates, any text ≤ 10 px | — (default) |
+| `font-num` | Cubic 11 | 棋譜 notation; eval scores; board coordinates; game-data counters (手數/Lv./進度分數) **≥ 11 px**; single-char result badges (勝/負/和) ≥ 14 px; immersive-world labels (試煉地圖 tile number, level names on deep/dungeon bg) | Any text < 11 px (pixel grid collapses → jagged fallback; use `font-sans` instead) |
+| `font-lesson` | LXGW WenKai | Lesson step quote/aside, lesson summary, dungeon success/hint flavour copy | General UI, buttons, non-lesson contexts |
+| `font-brand` | Cinzel | `GAMBIT` wordmark in app-nav only | Anything else |
+
+**Key constraint — Cubic 11 minimum size 11 px**: the font is designed on an 11 px grid. Rendering below that size causes the pixel grid to sub-sample into anti-aliased blur, losing the intended retro-data aesthetic. Use `font-sans` for any numeric display smaller than 11 px (e.g. tiny badge indicators inside 18 px circles).
+
+**Gold text rule**: `font-num` (and any font) on cream background — gold text must be `text-gold-dark` (`#8F6200`, ~4.95:1 AA) on large copy only. `text-gold` (`#F8B500`) is fills/indicators only; it fails contrast on cream.
 
 ### Spacing & layout
 - **4 / 8px rhythm**; section steps 16 / 24 / 32 / 48.

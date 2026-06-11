@@ -80,8 +80,8 @@ function openChapter(c: Chapter): void {
     <header class="border-b border-line px-[18px] pb-3 pt-4">
       <h1 class="sr-only" tabindex="-1">棋藝課程</h1>
       <div class="flex justify-end">
-        <span class="shrink-0 font-num text-sm tabular-nums text-ink-muted">
-          {{ progress.completedCount }} / {{ progress.totalCount }} 課
+        <span class="shrink-0 text-sm text-ink-muted">
+          <span class="font-num tabular-nums">{{ progress.completedCount }} / {{ progress.totalCount }}</span><span class="font-sans"> 課</span>
         </span>
       </div>
       <div class="mt-2.5 h-1.5 overflow-hidden rounded-full bg-line-subtle">
@@ -161,7 +161,7 @@ function openChapter(c: Chapter): void {
                 />
                 <span
                   v-else-if="lessonState(l) === 'current'"
-                  class="font-num text-[9px] font-bold text-gold-ink"
+                  class="font-sans text-[9px] font-bold text-gold-ink"
                 >{{ i + 1 }}</span>
                 <Lock v-else :size="9" class="text-ink-faint" :stroke-width="2.5" />
               </span>

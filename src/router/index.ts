@@ -29,6 +29,11 @@ export const scrollBehavior: RouterScrollBehavior = (_to, _from, savedPosition) 
 // below is retained (empty set) so a future genuinely auth-only route can opt in by name.
 const AUTH_REQUIRED_ROUTES = new Set<string>([])
 
+// Landing gate: a cold launch lands on sign-in when not authed. Once the visitor chooses to browse
+// as guest, this session-scoped flag lets them roam freely; it clears on PWA relaunch so the next
+// cold launch re-presents sign-in. Signed-in users restore their session and never hit this gate.
+export const GUEST_ENTRY_KEY = 'gambit:guest-entry'
+
 // Factory function: must be called AFTER any history.replaceState() call so that
 // createWebHistory() reads the correct URL (replaceState does not fire popstate).
 export function createAppRouter() {
@@ -39,7 +44,9 @@ export function createAppRouter() {
   })
 
   router.beforeEach(async (to) => {
-    if (!AUTH_REQUIRED_ROUTES.has(to.name as string)) return
+    const needsAuthCheck = AUTH_REQUIRED_ROUTES.has(to.name as string)
+    const needsLandingGate = to.name !== 'sign-in'
+    if (!needsAuthCheck && !needsLandingGate) return
 
     const authStore = useAuthStore()
 
@@ -53,7 +60,12 @@ export function createAppRouter() {
       })
     }
 
-    if (!authStore.userId) {
+    // Landing gate: not signed in and hasn't chosen guest this session → present sign-in first.
+    if (needsLandingGate && !authStore.userId && !sessionStorage.getItem(GUEST_ENTRY_KEY)) {
+      return { name: 'sign-in' }
+    }
+
+    if (needsAuthCheck && !authStore.userId) {
       return { name: 'home', query: { login: 'required' } }
     }
     return undefined

@@ -65,6 +65,7 @@ export const useAuthStore = defineStore('auth', () => {
     if (error) {
       authError.value = error.message
     } else {
+      try { localStorage.setItem('gambit:last-email', emailInput) } catch { /* private mode */ }
       pendingEmail.value = true
     }
   }
