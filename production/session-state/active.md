@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: 課程內容撰寫（S05）
-Feature: 開局補完 + 殘局 tier 從零建立
-Task: 四階課綱 21 課完成、測試綠，待 commit
+Epic: 課程/試煉 UI 修正批 + 2-3 升變框
+Feature: 一批 bug/語氣/連接性修正（未 commit，待 Eason 測）
+Task: 下一步＝2-3 升變框 redesign + 變身動畫
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -46,6 +46,42 @@ Task: 四階課綱 21 課完成、測試綠，待 commit
   殘局將殺已用 chess.js 實證（Qd7#/Ra8# checkmate=true、對王邏輯正確、升變合法）。
 - **驗證**：vue-tsc 0、vitest **664 passed**。**新課互動步（易位 O-O、升變 e8=Q）的 chessground 拖放待實機點一輪**
   （合成事件 Playwright 難觸發；資料層已 chess.js 驗證）。
+
+### 🟡 UI 修正批（本輪，未 commit，待 Eason 一起測）
+
+> dev server 跑著（`http://localhost:5173/`，base=`/`）。`?from=concept` 可繞課程鎖直達任何課；
+> 訪客閘門需 `sessionStorage['gambit:guest-entry']='1'`。
+
+- **4 bug**：①首頁「學習進度」StatCard 包 `RouterLink to=/learn`（原本點了沒反應）；②`LessonView` 教練頭像
+  寫死「貝」→ `COACH.name.charAt(0)`（Cubic 字體、`translate-y-[1.5px]` 置中）、「教練 ·」拿掉只留 Neve；
+  ③試煉走錯：`moveLog` 累積頂掉 CTA → 改 `lastResult` 單筆覆蓋、釘卡片右上 turn 列；④`chess-board.vue`
+  `resetPosition()` 走錯滑回時清 `lastMove` 高亮（綠格殘留修正）。
+- **語氣全面 review**：17 處慶祝式「！」/興奮詞（將死/將軍/易位完成/升變/威風/抓到了…）收成冷靜陳述（對齊 Neve）。
+- **升變課（2-2）重寫**＋**endgame 連接性修正**：chess.js 掃全 21 課相鄰步，scenario 三課（后王/城堡/升變）的
+  「互動後跳場」修掉——rook-mate 重建連貫線、queen/pawn 收尾敘述步改「動完後」盤面。基礎規則/捉雙等「換範例跳」
+  Eason 同意維持（刻意分例教學）。
+- **複習按鈕（B）**：`DungeonPuzzleView` 複習 → `/learn/concepts?focus=<conceptId>`（concept hub，1:N）；
+  `ConceptMapView` 讀 `focus` query → 金框**呼吸脈動 2.4s fade-out**（`.concept-focus-ring`，只動 opacity）+ 捲到該概念。
+- **驗證**：vue-tsc 0、vitest 664、endgame 連接性 chess.js 掃過乾淨。**待 Eason 重測後一起 commit**。
+
+### 2-3 升變框 redesign + 變身動畫 — done（未 commit，待 Eason 實機測）
+
+- **走 Option A（CSS 重塑原生 dialog，Eason 拍板）**：反編譯 vue3-chessboard 確認原生升變 UI 硬綁在內部
+  `changeTurn`（`movable.events.after`），永遠搶先、boardConfig 擋不掉；接管原生需碰 private 內部（風險高），
+  故改最小可行解＝CSS reskin 原生 `.promotion-dialog`。
+- **改了什麼**：①`board-theme.css` 加 `.promotion-dialog` Gambit reskin（surface.card 米底＋line.strong 邊＋
+  card 陰影/圓角）＋棋子換成 Gioco Wood `/pieces/*.svg`（原生 cburnett base64 棄用）；按鈕用 `aspect-ratio:1/1`
+  自撐高度（原生 `height:100%` 在 content-driven 父層會塌 0）。②`chess-board.vue` 加「兵→選定子」變身 overlay：
+  升變格上疊 pawn SVG `opacity/scale` 淡出 + 選定子 `scale .55→1 + opacity` 淡入，只動 transform/opacity、
+  300ms 對齊 `PIECE_MOVE_ANIM_MS`、reduced-motion 跳過。③**升變時棋盤壓暗 scrim**（`.main-board::after`，
+  deep-jade rgba(16,48,41,.28)，掛 library 既有的 `.main-wrap.disabledBoard`，z-index 10 在棋子上、dialog 999 下）。
+  ④**升變框美化（redesign，Eason 拍板 H+M+L）**：每顆棋子獨立 tile（surface.raised 底＋line 邊＋圓角）、
+  hover/focus 金邊 `#F8B500`＋金光圈＋`translateY(-2px)`（只過渡 transform，box-shadow 即時不過渡守 Gambit）、
+  卡片頂金色細線（reward cue）、棋子 `background-size:72%` 留白。**金色只在升變 reward 瞬間出現，不違鐵則**。
+- **驗證**：vue-tsc 0、vitest 664。Playwright 注入 dialog 驗 reskin（米卡片＋4 Gioco Wood 棋子）✅。
+  **變身動畫＋實際升變拖放待 Eason 實機**（合成事件難觸發）。驗證點：`/learn/pawn-promotion?from=concept` 第 4 步、對局/試煉升變。
+- **遺留**：自訂 `components/promotion-dialog.vue` ＋ `chess-board.vue` 的 `pendingPromotion`/`handlePromotionSelect`/
+  `handlePromotionCancel`/`isPromotionMove` 分支現為 dead code（原生永遠搶先，Option A 不走自訂路徑）。未刪，待 Eason 決定是否清。
 
 ## 🚧 待辦 / 開放項
 

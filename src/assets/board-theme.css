@@ -74,3 +74,80 @@ cg-board {
    (chessground); the play-setup modal applies the same var inline on its preview. */
 :root { --piece-dark-brightness: 1.2; }
 .cg-wrap piece.black { filter: brightness(var(--piece-dark-brightness)); }
+
+/* ---- Promotion dialog (vue3-chessboard native) — Gambit reskin ----
+   The library renders its own <dialog class="promotion-dialog"> with cburnett
+   pieces baked in as base64 (its style.css). We load AFTER it, so equal-specificity
+   rules win — recolour the tray to a Gambit card and swap in the Gioco Wood set so
+   the chooser matches the board. Native horizontal-strip positioning is kept. */
+.promotion-dialog {
+  background-color: #fcf9f3;        /* surface.card */
+  border: 1px solid #cdb999;        /* line.strong */
+  border-radius: 0.75rem;           /* radius.card */
+  box-shadow: 0 10px 28px rgba(61, 34, 16, 0.16), 0 3px 8px rgba(61, 34, 16, 0.12);
+  padding: 0.5rem;
+  gap: 0.35rem;
+  align-items: center;
+  height: auto;                     /* content-driven; square buttons set the height */
+  top: 36%;
+}
+/* Hairline brand-gold accent across the top — a quiet "reward" cue for the promotion moment.
+   Absolute so it stays out of the flex row (gold = focus/reward only, per Gambit). */
+.promotion-dialog::before {
+  content: '';
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 6px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(248, 181, 0, 0.85), transparent);
+  pointer-events: none;
+}
+.promotion-dialog button {
+  /* The library sizes buttons with height:100%, which collapses to 0 once the tray height
+     is content-driven — pin each cell square off its flex width instead so it scales with the board. */
+  height: auto;
+  aspect-ratio: 1 / 1;
+  border: 1px solid #e0d3bd;        /* line — each piece reads as a selectable tile */
+  background-color: #f4ead8;        /* surface.raised */
+  border-radius: 0.5rem;
+  background-repeat: no-repeat;
+  background-position: center;
+  /* Only transform animates (Gambit motion rule); colour/ring switch instantly on hover. */
+  transition: transform 150ms ease;
+}
+.promotion-dialog button:hover,
+.promotion-dialog button:focus-visible {
+  border-color: #f8b500;            /* brand gold — reward-moment focus */
+  background-color: #fffaf0;
+  box-shadow: 0 0 0 2px rgba(248, 181, 0, 0.3);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+/* Dim the board behind the chooser to focus the eye on the promotion (deep-jade scrim, subtle).
+   The library tags .main-wrap with `disabledBoard` while the dialog is open. Scrim sits above the
+   pieces (z-index 2–9) but below the dialog (z-index 999); pointer-events:none keeps it inert. */
+.main-board::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: rgba(16, 48, 41, 0.28);   /* deep-jade anchor, low alpha */
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+.main-wrap.disabledBoard .main-board::after { opacity: 1; }
+
+/* Piece swap to Gioco Wood + ~72% size for breathing room inside the tile. background-size lives
+   here (not on `button`) so it clears the library's higher-specificity per-piece `contain` rule. */
+.promotion-dialog .queen.white  { background-image: url('/pieces/wQ.svg'); background-size: 72%; }
+.promotion-dialog .rook.white   { background-image: url('/pieces/wR.svg'); background-size: 72%; }
+.promotion-dialog .bishop.white { background-image: url('/pieces/wB.svg'); background-size: 72%; }
+.promotion-dialog .knight.white { background-image: url('/pieces/wN.svg'); background-size: 72%; }
+.promotion-dialog .queen.black  { background-image: url('/pieces/bQ.svg'); background-size: 72%; }
+.promotion-dialog .rook.black   { background-image: url('/pieces/bR.svg'); background-size: 72%; }
+.promotion-dialog .bishop.black { background-image: url('/pieces/bB.svg'); background-size: 72%; }
+.promotion-dialog .knight.black { background-image: url('/pieces/bN.svg'); background-size: 72%; }

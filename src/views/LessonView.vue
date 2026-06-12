@@ -303,14 +303,14 @@ function prev(): void {
            氣泡底（手機/桌機統一，按鈕永遠可見、不被捲走）。底部 safe-area 留白防 iPhone 圓角吃按鈕。 -->
       <div class="flex min-h-0 flex-1 items-start gap-2.5 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-1 lg:w-[26rem] lg:flex-none lg:px-0 lg:pb-0 lg:pt-0">
         <span
-          class="mt-0.5 flex h-8 w-8 shrink-0 self-start items-center justify-center rounded-full bg-primary font-display text-base leading-none text-primary-fg"
+          class="mt-0.5 flex h-8 w-8 shrink-0 self-start items-center justify-center rounded-full bg-primary font-num text-base leading-none text-primary-fg"
           aria-hidden="true"
-        >貝</span>
+        ><span class="block translate-y-[1.5px]">{{ COACH.name.charAt(0) }}</span></span>
         <div class="flex max-h-full min-h-0 min-w-0 flex-1 flex-col rounded-[6px_18px_18px_18px] bg-surface-card shadow-[0_6px_20px_rgba(8,24,18,0.28)]">
           <!-- 可捲教練內容（捲軸隱藏，靠 footer 上緣漸層暗示） -->
           <div class="coach-scroll min-h-0 flex-1 overflow-y-auto p-4">
             <div class="mb-2.5 flex items-center justify-between gap-2 font-sans text-xs font-medium text-ink-muted">
-              <span>教練 · {{ COACH.name }}</span>
+              <span>{{ COACH.name }}</span>
               <span class="shrink-0 font-num text-ink-faint">{{ stepIndex + 1 }} / {{ lesson.steps.length }}</span>
             </div>
 

@@ -2,14 +2,16 @@ import type { Lesson } from '../../types/lesson'
 
 /**
  * Tier 4 — 殘局技術 (endgame).
- * The "how to finish a won game" tier: basic mates (K+Q, K+R) and pawn promotion
- * (opposition). Neve's method: scenario + Socratic hints (the move arrow is the opt-in
- * reveal). Clean-room authored; all FENs carry both kings; validity (FEN parse + every
- * expectedMove legal from its step fen) enforced by lessons.test.ts.
+ * The "how to finish a won game" tier: basic mates (K+Q, K+R) and pawn promotion.
+ * Neve's method: scenario + Socratic hints (the move arrow is the opt-in reveal). Clean-room
+ * authored; every FEN carries both kings; each step CONNECTS to the next by a single move (the
+ * player's move, then the scripted reply animates) — no teleporting. Validity (FEN parse + every
+ * expectedMove legal) is enforced by lessons.test.ts; the mates/lines are chess.js-verified.
  */
 
 const Q_BOX = '4k3/6Q1/8/3K4/8/8/8/8 w - - 0 1'
 const Q_KING_UP = '3k4/6Q1/4K3/8/8/8/8/8 w - - 2 2'
+const Q_MATED = '3k4/3Q4/4K3/8/8/8/8/8 b - - 3 2'
 
 const queenMate: Lesson = {
   id: 'queen-mate',
@@ -46,17 +48,18 @@ const queenMate: Lesson = {
       arrows: [{ orig: 'g7', dest: 'd7' }],
       expectedMove: { from: 'g7', to: 'd7' },
       hint: '把后移到緊貼黑王的那一格，靠你的王在背後撐腰，讓黑王連一個逃格都不剩。',
-      successText: '將死！后貼著黑王、王在背後保護它，黑王無路可逃。這就是后王逼殺的圖案。',
+      successText: '將死。后貼著黑王、王在背後保護它，黑王無路可逃——這就是后王逼殺的圖案。',
     },
     {
-      fen: Q_KING_UP,
+      fen: Q_MATED,
       text: '訣竅：后負責縮小範圍、王負責支援，最後在邊線收尾。最大的陷阱是逼和——別把對方逼到沒棋可走卻又沒被將軍，那會白白變成和棋。每一步都確認它還有合法的走法。',
     },
   ],
 }
 
-const R_LADDER = '8/8/8/4k3/8/4K3/8/7R w - - 0 1'
-const R_MATE = '4k3/8/4K3/8/8/8/8/R7 w - - 0 1'
+const R_BOX = '6k1/R7/8/6K1/8/8/8/8 w - - 0 1'
+const R_CORNER = '7k/R7/6K1/8/8/8/8/8 w - - 2 2'
+const R_MATED = 'R6k/8/6K1/8/8/8/8/8 b - - 3 2'
 
 const rookMate: Lesson = {
   id: 'rook-mate',
@@ -65,88 +68,92 @@ const rookMate: Lesson = {
   difficulty: 'beginner',
   tier: 4,
   order: 20,
-  summary: '沒有后時，用王和一座城堡走「階梯」把孤王逼到邊線將死。',
-  scenario: '這次你少了后，只剩一座城堡。一樣殺得了孤王——靠的是王和城堡的配合，把它一排一排趕到牆邊。',
-  objectives: ['理解王城堡如何用「階梯」逼退孤王', '在邊線完成城堡將殺', '收尾時警覺逼和'],
+  summary: '沒有后時，用王和一座城堡把孤王逼到角落將死。',
+  scenario: '這次你少了后，只剩一座城堡。一樣殺得了孤王——靠的是王和城堡的配合，把它逼到牆邊收網。',
+  objectives: ['理解王城堡如何把孤王逼到邊線', '在角落完成城堡將殺', '收尾時警覺逼和'],
   playerColor: 'white',
   steps: [
     {
-      fen: R_LADDER,
-      text: '少了后，光靠王和一座城堡也能殺。方法叫「階梯」：兩王正對面時，用城堡將軍把對方的王逼退一排，一排一排趕到邊線。',
-      highlights: ['e3', 'e5'],
+      fen: R_BOX,
+      text: '你的城堡守住第七排，把黑王鎖在底排——它一格都跨不過城堡這條線。少了后，就靠王和城堡把它逼進角落。',
+      highlights: ['g8'],
     },
     {
-      fen: R_LADDER,
-      text: '兩王正對面了——用城堡將軍，逼黑王往後退一排。',
-      arrows: [{ orig: 'h1', dest: 'h5' }],
-      expectedMove: { from: 'h1', to: 'h5' },
-      hint: '你的王正對著黑王。從遠遠的一側，用城堡沿著黑王所在的那一排將軍，逼它退後。',
-      successText: '將軍！黑王被逼離這一排、只能往後退。城堡躲在遠處，對方的王碰不到它。',
+      fen: R_BOX,
+      text: '你的王頂上去，跟黑王正面對峙，逼它往角落退。',
+      arrows: [{ orig: 'g5', dest: 'g6' }],
+      expectedMove: { from: 'g5', to: 'g6' },
+      hint: '兩王正對面、中間隔一格時，黑王就被你和城堡夾住了。把王往黑王的方向送一步。',
+      successText: '王頂上來了——黑王前面的退路被你的王和城堡夾死，只能往角落挪。',
     },
     {
-      fen: R_MATE,
-      text: '就這樣「王頂王、城堡將軍逼退」，一排一排把它趕到了底排。兩王又正對面——最後一將。',
-      highlights: ['e6', 'e8'],
+      fen: R_CORNER,
+      text: '黑王被逼進了角落（我替它走了這步）。它前面那排全被你的王守著，城堡這條線又跨不過去。',
+      highlights: ['h8'],
     },
     {
-      fen: R_MATE,
-      text: '用城堡沿著底排將軍，將死。',
-      arrows: [{ orig: 'a1', dest: 'a8' }],
-      expectedMove: { from: 'a1', to: 'a8' },
-      hint: '你的王守住了黑王前面三個逃格，城堡只要從側面沿著最後一排將軍即可。',
-      successText: '將死！黑王被自己的邊線困住，前面三格被你的王守死，城堡從側面收尾。',
+      fen: R_CORNER,
+      text: '城堡沿著底排將軍——收網。',
+      arrows: [{ orig: 'a7', dest: 'a8' }],
+      expectedMove: { from: 'a7', to: 'a8' },
+      hint: '你的王守住黑王前面的逃格，城堡只要從遠端沿最後一排將軍即可。',
+      successText: '將死。王守住所有逃格、城堡從遠端將軍，黑王在角落無路可逃。這就是城堡逼殺：王頂王、城堡收網。',
     },
     {
-      fen: R_MATE,
-      text: '城堡逼殺的兩個要點：王和王正對面（對王），以及城堡躲在遠側將軍、不讓對方的王碰到它。一樣小心逼和——逼退時別把它趕到沒格可走又沒被將軍。',
+      fen: R_MATED,
+      text: '記住城堡逼殺的兩個要點：王和王正對面（對王）守住逃格，城堡躲在遠端將軍、對方的王碰不到它。一樣小心逼和——逼退時別讓它無處可走卻又沒被將軍。',
     },
   ],
 }
 
-const P_OPPOSITION = '8/4k3/8/5K2/4P3/8/8/8 w - - 0 1'
-const P_PROMOTE = '8/4PK1k/8/8/8/8/8/8 w - - 0 1'
+// Kf6/Pe6/Ke8, white to move. 1.e7 forces the only legal reply ...Kd7 (the enemy king is shoved
+// aside — visible because the next step's FEN differs by that single move), then 2.e8=Q+. Verified
+// forced + legal by chess.js (no stalemate). A clean beginner promotion: escort, shove, promote.
+const PROMO_BLOCK = '4k3/8/4PK2/8/8/8/8/8 w - - 0 1'
+const PROMO_YIELD = '8/3kP3/5K2/8/8/8/8/8 w - - 1 2'
+const PROMO_DONE = '4Q3/3k4/5K2/8/8/8/8/8 b - - 0 2'
 
 const pawnPromotion: Lesson = {
   id: 'pawn-promotion',
-  title: '兵的升變與對王',
+  title: '兵的升變',
   category: 'endgame',
   difficulty: 'beginner',
   tier: 4,
   order: 21,
-  summary: '用王護送兵、以「對王」逼開敵王，把兵送到底線升變成后。',
-  scenario: '對手只剩一個王，你有王加一個兵。一個兵只要走到對方底線就能變成后——但路上有敵王擋著，得靠你的王開路。',
-  objectives: ['理解「對王 (opposition)」如何逼開敵王', '用王護送兵前進', '把兵送到底線升變成后'],
+  summary: '用王護送兵、把擋路的敵王逼開，將兵送到底線升變成后。',
+  scenario: '對手只剩一個王，你有王加一個兵。一個兵只要走到對方底線就能變成后——但敵王正擋在升變格前。看你怎麼用王和兵把它逼開。',
+  objectives: ['理解用自己的王護送兵前進', '用推進逼開擋路的敵王', '把兵送到底線升變成后'],
   playerColor: 'white',
   steps: [
     {
-      fen: P_OPPOSITION,
-      text: '一個兵只要走到對方底線就能變成后。但路上有對方的王擋著，你得用自己的王開路——關鍵叫「對王」。',
-      highlights: ['e7', 'f5'],
+      fen: PROMO_BLOCK,
+      text: '你的兵離底線只剩兩步，王就在旁邊護著它、守住前面的格子。對方的王正擋在升變格前——看怎麼逼開它。',
+      highlights: ['e8'],
     },
     {
-      fen: P_OPPOSITION,
-      text: '把你的王走到正對著對方王、中間只隔一格的位置——而且輪到對方動。',
-      arrows: [{ orig: 'f5', dest: 'e5' }],
-      expectedMove: { from: 'f5', to: 'e5' },
-      hint: '對王＝兩王在同一條線、中間隔一格，換對方動。哪一步能讓你的王正對著黑王？',
-      successText: '拿到對王了！現在輪對方動，它卻只能讓開——你的王就能繞過去，替兵開路。',
+      fen: PROMO_BLOCK,
+      text: '把兵推進一步，踩住對方王的退路，逼它讓開。',
+      arrows: [{ orig: 'e6', dest: 'e7' }],
+      expectedMove: { from: 'e6', to: 'e7' },
+      hint: '兵往前一步會封住對方王旁邊的格子，逼它非讓開升變格不可。',
+      successText: '兵一進逼，對方的王只剩一個地方能去——它被迫讓出了升變格。',
     },
     {
-      fen: P_PROMOTE,
-      text: '一步步逼開對方的王、把兵護送到了底線前。對方的王被你的王擋在外面，碰不到這個兵。',
-      highlights: ['e7'],
+      fen: PROMO_YIELD,
+      text: '看到了嗎？對方的王被逼到一旁、讓出了升變格（我替它走了這步）。你的兵和王一推，它就守不住底線了。',
+      highlights: ['e8'],
     },
     {
-      fen: P_PROMOTE,
-      text: '兵到底線了——立刻把它變成最強的子。',
+      fen: PROMO_YIELD,
+      text: '底線敞開了——把兵送上去，升變成后。',
       arrows: [{ orig: 'e7', dest: 'e8' }],
       expectedMove: { from: 'e7', to: 'e8', promotion: 'q' },
       hint: '兵踏上底線的瞬間就能升變。回想子力價值——你會想把它變成哪個子？',
-      successText: '升變成后！一個小兵翻身變成后，你的子力瞬間壓倒對手，收尾不再是問題。',
+      successText: '升變成后。一個小兵走到底線翻身變后，你的子力一舉壓倒對手，收尾不再是問題。',
     },
     {
-      fen: P_PROMOTE,
-      text: '記住：兵要升變，得靠你的王一路護送，用「對王」逼開擋路的敵王。送到底線，就把它變成后。',
+      fen: PROMO_DONE,
+      text: '記住：兵要升變，靠你的王在旁邊護送、守住升變路上的格子，再一步步把擋路的敵王逼開。送到底線，就把它變成后。',
     },
   ],
 }

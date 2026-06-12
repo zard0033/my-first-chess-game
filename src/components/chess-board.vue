@@ -45,6 +45,13 @@ const { syncFen, onMoveMade } = useBoardRenderer(() => boardApi.value)
 const pendingPromotion = ref<{ from: string; to: string } | null>(null)
 const promotionSquareRect = ref<Rect | null>(null)
 
+// Pawn → promoted-piece "transform" flourish, overlaid on the promotion square once a promotion
+// resolves. Only transform/opacity animate (Gambit motion rule); skipped under reduced-motion.
+const PROMOTION_MORPH_MS = 300
+const promotionMorph = ref<{ rect: Rect; isDark: boolean; pawnSrc: string; pieceSrc: string } | null>(null)
+let morphTimer: number | null = null
+const pieceAssetUrl = (code: string): string => `${import.meta.env.BASE_URL}pieces/${code}.svg`
+
 // Tracks the square chessground currently has selected (a tapped/picked-up piece). Drives the
 // chess.com-style castling hint: selecting the king reveals a dot on the rook square too.
 const selectedSquare = ref<string | null>(null)
@@ -93,6 +100,7 @@ function onMove(move: Move): void {
     promotionSquareRect.value = squareToRect(move.to)
     return
   }
+  if (move.promotion) startPromotionMorph(move)
   onMoveMade()
   const fen = boardApi.value?.getFen() ?? ''
   emit('move-made', {
@@ -102,6 +110,21 @@ function onMove(move: Move): void {
     fen,
     animationDoneAt: buildAnimationDoneAt(boardRef.value),
   })
+}
+
+function startPromotionMorph(move: Move): void {
+  if (prefersReducedMotion.value) return
+  const rect = squareToRect(move.to)
+  if (!rect) return
+  const cc = move.color === 'w' ? 'w' : 'b'
+  promotionMorph.value = {
+    rect,
+    isDark: move.color === 'b',
+    pawnSrc: pieceAssetUrl(cc + 'P'),
+    pieceSrc: pieceAssetUrl(cc + (move.promotion as string).toUpperCase()),
+  }
+  if (morphTimer) clearTimeout(morphTimer)
+  morphTimer = window.setTimeout(() => { promotionMorph.value = null }, PROMOTION_MORPH_MS + 40)
 }
 
 function handlePromotionSelect(piece: 'q' | 'r' | 'b' | 'n'): void {
@@ -245,6 +268,9 @@ function squareToRect(square: string): Rect | null {
  */
 function resetPosition(): void {
   boardApi.value?.setPosition(props.fen)
+  // A rejected move leaves chessground's native last-move tint on the wrong squares; setPosition
+  // doesn't clear it, so drop it explicitly (走錯滑回後殘留綠格修正，與 reapplyFen 同).
+  boardApi.value?.setConfig({ lastMove: undefined }, false)
 }
 
 /**
@@ -365,6 +391,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   geomRo?.disconnect()
   geomRo = null
+  if (morphTimer) clearTimeout(morphTimer)
 })
 
 defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
@@ -429,6 +456,24 @@ defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
       @select="handlePromotionSelect"
       @cancel="handlePromotionCancel"
     />
+
+    <!-- Pawn → promoted-piece transform flourish on the promotion square (transform/opacity only).
+         Overlaid above the board so it masks chessground's instant piece swap underneath. -->
+    <div
+      v-if="promotionMorph"
+      class="promotion-morph"
+      :style="{
+        left: `${promotionMorph.rect.x}px`,
+        top: `${promotionMorph.rect.y}px`,
+        width: `${promotionMorph.rect.width}px`,
+        height: `${promotionMorph.rect.height}px`,
+        filter: promotionMorph.isDark ? 'brightness(var(--piece-dark-brightness))' : undefined,
+      }"
+      aria-hidden="true"
+    >
+      <img :src="promotionMorph.pawnSrc" class="promotion-morph-img promotion-morph-pawn" alt="" />
+      <img :src="promotionMorph.pieceSrc" class="promotion-morph-img promotion-morph-piece" alt="" />
+    </div>
 
     <!-- Castling hints (chess.com style): a tappable dot on the rook square while the king is selected.
          Mirrors chessground's native dest-dot look so both castling targets read identically. -->
@@ -519,6 +564,36 @@ defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
 
 /* Last-move highlight contrast via chessground's .cg-last-dests class.
    Chessground natively renders last-move tint via .cg-last-dests — no override needed. */
+
+/* Promotion morph: pawn fades/shrinks out while the chosen piece scales up + fades in.
+   transform/opacity only (no layout/paint), 300ms to land as chessground reveals the real piece. */
+.promotion-morph {
+  position: absolute;
+  z-index: 9;
+  pointer-events: none;
+}
+.promotion-morph-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: center;
+}
+@keyframes promo-pawn-out {
+  0%   { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.62); }
+}
+@keyframes promo-piece-in {
+  0%   { opacity: 0; transform: scale(0.55); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); }
+}
+.promotion-morph-pawn  { animation: promo-pawn-out 300ms cubic-bezier(0.4, 0, 0.6, 1) forwards; }
+.promotion-morph-piece { animation: promo-piece-in 300ms cubic-bezier(0.2, 0.7, 0.3, 1) forwards; }
+@media (prefers-reduced-motion: reduce) {
+  .promotion-morph { display: none; }
+}
 
 /* forced-colors fallback: check ring uses CanvasText; dots/rings use system Highlight */
 @media (forced-colors: active) {

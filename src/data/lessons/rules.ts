@@ -135,7 +135,7 @@ const knightAndQueen: Lesson = {
       arrows: [{ orig: 'd1', dest: 'a4' }],
       expectedMove: { from: 'd1', to: 'a4' },
       hint: '后能走直線也能走斜線。a4 跟你的后不在同一橫直線上——那它們之間是什麼關係？',
-      successText: '威風！后既能當城堡也能當主教。正因為它什麼都能做，失去它幾乎等於輸掉一半。',
+      successText: '后既能當城堡也能當主教——正因為它什麼都能做，失去它幾乎等於輸掉一半。',
     },
     {
       fen: '7k/8/8/8/Q7/8/8/4K3 b - - 0 1',
@@ -213,7 +213,7 @@ const checkAndEscape: Lesson = {
       arrows: [{ orig: 'a1', dest: 'e1' }],
       expectedMove: { from: 'a1', to: 'e1' },
       hint: '將軍 = 你的子攻擊到對方的王。哪一步能讓你的城堡控制住黑王所在的整條直線？',
-      successText: '將軍！你逼黑王非得回應不可——這就是掌握主動權的感覺。',
+      successText: '將軍。你逼黑王非得回應不可——這就是掌握主動權的感覺。',
     },
     {
       fen: '4k3/8/8/8/8/8/8/4R1K1 b - - 0 1',
@@ -225,7 +225,7 @@ const checkAndEscape: Lesson = {
       arrows: [{ orig: 'e1', dest: 'f2' }],
       expectedMove: { from: 'e1', to: 'f2' },
       hint: '移王、擋子、吃掉攻擊者。攻擊你的那隻主教就在王的旁邊——有沒有辦法一勞永逸地除掉威脅來源？',
-      successText: '解圍成功！直接吃掉攻擊者，威脅就徹底消失，是最爽快的解將。',
+      successText: '直接吃掉攻擊者，威脅就徹底消失——這是最乾脆的解將。',
     },
     {
       fen: '7k/8/8/8/8/8/5K2/8 b - - 0 1',
@@ -258,7 +258,7 @@ const checkmateInOne: Lesson = {
       arrows: [{ orig: 'a1', dest: 'a8' }],
       expectedMove: { from: 'a1', to: 'a8' },
       hint: '將死 = 將軍 + 王無處可逃。黑王的逃生格已被自己的兵堵住——你只要再控制住牠所在的那一排就行。',
-      successText: '將死！注意你贏的關鍵不是城堡多強，而是黑王沒有逃生口。以後看到對方王悶在底線、沒開氣孔，就要想到這一招。',
+      successText: '將死。注意你贏的關鍵不是城堡多強，而是黑王沒有逃生口。以後看到對方王悶在底線、沒開氣孔，就要想到這一招。',
     },
     {
       fen: 'R5k1/5ppp/8/8/8/8/8/6K1 b - - 0 1',
@@ -290,7 +290,7 @@ const specialRules: Lesson = {
       arrows: [{ orig: 'e1', dest: 'g1' }],
       expectedMove: { from: 'e1', to: 'g1' },
       hint: '易位時你移動的是「王」，朝著城堡的方向跨兩格。城堡會自己跳到王的另一側。',
-      successText: '易位完成！王躲好了、城堡也順勢參戰。開局盡早易位，是保護王的好習慣。',
+      successText: '易位完成。王躲好了、城堡也順勢參戰——開局盡早易位，是保護王的好習慣。',
     },
     {
       fen: '4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1',
@@ -303,7 +303,7 @@ const specialRules: Lesson = {
       arrows: [{ orig: 'e5', dest: 'd6' }],
       expectedMove: { from: 'e5', to: 'd6' },
       hint: '你的兵照常斜著吃，但落點是那個黑兵「如果只走一格」會停的位置，而不是它現在站的格子。',
-      successText: '抓到了！過路兵只有「緊接著的下一步」能吃，錯過就永遠沒了。',
+      successText: '過路兵只有「緊接著的下一步」能吃，錯過就永遠沒了。',
     },
     {
       fen: 'k7/4P3/8/8/8/8/8/4K3 w - - 0 1',
@@ -316,7 +316,7 @@ const specialRules: Lesson = {
       arrows: [{ orig: 'e7', dest: 'e8' }],
       expectedMove: { from: 'e7', to: 'e8', promotion: 'q' },
       hint: '先讓兵抵達對方的底排；既然可以任選，就挑那個身價最高（9 分）的子。',
-      successText: '一兵變后！這常常是殘局逆轉勝負的關鍵——別小看任何一個兵。',
+      successText: '一兵變后——這常常是殘局逆轉勝負的關鍵，別小看任何一個兵。',
     },
     {
       fen: '7k/8/5KQ1/8/8/8/8/8 b - - 0 1',
@@ -348,7 +348,7 @@ const tier1Capstone: Lesson = {
       arrows: [{ orig: 'c1', dest: 'c8' }],
       expectedMove: { from: 'c1', to: 'c8' },
       hint: '先問自己：黑王現在有哪些逃生格？（多半已被牠自己的兵堵住。）你要的那一步，要把僅剩的逃路也一起蓋掉。后能控制一整排。',
-      successText: '將死！這步贏在哪？不是后多強，而是黑王沒有逃生口、而你的后同時鎖住了整條第 8 列。看穿「對手的王能逃去哪」，你就看穿了將殺。',
+      successText: '將死。這步贏在哪？不是后多強，而是黑王沒有逃生口、而你的后同時鎖住了整條第 8 列。看穿「對手的王能逃去哪」，你就看穿了將殺。',
     },
     {
       fen: '2Q3k1/5ppp/8/8/8/8/8/6K1 b - - 0 1',

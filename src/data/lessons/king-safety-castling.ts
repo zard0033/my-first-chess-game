@@ -31,7 +31,7 @@ export const kingSafetyCastling: Lesson = {
       arrows: [{ orig: 'e1', dest: 'g1' }],
       expectedMove: { from: 'e1', to: 'g1' },
       hint: '國王和那側的城堡都還沒動過、中間也清空了——有一個特別的一步，能讓國王往城堡方向跳兩格，城堡同時繞到它身邊。',
-      successText: '易位完成！國王躲到兵牆後面安全多了，原本縮在角落的城堡也一步進場——一手棋做兩件事。',
+      successText: '易位完成。國王躲進兵牆後面安全多了，原本縮在角落的城堡也一步進場——一手棋做兩件事。',
     },
     {
       fen: AFTER_OO,

@@ -165,11 +165,13 @@ function continueLearning() {
     <!-- 總覽（全寬） -->
     <SectionLabel>總覽</SectionLabel>
     <div class="grid grid-cols-3 gap-2.5">
-      <StatCard
-        :icon="BookOpen"
-        label="學習進度"
-        :value="`${progress.completedCount}/${progress.totalCount}`"
-      />
+      <RouterLink to="/learn" class="block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="學習進度">
+        <StatCard
+          :icon="BookOpen"
+          label="學習進度"
+          :value="`${progress.completedCount}/${progress.totalCount}`"
+        />
+      </RouterLink>
       <RouterLink to="/dungeon" class="block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold" aria-label="試煉">
         <StatCard
           :icon="Target"

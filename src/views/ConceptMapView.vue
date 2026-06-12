@@ -10,8 +10,8 @@
  * No practice (試煉) entry lives here on purpose: one tactic maps to many puzzles, so there is no single
  * right target. Practice stays in the lesson-completion Bridge-1 invitation and the Dungeon.
  */
-import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { ChevronRight, Compass } from 'lucide-vue-next'
 import { DarkPanel } from '@/components/ui/gambit'
 import { concepts, getConceptById } from '@/data/concepts'
@@ -23,6 +23,13 @@ import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 import { useConceptProgressStore } from '@/stores/concept-progress'
 
 const router = useRouter()
+const route = useRoute()
+// 試煉「複習」帶 ?focus=<conceptId> 進來時，highlight 並捲到該概念（concept 1 : 試煉 N 的 hub）。
+const focusId = (route.query.focus as string) || ''
+onMounted(() => {
+  if (!focusId) return
+  document.querySelector(`[data-concept="${focusId}"]`)?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+})
 const lessonProgress = useLessonProgressStore()
 const dungeonProgress = useDungeonProgressStore()
 const conceptProgress = useConceptProgressStore()
@@ -141,10 +148,16 @@ const maskStyle = (piece: string) => ({
           :key="v.id"
           type="button"
           data-testid="concept-tile-lit"
+          :data-concept="v.id"
           class="glass-panel relative flex min-h-[112px] flex-col gap-2.5 overflow-hidden rounded-2xl p-3 text-left transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           :aria-label="`學習「${v.label}」`"
           @click="learnConcept(v)"
         >
+          <span
+            v-if="v.id === focusId"
+            class="concept-focus-ring pointer-events-none absolute inset-0 z-10 rounded-2xl border-2 border-gold"
+            aria-hidden="true"
+          />
           <span
             class="pointer-events-none absolute -right-3 -top-2.5 block h-16 w-16 bg-primary opacity-[0.09]"
             aria-hidden="true"
@@ -182,10 +195,16 @@ const maskStyle = (piece: string) => ({
           :key="v.id"
           type="button"
           data-testid="concept-tile-dormant"
-          class="glass-panel flex min-h-[104px] flex-col gap-2.5 rounded-2xl p-3 text-left transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+          :data-concept="v.id"
+          class="glass-panel relative flex min-h-[104px] flex-col gap-2.5 rounded-2xl p-3 text-left transition-colors hover:bg-white/[0.14] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
           :aria-label="`學習「${v.label}」`"
           @click="learnConcept(v)"
         >
+          <span
+            v-if="v.id === focusId"
+            class="concept-focus-ring pointer-events-none absolute inset-0 z-10 rounded-2xl border-2 border-gold"
+            aria-hidden="true"
+          />
           <div class="flex items-center gap-2.5">
             <span class="coin coin-dim">
               <span class="block h-5 w-5 bg-ink-faint" aria-hidden="true"
@@ -207,6 +226,23 @@ const maskStyle = (piece: string) => ({
 </template>
 
 <style scoped>
+/* 試煉「複習」進來時，金框在該概念上脈動數次後淡出（只動 opacity，遵守 Gambit 動效鐵則）。 */
+.concept-focus-ring {
+  animation: conceptFocus 2.4s ease-in-out forwards;
+}
+@keyframes conceptFocus {
+  0% { opacity: 1; }
+  12% { opacity: 0.25; }
+  25% { opacity: 1; }
+  50% { opacity: 0.25; }
+  75% { opacity: 1; }
+  90% { opacity: 0.25; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .concept-focus-ring { animation: none; opacity: 1; }
+}
+
 .coin {
   position: relative; display: flex; height: 38px; width: 38px; flex: none;
   align-items: center; justify-content: center; border-radius: 9999px;

@@ -7,6 +7,7 @@ import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import { getPuzzleById, puzzles } from '@/data/puzzles'
 import { reviewLinkForMotif } from '@/data/concepts'
+import { MOTIF_TO_CONCEPT } from '@/types/concept'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 import { useConceptProgressStore } from '@/stores/concept-progress'
 import { useDungeonPuzzle } from '@/modules/dungeon/use-dungeon-puzzle'
@@ -102,7 +103,9 @@ const hintLabel = computed(() =>
 
 // 棋譜紀錄框：累積每次嘗試的白話對錯（Cubic 11 呈現）。第一次互動才出現。
 const PIECE_ZH: Record<string, string> = { p: '兵', n: '騎士', b: '主教', r: '城堡', q: '后', k: '國王' }
-const moveLog = ref<{ ok: boolean; text: string }[]>([])
+// Single most-recent attempt result (replaces, never accumulates) — shown top-right of the card so
+// repeated wrong tries don't grow a list that pushes the footer CTA under the mobile URL bar.
+const lastResult = ref<{ ok: boolean; text: string } | null>(null)
 function describeMove(piece: string, captured?: string): string {
   const p = PIECE_ZH[piece] ?? '棋子'
   return captured ? `${p}吃掉${PIECE_ZH[captured] ?? '一子'}` : `${p}就位`
@@ -114,7 +117,7 @@ function handleMove(payload: MoveMadePayload): void {
 
   if (result.kind === 'wrong') {
     wrongActive.value = true
-    moveLog.value.push({ ok: false, text: '這步不是答案' }) // 紀錄留著（不再一閃即逝）
+    lastResult.value = { ok: false, text: '不是這步' }
     // Snap the wrong piece home AFTER the move animation settles — doing it immediately lets
     // chessground's in-flight animation overwrite the reset (the piece stayed put). 600ms 後還原。
     setTimeout(() => {
@@ -126,7 +129,7 @@ function handleMove(payload: MoveMadePayload): void {
   }
 
   if (result.kind === 'correct-advance') {
-    moveLog.value.push({ ok: true, text: describeMove(result.piece, result.captured) })
+    lastResult.value = { ok: true, text: describeMove(result.piece, result.captured) }
     hintStage.value = 0
     setTimeout(() => pz.commitOpponentReply(), prefersReducedMotion.value ? 0 : OPPONENT_REPLY_DELAY_MS)
     return
@@ -134,7 +137,7 @@ function handleMove(payload: MoveMadePayload): void {
 
   // correct-solved — practice mode records to concept-progress only (D1 zero-mutation invariant);
   // normal dungeon play advances the linear progress as before.
-  moveLog.value.push({ ok: true, text: describeMove(result.piece, result.captured) })
+  lastResult.value = { ok: true, text: describeMove(result.piece, result.captured) }
   if (puzzle) {
     if (isPractice) conceptProgress.markPracticed(puzzle.id)
     else progress.markSolved(puzzle.id)
@@ -158,7 +161,9 @@ function showHint(): void {
 const reviewLink = computed(() => (puzzle ? reviewLinkForMotif(puzzle.motif) : null))
 
 function reviewConcept(): void {
-  if (reviewLink.value) router.push(`/learn/${reviewLink.value.lessonId}`)
+  // One concept maps to many puzzles, so 複習 points at the concept hub (the map), not a single
+  // lesson — the map highlights this concept and routes onward to its lesson (concept 1 : puzzle N).
+  if (puzzle) router.push(`/learn/concepts?focus=${MOTIF_TO_CONCEPT[puzzle.motif]}`)
 }
 
 const nextPuzzle = computed(() => {
@@ -258,6 +263,14 @@ function goNext(): void {
             />
             {{ turnLabel }} · <b class="font-bold text-ink-on-deep">輪你走</b>
             <span v-if="positionLabel">· {{ positionLabel }}</span>
+            <!-- Last attempt result — single, replaced each move, pinned top-right so it never grows -->
+            <span
+              v-if="lastResult"
+              class="ml-auto inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-num text-[11px]"
+            >
+              <span :class="lastResult.ok ? 'text-[#7FCBA9]' : 'text-[#E8A892]'">{{ lastResult.ok ? '✓' : '✗' }}</span>
+              <span class="text-ink-on-deep-dim">{{ lastResult.text }}</span>
+            </span>
           </div>
 
           <!-- Goal (prompt) — the headline; never leaks the solution -->
@@ -272,17 +285,6 @@ function goNext(): void {
             <p v-if="hintStage >= 2" class="mt-1 font-sans text-sm text-ink-on-deep-dim">答案箭頭已畫在棋盤上。</p>
           </div>
         </template>
-
-        <!-- 棋譜紀錄框（複用對局棋譜語彙；第一次互動才出現，累積對錯，Cubic 11 等寬）-->
-        <div v-if="moveLog.length" class="mt-3 overflow-hidden rounded-lg border border-white/10 bg-black/25 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-          <p class="border-b border-white/10 px-3 py-1.5 font-sans text-[10px] uppercase tracking-[0.12em] text-ink-on-deep-dim">試煉紀錄</p>
-          <div class="px-3 py-2 font-num text-[13px] leading-relaxed">
-            <div v-for="(e, i) in moveLog" :key="i" class="flex gap-2">
-              <span :class="e.ok ? 'text-[#7FCBA9]' : 'text-[#E8A892]'">{{ e.ok ? '✓' : '✗' }}</span>
-              <span class="text-ink-on-deep">{{ e.text }}</span>
-            </div>
-          </div>
-        </div>
 
         <!-- ===== Footer ===== -->
         <!-- 達成：回地圖（次要）+ 下一題（金 CTA）-->
