@@ -14,6 +14,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'mate-in-1',
     title: '王的牢籠',
     prompt: '一步將死。',
+    brief: '他的王，在角落沒幾個逃格了。',
     fen: 'k7/8/K7/8/8/8/8/7R w - - 0 1',
     solution: [{ from: 'h1', to: 'h8' }],
     hint: '對方國王還有逃格嗎？',
@@ -26,6 +27,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '騎士奪后',
     prompt: '有子可吃。',
+    brief: '他兩顆要害，挨得太近。',
     fen: '4q1k1/8/8/8/4N3/8/8/6K1 w - - 0 1',
     solution: [{ from: 'e4', to: 'f6' }],
     hint: '騎士能同時叉到王和后嗎？',
@@ -38,6 +40,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'mate-in-2',
     title: '兩步成擒',
     prompt: '兩步將死。',
+    brief: '他的退路，正在收窄。',
     fen: '7k/8/6K1/8/8/8/8/6Q1 w - - 0 1',
     solution: [
       { from: 'g1', to: 'a1' },
@@ -54,6 +57,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'pin',
     title: '角落困騎',
     prompt: '有子可吃。',
+    brief: '他有顆子，被釘在王的正前方。',
     fen: 'k7/8/8/n7/8/8/1P6/R5K1 w - - 0 1',
     solution: [
       { from: 'b2', to: 'b4' },
@@ -70,6 +74,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '王后通吃',
     prompt: '有子可吃。',
+    brief: '他的王身邊，跟著一顆大子。',
     fen: '4k3/8/8/5N2/2q5/8/8/6K1 w - - 0 1',
     solution: [
       { from: 'f5', to: 'd6' },
@@ -86,6 +91,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'mate-in-2',
     title: '長線殺王',
     prompt: '兩步將死。',
+    brief: '他的王，正被趕向角落。',
     fen: '1Q6/8/8/8/8/1K6/8/k7 w - - 0 1',
     solution: [
       { from: 'b8', to: 'h8' },
@@ -102,6 +108,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'mate-in-2',
     title: '直線逼宮',
     prompt: '兩步將死。',
+    brief: '他的王，能站的地方越來越少。',
     fen: '7k/8/8/8/8/8/8/KQ4R1 w - - 0 1',
     solution: [
       { from: 'b1', to: 'b8' },
@@ -118,6 +125,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '騎兵奪后',
     prompt: '有子可吃。',
+    brief: '他的大子，沒離開王的身邊。',
     fen: '8/2k5/8/8/1N3q2/8/8/6K1 w - - 0 1',
     solution: [
       { from: 'b4', to: 'd5' },
@@ -134,6 +142,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '三子俱叉',
     prompt: '有子可吃。',
+    brief: '他的子，全擠在一塊。',
     fen: '2q1k3/5r2/8/8/4N3/8/8/6K1 w - - 0 1',
     solution: [
       { from: 'e4', to: 'd6' },
@@ -150,6 +159,7 @@ export const level3Puzzles: Puzzle[] = [
     motif: 'mate-in-2',
     title: '雙線殺王',
     prompt: '兩步將死。',
+    brief: '他的王被逼進角落，沒有別的結局。',
     fen: '1R4QK/8/8/8/8/8/8/k7 w - - 0 1',
     solution: [
       { from: 'g8', to: 'g1' },

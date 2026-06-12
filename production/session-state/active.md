@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: 登入頁開場動線 + redesign
-Feature: sign-in landing gate + 極簡 redesign — done（未 commit/push）
-Task: 可 push 本輪積累（登入頁 + 字型審查）
+Epic: 教練人格 Neve + 試煉 brief
+Feature: Neve persona SoT + 30 題 brief（地形視角）
+Task: 全數 apply、測試綠，待 commit
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -18,7 +18,7 @@ Task: 可 push 本輪積累（登入頁 + 字型審查）
   雙職，可側門跳學鎖住的戰術（不污染線性進度）；側門已學雲端同步（`lesson_side_learned` 表已套用）。**
 - **game-replay (#S10)**：QA APPROVED；S10-05 動畫 polish 已 deferred；剩 iPhone 實機。
 - **訪客模式 local-first + 續玩對局**：done+push（`170abf0`）。訪客完局讀本地 queue、登入 flush 同步；Resume 每步存 local／離開推雲／登入 last-write-wins。**程式已 push，剩實機驗收（見待辦）**。
-- **測試**：vue-tsc 0、vitest **669 passed**。
+- **測試**：vue-tsc 0、vitest **664 passed**。
 
 ## UI Redesign（2026-06-09～06-11，已全數 push）
 
@@ -31,18 +31,18 @@ Task: 可 push 本輪積累（登入頁 + 字型審查）
 
 ## 🟡 未 commit／push（working tree，下次一起 commit）
 
-> `git status` 應只剩這批。其餘本輪相關工作（訪客完局/續玩/綠格）**已 push**，細節在 git log。
+> 上批「登入頁開場動線 + 字型審查」已 push（`a4bf8c7`）；repo 改名 base path 已 push（`e137bef`）。
+> 本批＝**教練人格 Neve + 試煉 brief**。
 
-- **登入頁開場動線 + redesign**（`router/index.ts`、`stores/auth.ts`、`views/SignInView.vue`、`tests/unit/app-router/auth-guard.test.ts`）：
-  ①落地閘門——未登入且本 session 未選訪客 → 導向 `/sign-in`（`GUEST_ENTRY_KEY` sessionStorage flag；點「以訪客身分繼續」設 flag 後整 session 自由逛，PWA 重開才再擋；已登入者 session 還原不會看到 sign-in）。
-  ②SignInView redesign——`♚` 金徽換 `brand-mark.svg` 裸金國王剪影、極簡化（拿掉同步說明）、訪客逃生口改 bordered ghost 按鈕（或 divider）。
-  ③`auth.ts` 記住 email（`gambit:last-email`）→ SignInView 預填。guard 測試對齊新閘門 +2 測試（8 passed）。
-  - **⏳ 英文標語待定**：placeholder `MASTER THE BOARD`（`SignInView.vue` h1 下方那行），想到正式句子再換。
-- **全站字型風格審查**（`views/LearnView.vue`、`design/gambit-design-system/README.md`）：逐頁確認 5-font 一致。
-  修兩處——`LearnView.vue:164` `font-num text-[9px]`→`font-sans`；`:83` 進度單位字「課」拆出改 `font-sans`（數字仍 Cubic 11）。
-  完整字型使用規則表格已寫入 design system README（5 family × 適用/禁用/最小尺寸）。
-- `production/session-state/active.md`（本狀態檔）。
-- **驗證**：vue-tsc 0、vitest 669 passed。
+- **教練人格 Neve（原創角色，取代暫用的貝絲）**：SoT `design/gambit-design-system/persona-neve.md`
+  ——Gambit 棋盤的化身/棋靈、銀白短髮、冷靜大師、地形視角；課程＝她以第一人稱「我」對你說、試煉 brief＝
+  你內化後的第三人稱觀察。`COACH` 常數 `貝絲·哈蒙`→`Neve`；src 內 5 處玩家可見「貝絲」→ Neve（課程自我
+  指涉改第一人稱）；註解 Beth→Neve。
+- **試煉 brief 欄位 + 30 條 Neve 文案**（`types/puzzle.ts` 加**必填** `brief`、`data/puzzles/level-1~3.ts`、
+  `views/DungeonPuzzleView.vue` prompt 下常駐渲染、`tests` 加非空閘門 + 3 fixture 補欄）。文案鐵則：第三人稱
+  觀察、一拍、**指他的弱點不指你的解法**、不點格不點棋子種類、棋盤口吻僅 #30 浮一次。
+- **repo 改名連帶**：`CLAUDE.md` 兩處護欄（base path `/gambit/`、origin `zard0033/gambit`）。
+- **驗證**：vue-tsc 0、vitest 664 passed。已 Playwright 截圖驗試煉題卡渲染正常（brief 改文字前）。
 
 ## 🚧 待辦 / 開放項
 
@@ -56,10 +56,8 @@ Task: 可 push 本輪積累（登入頁 + 字型審查）
   ⑥**不可用 `max-w` 依高度硬縮棋盤**：棋盤高度被內部 pin 住，縮木框寬會把棋盤壓成非正方（h 檔被裁）。要省空間改縮周邊（合併列、棋譜上限），別碰棋盤寬。Tailwind arbitrary calc 內 `-` 兩側要用底線：`calc(100dvh_-_Nrem)`。
 
 - **#3 過場效能**：上面那批是推測性修法，**待 Eason 下次實機確認**點 tab 換頁/膠囊動畫是否變順。
-- **試煉題卡「補充描述」逐題撰寫（B5 redesign 衍生，Eason 指定一定要做、可排後）**：試煉內頁題卡已加
-  「白方/黑方 · 輪你走」turn 指示（從 FEN 免費算，已做）。但題卡的**一句補充說明**（如「對方有一子沒受保護——
-  找出來吃掉它」，比單一行 prompt「有子可吃」更清楚目標）需**每題新增一欄逐題撰寫**（30 題）。現有 `prompt` 保留當大標、
-  `hint` 是按提示才出不可挪用（會劇透）。要做：puzzle 型別 + 30 筆資料加 `brief`（或類似）欄位，題卡渲染那行。
+- ~~**試煉題卡「補充描述」逐題撰寫**~~ **done（未 commit，見上節）**：Puzzle 加必填 `brief`、30 題逐題撰寫、
+  題卡常駐渲染、測試內容閘門 + Playwright 截圖驗證。文案討論於 git log。
 - **B5 桌機棋盤尺寸已解（root cause 紀錄，重要）**：vue3-chessboard 的 `.main-wrap` SECTION 被釘死
   `width:700px` 撐爆容器（不是 cg-wrap）。解法＝board wrapper 加 class `board-fit` ＋ scoped
   `.board-fit :deep(.main-wrap){width:100%!important;max-width:100%!important;height:auto!important}`，

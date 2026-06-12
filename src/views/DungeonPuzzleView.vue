@@ -263,6 +263,9 @@ function goNext(): void {
           <!-- Goal (prompt) — the headline; never leaks the solution -->
           <p class="font-display text-[19px] font-bold leading-snug text-ink-on-deep">{{ puzzle.prompt }}</p>
 
+          <!-- Brief — one concrete sentence clarifying the goal; sits above the on-demand hint -->
+          <p class="mt-1.5 font-lesson text-[13px] leading-relaxed text-ink-on-deep-dim">{{ puzzle.brief }}</p>
+
           <!-- Hint text (stage 1+) -->
           <div v-if="hintStage >= 1" class="mt-3 rounded-lg bg-gold/10 px-3 py-2 ring-1 ring-gold/20">
             <p class="font-lesson text-sm leading-relaxed text-ink-on-deep">{{ puzzle.hint }}</p>

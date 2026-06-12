@@ -37,7 +37,7 @@ See `~/interviews/chess-training-companion-brief.md` for the full concept brief.
 > WebSocket，會在測試載入階段（import supabase 的 suite）直接拋錯使 CI 失敗，
 > 但本機 Node 22 看不出來。降版本前先改成裝 `ws` 並注入 transport。
 
-> **部署 base path 護欄**：站台部署在 GitHub Pages 子路徑 `/my-first-chess-game/`
+> **部署 base path 護欄**：站台部署在 GitHub Pages 子路徑 `/gambit/`
 > （CI 以 `VITE_BASE_URL` 注入）。**寫在 JS / inline-style 的資產路徑**——
 > `:style` 的 `url(...)`、`<img :src>`、`mask-image`、`background-image`——
 > **必須前綴 `import.meta.env.BASE_URL`**，否則部署站 404。只有 `.css` 檔裡的
@@ -73,7 +73,7 @@ Every task follows: **Question -> Options -> Decision -> Draft -> Approval**
 - No commits without user instruction
 
 > **Push guardrail**: this repo is a fork of the `Claude-Code-Game-Studios` template.
-> `origin` = `zard0033/my-first-chess-game` (your fork); `upstream` = the template.
+> `origin` = `zard0033/gambit` (your fork); `upstream` = the template.
 > Always push explicitly with `git push origin main` — never bare `git push` — so a
 > branch that tracks `upstream` can never push your work to the template repo.
 
@@ -86,6 +86,9 @@ See `docs/COLLABORATIVE-DESIGN-PRINCIPLE.md` for full protocol and examples.
 
 **全站視覺 SoT = `design/gambit-design-system/`**。
 實作任何 UI 前先讀其 `README.md` + `colors_and_type.css`。以下為非協商鐵則：
+
+> **教練人格 SoT = `design/gambit-design-system/persona-neve.md`**（Neve，原創角色）。
+> 寫任何課程／試煉／概念文案前先讀：課程＝Neve 第一人稱對你說、試煉 brief＝第三人稱觀察指對手弱點、概念＝中性。
 
 - **色彩**：每屏都要 deep-jade 錨 `#103029`；品牌金 `#F8B500` 只用於 focus / reward 的
   fill / indicator，**絕不當內文**（內文金用 `#8F6200` 且限大字）；內容區 warm cream；陰影暖棕非純黑。

@@ -4,7 +4,7 @@ import type { Puzzle } from '@/types/puzzle'
 
 const singleMove: Puzzle = {
   id: 't-single', level: 1, order: 1, motif: 'capture',
-  title: 't', prompt: 'p',
+  title: 't', prompt: 'p', brief: 'b',
   fen: '4k3/8/8/8/3q4/8/8/3RK3 w - - 0 1',
   solution: [{ from: 'd1', to: 'd4' }],
   hint: 'h', successText: 's',
@@ -12,7 +12,7 @@ const singleMove: Puzzle = {
 
 const multiMove: Puzzle = {
   id: 't-multi', level: 2, order: 2, motif: 'fork',
-  title: 't', prompt: 'p',
+  title: 't', prompt: 'p', brief: 'b',
   fen: '4k3/3r4/8/8/4N3/8/8/4K3 w - - 0 1',
   solution: [
     { from: 'e4', to: 'f6' },
@@ -24,7 +24,7 @@ const multiMove: Puzzle = {
 
 const mateAny: Puzzle = {
   id: 't-mate', level: 3, order: 3, motif: 'mate-in-1', acceptAnyMate: true,
-  title: 't', prompt: 'p',
+  title: 't', prompt: 'p', brief: 'b',
   // White rooks a1/h1 + Ke1; black king h8 boxed by g7/h7. Ra8# mates along the 8th rank;
   // acceptAnyMate accepts it even though it differs from the authored line below.
   fen: '7k/6pp/8/8/8/8/8/R3K2R w - - 0 1',

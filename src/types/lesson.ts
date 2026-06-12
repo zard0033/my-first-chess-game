@@ -70,7 +70,7 @@ export interface Lesson {
    * `tests/unit/data/concepts.test.ts` asserts each concept's `teaches` lesson carries it here.
    */
   concepts?: ChessConcept[]
-  /** Situational set-up shown before the first step (Beth's method: scenario first). */
+  /** Situational set-up shown before the first step (Neve's method: scenario first). */
   scenario?: string
   /** What the player will learn. */
   objectives: string[]
@@ -97,7 +97,7 @@ export const LESSON_TIER_LABELS: Record<LessonTier, string> = {
 
 /**
  * The single coach persona shown in the lesson player (UI label, not embedded in
- * each step's text). Beth Harmon from *The Queen's Gambit* — see EPIC.md licensing
- * guardrail (personal-use; revisit if the app is published).
+ * each step's text). Neve — an original character (the board-spirit of Gambit); see
+ * design/gambit-design-system/persona-neve.md for the full persona SoT.
  */
-export const COACH = { name: '貝絲·哈蒙', nameEn: 'Beth Harmon' } as const
+export const COACH = { name: 'Neve', nameEn: 'Neve' } as const

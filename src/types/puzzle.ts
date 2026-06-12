@@ -38,6 +38,12 @@ export interface Puzzle {
   title: string
   /** The ask shown above the board, e.g.「白方走步，一步將死」. */
   prompt: string
+  /**
+   * One concrete sentence under the prompt that clarifies the goal (more explicit than
+   * the terse `prompt`, less than `hint`). Restates the motif's aim; never names the
+   * target square or the exact move — that stays the hint's job.
+   */
+  brief: string
   /** Start position; side-to-move = the player. Player orientation is derived from this. */
   fen: string
   /** Alternating player/opponent plies, player first, odd length. */

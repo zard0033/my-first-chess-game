@@ -2,7 +2,7 @@ import type { Lesson } from '../../types/lesson'
 
 /**
  * Tier 2 — 基本戰術 (tactics).
- * Beth's method: each lesson opens with a `scenario`, every interactive step poses
+ * Neve's method: each lesson opens with a `scenario`, every interactive step poses
  * the idea as a question and its `hint` is Socratic (goal / what-to-avoid, never the
  * move — the move arrow is the opt-in stage-2 reveal). successText states the
  * transferable principle; later lessons recall earlier tactics by name. Clean-room;
@@ -18,7 +18,7 @@ const fork: Lesson = {
   tier: 2,
   order: 9,
   summary: '一個子同時攻擊兩個目標，對手只能救一個。',
-  scenario: '你跟對手子力相等，誰也不讓誰。但棋盤上藏著一個機會——有沒有辦法「一次攻擊兩個東西」，讓對手顧此失彼？',
+  scenario: '你跟對手子力相等，誰也不讓誰。但棋盤上藏著一個機會——有沒有辦法「一次攻擊兩顆子」，讓對手顧此失彼？',
   objectives: ['認得捉雙：一子攻兩子', '知道騎士的捉雙最難防（不能被擋）', '知道兵也能捉雙'],
   playerColor: 'white',
   steps: [
@@ -54,7 +54,7 @@ const fork: Lesson = {
     },
     {
       fen: '4k3/8/3n1n2/4P3/8/8/8/4K3 b - - 0 1',
-      text: '記住這個圖案：每當你的一個子能同時碰到對手兩個值錢的東西，就停下來看——那通常就是免費的子力。',
+      text: '記住這個圖案：每當你的一個子能同時碰到對手兩顆值錢的子，就停下來看——那通常就是免費的子力。',
     },
   ],
 }
@@ -156,7 +156,7 @@ const discoveredAttack: Lesson = {
     },
     {
       fen: '4k3/8/3N4/8/8/8/8/4R1K1 b - - 0 1',
-      text: '閃將之所以可怕，是因為對手「必須」回應將軍，沒空管你順手撈走的東西。看到自己的子卡在「攻擊線」上，就問一句：移開它能不能順便將軍？',
+      text: '閃將之所以可怕，是因為對手「必須」回應將軍，沒空管你順手撈走的子。看到自己的子卡在「攻擊線」上，就問一句：移開它能不能順便將軍？',
     },
   ],
 }
@@ -202,7 +202,7 @@ const protection: Lesson = {
     },
     {
       fen: '4k3/8/8/3R4/5N2/8/b7/4K3 b - - 0 1',
-      text: '被攻擊先別慌，把四個選項都掃一遍：移開、保護、反擊、吃掉攻擊者，挑損失最小的。看懂全局再決定，這才是貝絲的下法。',
+      text: '被攻擊先別慌，把四個選項都掃一遍：移開、保護、反擊、吃掉攻擊者，挑損失最小的。看懂全局再決定，這才是我的下法。',
     },
   ],
 }
@@ -215,7 +215,7 @@ const tier2Capstone: Lesson = {
   tier: 2,
   order: 14,
   summary: '把牽制、捉雙、串擊、閃擊融會貫通——用兩步組合贏下對手的后。',
-  scenario: '一盤真正的中局：你少了一點子力、看似下風。但貝絲教過你——別看子力多寡，看「圖案」。黑王在 e4、黑后在 e7，疊在同一條 e 線上。前面是王、後面是后……你聞到了什麼？',
+  scenario: '一盤真正的中局：你少了一點子力、看似下風。但我教過你——別看子力多寡，看「圖案」。黑王在 e4、黑后在 e7，疊在同一條 e 線上。前面是王、後面是后……你聞到了什麼？',
   objectives: ['在真實處境中辨識戰術圖案', '把單一戰術串成兩步組合'],
   playerColor: 'white',
   steps: [
@@ -243,7 +243,7 @@ const tier2Capstone: Lesson = {
       arrows: [{ orig: 'e1', dest: 'e7' }],
       expectedMove: { from: 'e1', to: 'e7' },
       hint: '黑王已被趕離 e 線，后孤零零留在線上、無人保護。你佔線的城堡能一路走到哪裡？',
-      successText: '后到手！你用一個落後的局面，只靠「看出圖案」就贏回一個后——這就是貝絲要你練的：不是記招式，是讓眼睛自動看見王和后站在同一條線上。',
+      successText: '后到手！你用一個落後的局面，只靠「看出圖案」就贏回一個后——這就是我要你練的：不是記招式，是讓眼睛自動看見王和后站在同一條線上。',
     },
     {
       fen: '8/4R3/8/3k4/8/8/8/6K1 b - - 0 1',

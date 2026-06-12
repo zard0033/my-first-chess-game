@@ -14,6 +14,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'capture',
     title: '小兵立功',
     prompt: '有子可吃。',
+    brief: '他有顆子，停在沒人守的地方。',
     fen: '4k3/8/8/3q4/4P3/8/8/4K3 w - - 0 1',
     solution: [{ from: 'e4', to: 'd5' }],
     hint: '兵往哪邊吃子？',
@@ -26,6 +27,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '捉雙取城',
     prompt: '有子可吃。',
+    brief: '他有兩顆子，誰也沒罩著誰。',
     fen: '4k3/3r4/8/8/4N3/8/8/4K3 w - - 0 1',
     solution: [
       { from: 'e4', to: 'f6' },
@@ -42,6 +44,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'pin',
     title: '釘住難逃',
     prompt: '有子可吃。',
+    brief: '他有顆子，被釘得動不了。',
     fen: '4k3/8/4n3/8/3P4/8/8/4R1K1 w - - 0 1',
     solution: [
       { from: 'd4', to: 'd5' },
@@ -58,6 +61,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '將軍奪城',
     prompt: '有子可吃。',
+    brief: '他的王，沒避開危險的鄰居。',
     fen: '6k1/8/2r5/3N4/8/8/8/6K1 w - - 0 1',
     solution: [
       { from: 'd5', to: 'e7' },
@@ -74,6 +78,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'pin',
     title: '后後之患',
     prompt: '有子可吃。',
+    brief: '他有顆子，擋在大子前面挪不開。',
     fen: '3qk3/8/3n4/8/4P3/8/8/3R2K1 w - - 0 1',
     solution: [
       { from: 'e4', to: 'e5' },
@@ -90,6 +95,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'mate-in-1',
     title: '雙城收網',
     prompt: '一步將死。',
+    brief: '他的王，沿著邊沒有退路。',
     fen: '7k/R7/8/8/8/8/8/1R4K1 w - - 0 1',
     solution: [{ from: 'b1', to: 'b8' }],
     hint: '兩座城堡能把國王鎖死嗎？',
@@ -102,6 +108,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '小兵雙叉',
     prompt: '有子可吃。',
+    brief: '他兩顆子，並排挨著。',
     fen: '4k3/8/8/3n1n2/8/8/4P3/4K3 w - - 0 1',
     solution: [
       { from: 'e2', to: 'e4' },
@@ -118,6 +125,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'pin',
     title: '釘后取勝',
     prompt: '有子可吃。',
+    brief: '他的大子，被釘在原地。',
     fen: '4k3/8/4q3/8/3P4/8/8/4R1K1 w - - 0 1',
     solution: [
       { from: 'd4', to: 'd5' },
@@ -134,6 +142,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'fork',
     title: '將軍叉后',
     prompt: '有子可吃。',
+    brief: '他把王和大子，放在一起了。',
     fen: '2q3k1/8/8/3N4/8/8/8/6K1 w - - 0 1',
     solution: [
       { from: 'd5', to: 'e7' },
@@ -150,6 +159,7 @@ export const level2Puzzles: Puzzle[] = [
     motif: 'mate-in-1',
     title: '阿拉伯殺',
     prompt: '一步將死。',
+    brief: '他的王，困在角落出不來。',
     fen: '7k/1R6/5N2/8/8/8/8/6K1 w - - 0 1',
     solution: [{ from: 'b7', to: 'h7' }],
     hint: '騎士和城堡能不能合力封死角落？',

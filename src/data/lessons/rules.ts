@@ -2,7 +2,7 @@ import type { Lesson } from '../../types/lesson'
 
 /**
  * Tier 1 — 基礎規則 (rules).
- * Beth's method: each lesson opens with a `scenario`; interactive steps pose the
+ * Neve's method: each lesson opens with a `scenario`; interactive steps pose the
  * idea as a question and the `hint` is Socratic (goal / what-to-avoid, never names
  * the move — the move arrow is the opt-in stage-2 reveal). All FENs carry both kings
  * (chess.js). Clean-room authored (inspired by lichess Learn); validity enforced by
@@ -76,7 +76,7 @@ const rookAndBishop: Lesson = {
       text: '盤面上有個黑兵可以拿。先看城堡能罩到哪些格，再決定怎麼走。',
       arrows: [{ orig: 'd4', dest: 'd7' }],
       expectedMove: { from: 'd4', to: 'd7' },
-      hint: '城堡只走直線（橫或直）。從它現在的位置沿著線看出去，哪條線盡頭有東西可吃？',
+      hint: '城堡只走直線（橫或直）。從它現在的位置沿著線看出去，哪條線盡頭有子可吃？',
       successText: '對！城堡就是直來直往的遠程火力，一條暢通的線就是它的高速公路。',
     },
     {
@@ -333,7 +333,7 @@ const tier1Capstone: Lesson = {
   tier: 1,
   order: 8,
   summary: '把子的走法、王的安全與將死串起來——一步結束戰鬥。',
-  scenario: '基礎規則你都學過了。現在不給提示走法，只給你一個盤面——像貝絲那樣，先讀懂它，再出手。',
+  scenario: '基礎規則你都學過了。現在不給提示走法，只給你一個盤面——像我一樣，先讀懂它，再出手。',
   objectives: ['整合運用：子力走法 + 王的安全 + 將死', '養成「先看對手的王能逃去哪」的習慣'],
   playerColor: 'white',
   steps: [

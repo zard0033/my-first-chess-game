@@ -7,7 +7,7 @@ const AFTER_NF3 = 'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 
 /**
  * Tier 3 (opening) seed — Control the Center.
  * Occupy the center with a pawn, then develop a knight that attacks it.
- * Beth's method: scenario + Socratic hints (the move arrow is the opt-in reveal).
+ * Neve's method: scenario + Socratic hints (the move arrow is the opt-in reveal).
  */
 export const controlTheCenter: Lesson = {
   id: 'control-the-center',
@@ -18,7 +18,7 @@ export const controlTheCenter: Lesson = {
   tier: 3,
   order: 15,
   summary: '開局的第一原則：用兵佔據中心，再讓子力攻向中心。',
-  scenario: '棋局剛開始，整盤都還沒動。貝絲會告訴你：別亂走，先想「我要爭什麼」。答案幾乎永遠是——中心。',
+  scenario: '棋局剛開始，整盤都還沒動。別急著走——先想清楚：你要爭的是什麼？答案幾乎永遠是，中心。',
   objectives: ['理解中心格 e4/d4/e5/d5 的重要性', '練習用 e4 佔據中心', '練習用騎士發展並施壓中心'],
   playerColor: 'white',
   steps: [

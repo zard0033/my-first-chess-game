@@ -80,6 +80,12 @@ describe('puzzle content chess-validity', () => {
     }
   })
 
+  it('test_allPuzzles_haveNonEmptyBrief', () => {
+    for (const p of puzzles) {
+      expect(p.brief.trim().length, `${p.id}: brief must be a non-empty goal sentence`).toBeGreaterThan(0)
+    }
+  })
+
   it('test_firstPlySideMatchesPlayer', () => {
     // The player always plays solution[0]; the FEN side-to-move must therefore be the
     // mover of the first ply (GDD AC-04). Replaying ply 0 proves it is the side to move.
