@@ -33,7 +33,7 @@ export const controlTheCenter: Lesson = {
       arrows: [{ orig: 'e2', dest: 'e4' }],
       expectedMove: { from: 'e2', to: 'e4' },
       hint: '你想佔據的是 e4/d4 這類中心格。哪個兵第一步就能直接站上中心？（別忘了兵的第一步能走兩格。）',
-      successText: '很好！白兵牢牢站在中心，後面的子力也有了出路。',
+      successText: '白兵牢牢站在中心，後面的子力也有了出路。',
     },
     {
       fen: AFTER_E4_E5,
@@ -45,7 +45,7 @@ export const controlTheCenter: Lesson = {
       arrows: [{ orig: 'g1', dest: 'f3' }],
       expectedMove: { from: 'g1', to: 'f3' },
       hint: '找一個還沒動過的騎士，讓它跳到既能出來參戰、又順手攻擊黑方 e5 中心兵的位置。',
-      successText: '漂亮！騎士一步兩用：發展了子力，又對黑方的中心兵施壓。',
+      successText: '騎士一步兩用：發展了子力，又對黑方的中心兵施壓。',
     },
     {
       fen: AFTER_NF3,

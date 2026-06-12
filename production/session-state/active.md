@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: 教練人格 Neve + 試煉 brief
-Feature: Neve persona SoT + 30 題 brief（地形視角）
-Task: 全數 apply、測試綠，待 commit
+Epic: 課程內容撰寫（S05）
+Feature: 開局補完 + 殘局 tier 從零建立
+Task: 四階課綱 21 課完成、測試綠，待 commit
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -29,20 +29,23 @@ Task: 全數 apply、測試綠，待 commit
 - **Bug 2 對局側板一屏優化**：done+push（2026-06-11）。合併密度列（徽章＋身分一行，nowrap，文字精簡「思考中」「Lv.X」防窄面板溢出）+ 棋譜捲動區 `max-h-[9rem]`（桌機 12rem）+ 側板自然高度貼合內容。待 iPhone 實機驗收（AI 思考列、棋譜捲動）。
 - **鐵則**：redesign 類先跑 `/redesign` 對真實畫面出 H/M/L → Eason 拍板 → 才施工，**即使已給明確方向也不例外**。
 
-## 🟡 未 commit／push（working tree，下次一起 commit）
+## ✅ 課程系統 = 四階課綱完整（S05 完成）
 
-> 上批「登入頁開場動線 + 字型審查」已 push（`a4bf8c7`）；repo 改名 base path 已 push（`e137bef`）。
-> 本批＝**教練人格 Neve + 試煉 brief**。
+> 教練人格 Neve + 試煉 brief 已 push（`24c1e3d`）；repo 改名 base path 已 push（`e137bef`）。
 
-- **教練人格 Neve（原創角色，取代暫用的貝絲）**：SoT `design/gambit-design-system/persona-neve.md`
-  ——Gambit 棋盤的化身/棋靈、銀白短髮、冷靜大師、地形視角；課程＝她以第一人稱「我」對你說、試煉 brief＝
-  你內化後的第三人稱觀察。`COACH` 常數 `貝絲·哈蒙`→`Neve`；src 內 5 處玩家可見「貝絲」→ Neve（課程自我
-  指涉改第一人稱）；註解 Beth→Neve。
-- **試煉 brief 欄位 + 30 條 Neve 文案**（`types/puzzle.ts` 加**必填** `brief`、`data/puzzles/level-1~3.ts`、
-  `views/DungeonPuzzleView.vue` prompt 下常駐渲染、`tests` 加非空閘門 + 3 fixture 補欄）。文案鐵則：第三人稱
-  觀察、一拍、**指他的弱點不指你的解法**、不點格不點棋子種類、棋盤口吻僅 #30 浮一次。
-- **repo 改名連帶**：`CLAUDE.md` 兩處護欄（base path `/gambit/`、origin `zard0033/gambit`）。
-- **驗證**：vue-tsc 0、vitest 664 passed。已 Playwright 截圖驗試煉題卡渲染正常（brief 改文字前）。
+- **課綱 21 課、orders 1–21 連續**：規則 8 + 戰術 6 + **開局 4**（控制中心/快速出子/王翼易位/別太早出后）
+  + **殘局 3**（后王逼殺/城堡逼殺/兵升變對王）。學習弧線完整：規則→戰術→開局→收官。
+- **教練人格 Neve（已 push `24c1e3d`）**：SoT `design/gambit-design-system/persona-neve.md`。課程＝Neve 第一
+  人稱對你說、試煉 brief＝你內化後的第三人稱觀察、概念＝中性。寫任何課程/試煉/概念文案前先讀此 SoT。
+
+## 🟡 未 commit／push（working tree）
+
+- **S05 課程內容撰寫**（新增 `data/lessons/{develop-your-pieces,king-safety-castling,dont-bring-queen-out-early,
+  endgame}.ts`、改 `index.ts`、`rules.ts`+`control-the-center.ts` 語氣巡檢）：
+  開局補 3 課 + 殘局 tier 從零建 3 課；既有課反射式讚美 9 處收掉（對齊 Neve「不輕易讚美」）。
+  殘局將殺已用 chess.js 實證（Qd7#/Ra8# checkmate=true、對王邏輯正確、升變合法）。
+- **驗證**：vue-tsc 0、vitest **664 passed**。**新課互動步（易位 O-O、升變 e8=Q）的 chessground 拖放待實機點一輪**
+  （合成事件 Playwright 難觸發；資料層已 chess.js 驗證）。
 
 ## 🚧 待辦 / 開放項
 
@@ -72,7 +75,7 @@ Task: 全數 apply、測試綠，待 commit
   左偏 ~5px），導致 keySquare 高亮/箭頭比真實格子算大 sq、整體偏 dx≈-2 dy≈+4。修法：annotation 改用
   `elements.board`（cg-board）的尺寸＋原點，或讓 cg-board=cg-wrap（coords overlay／chessground 重繪）。牽涉
   全站箭頭/標註定位（課程/試煉/review/replay），需獨立驗證故未在 B5 收尾動。
-- **課程內容撰寫 (S05)**：框架已好，補課文 ongoing。
+- ~~**課程內容撰寫 (S05)**~~ **done（未 commit，見上）**：四階課綱 21 課全到位（開局補完、殘局從零建）。
 - **dead-file 稽核（Eason 喊暫緩，未動）**：src ~11 orphan（ui/checkbox·label·progress·tooltip、
   composables/use-stockfish）、模板殘留 `docs/engine-reference/`、`CCGS Skill Testing Framework/`、
   引擎 specialist agents、`public/board/wood12_bg.jpg` 皆可清。

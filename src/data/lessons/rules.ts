@@ -32,7 +32,7 @@ const pawnBasics: Lesson = {
       arrows: [{ orig: 'e2', dest: 'e4' }],
       expectedMove: { from: 'e2', to: 'e4' },
       hint: '兵的第一步和之後不一樣——它能一次走得比平常遠。最遠能到哪一格？',
-      successText: '對了！兵的第一步可以選一格或兩格，之後就每次只能一格了。',
+      successText: '兵的第一步可以選一格或兩格，之後就每次只能走一格了。',
     },
     {
       fen: '7k/8/8/3p4/4P3/8/8/K7 w - - 0 1',
@@ -45,7 +45,7 @@ const pawnBasics: Lesson = {
       arrows: [{ orig: 'e4', dest: 'd5' }],
       expectedMove: { from: 'e4', to: 'd5' },
       hint: '兵直直往前的格子如果有人擋著，它過不去；但它的「吃法」方向不一樣。它能斜著碰到誰？',
-      successText: '漂亮！兵直走、斜吃——這是新手最常記錯的一點，你已經親手體會了。',
+      successText: '兵直走、斜吃——這是最常被記錯的一點，你已經親手走過一次了。',
     },
     {
       fen: '7k/8/8/3P4/8/8/8/K7 b - - 0 1',
@@ -77,7 +77,7 @@ const rookAndBishop: Lesson = {
       arrows: [{ orig: 'd4', dest: 'd7' }],
       expectedMove: { from: 'd4', to: 'd7' },
       hint: '城堡只走直線（橫或直）。從它現在的位置沿著線看出去，哪條線盡頭有子可吃？',
-      successText: '對！城堡就是直來直往的遠程火力，一條暢通的線就是它的高速公路。',
+      successText: '城堡就是直來直往的遠程火力，一條暢通的線就是它的高速公路。',
     },
     {
       fen: '7k/8/8/8/8/8/8/2B1K3 w - - 0 1',
@@ -90,7 +90,7 @@ const rookAndBishop: Lesson = {
       arrows: [{ orig: 'c1', dest: 'h6' }],
       expectedMove: { from: 'c1', to: 'h6' },
       hint: '主教只走斜線。沿著它所在格子的斜對角線一路看到底，盡頭站著誰？',
-      successText: '很好！城堡管直線、主教管斜線——兩者合起來就能罩住整個棋盤。',
+      successText: '城堡管直線、主教管斜線——兩者合起來，就能罩住整個棋盤。',
     },
     {
       fen: '7k/8/7B/8/8/8/8/4K3 b - - 0 1',
@@ -122,7 +122,7 @@ const knightAndQueen: Lesson = {
       arrows: [{ orig: 'd4', dest: 'e6' }],
       expectedMove: { from: 'd4', to: 'e6' },
       hint: '把 e6 當終點反過來想：哪些格子能用「日」字跳到 e6？你的騎士正好站在其中一個上嗎？',
-      successText: '對了！騎士的跳躍最適合出其不意，因為它能無視中間擋路的子。',
+      successText: '騎士的跳躍最適合出其不意，因為它能無視中間擋路的子。',
     },
     {
       fen: '7k/8/8/8/8/8/8/3QK3 w - - 0 1',
@@ -168,7 +168,7 @@ const kingAndValue: Lesson = {
       arrows: [{ orig: 'e4', dest: 'e5' }],
       expectedMove: { from: 'e4', to: 'e5' },
       hint: '王每次只能踏出一格。那個黑兵就在它隔壁嗎？',
-      successText: '對！王也能吃子，只是它步伐慢，通常要等到殘局才出來打仗。',
+      successText: '王也能吃子，只是它步伐慢，通常要等到殘局才出來打仗。',
     },
     {
       fen: '7k/8/8/8/8/8/8/4K3 w - - 0 1',
@@ -181,7 +181,7 @@ const kingAndValue: Lesson = {
       highlights: ['b5', 'f5'],
       expectedMove: { from: 'd4', to: 'f5' },
       hint: '兩個目標都在騎士的攻擊範圍內。回想剛才的身價表——拿走哪一個，對手會更心痛？',
-      successText: '聰明！同樣一步，賺 5 分的城堡遠勝賺 1 分的兵。永遠優先換取價值更高的子。',
+      successText: '同樣一步，賺 5 分的城堡遠勝賺 1 分的兵——永遠優先換取價值更高的子。',
     },
     {
       fen: '7k/8/8/1p3N2/8/8/8/4K3 b - - 0 1',
