@@ -37,7 +37,7 @@ function continueAsGuest() {
         <button
           type="button"
           :disabled="authStore.isAuthLoading"
-          class="flex min-h-[48px] w-full items-center justify-center gap-2.5 rounded-[13px] bg-white px-4 font-sans text-base font-medium text-[#1F1F1F] transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-60"
+          class="flex min-h-[48px] w-full items-center justify-center gap-2.5 rounded-[13px] border border-white/[0.20] bg-white/[0.10] px-4 font-sans text-base font-medium text-ink-on-deep shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-sm transition-[background-color,transform,opacity] duration-150 hover:bg-white/[0.16] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold disabled:opacity-60 motion-safe:active:scale-[0.98]"
           @click="authStore.signInWithGoogle()"
         >
           <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
