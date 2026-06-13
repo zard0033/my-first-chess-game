@@ -45,6 +45,9 @@ if (!puzzle || (progress.nodeState(puzzle) === 'locked' && !isPractice)) {
 // store's `hinted` set, so the panel reads this instead.
 const hintUsed = ref(false)
 
+// Track last correct move's destination for the board checkmark badge.
+const lastCorrectSquare = ref<string | null>(null)
+
 const playerColor = computed<'white' | 'black'>(() =>
   puzzle && new Chess(puzzle.fen).turn() === 'b' ? 'black' : 'white',
 )
@@ -79,6 +82,18 @@ function squareToRect(square: string): Rect | null {
 }
 onMounted(async () => { await nextTick(); geomTick.value++ })
 watch(boardKey, async () => { await nextTick(); geomTick.value++ })
+
+function cornerBadge(square: string | null) {
+  void geomTick.value
+  if (!square) return null
+  const r = squareToRect(square)
+  if (!r) return null
+  const size = Math.max(18, r.width * 0.42)
+  return { left: r.x + r.width - size / 2, top: r.y - size / 2, size }
+}
+const correctBadge = computed(() =>
+  pz && pz.phase.value === 'solved' ? cornerBadge(lastCorrectSquare.value) : null,
+)
 
 // Hint arrow (stage-2 reveal) drawn over the board.
 const annotations = computed<Annotation[]>(() => {
@@ -130,6 +145,7 @@ function handleMove(payload: MoveMadePayload): void {
 
   if (result.kind === 'correct-advance') {
     lastResult.value = { ok: true, text: describeMove(result.piece, result.captured) }
+    lastCorrectSquare.value = payload.to
     hintStage.value = 0
     setTimeout(() => pz.commitOpponentReply(), prefersReducedMotion.value ? 0 : OPPONENT_REPLY_DELAY_MS)
     return
@@ -138,6 +154,7 @@ function handleMove(payload: MoveMadePayload): void {
   // correct-solved — practice mode records to concept-progress only (D1 zero-mutation invariant);
   // normal dungeon play advances the linear progress as before.
   lastResult.value = { ok: true, text: describeMove(result.piece, result.captured) }
+  lastCorrectSquare.value = payload.to
   if (puzzle) {
     if (isPractice) conceptProgress.markPracticed(puzzle.id)
     else progress.markSolved(puzzle.id)
@@ -230,6 +247,13 @@ function goNext(): void {
             :board-size-px="boardSizePx"
             :shaft-scale="0.5"
           />
+          <!-- 正解角標：完成後在目標格顯示勾勾 -->
+          <div
+            v-if="correctBadge"
+            class="pointer-events-none absolute z-10 flex items-center justify-center rounded-full bg-success text-success-fg shadow-button"
+            :style="{ left: `${correctBadge.left}px`, top: `${correctBadge.top}px`, width: `${correctBadge.size}px`, height: `${correctBadge.size}px` }"
+            aria-hidden="true"
+          ><Check :size="correctBadge.size * 0.62" :stroke-width="3" /></div>
         </div>
       </div>
     </div>
@@ -287,23 +311,34 @@ function goNext(): void {
         </template>
 
         <!-- ===== Footer ===== -->
-        <!-- 達成：回地圖（次要）+ 下一題（金 CTA）-->
+        <!-- 達成：practice mode → 單一「回課程」；dungeon mode → 回地圖（次要）+ 下一題（金 CTA）-->
         <div v-if="pz.phase.value === 'solved'" class="mt-3.5 flex items-center gap-2 border-t border-white/[0.08] pt-3">
-          <button
-            type="button"
-            class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 font-sans text-[13px] font-semibold text-ink-on-deep active:scale-[0.98]"
-            @click="router.push(isPractice ? '/learn' : '/dungeon')"
-          >
-            <ArrowLeft :size="15" :stroke-width="1.8" /> {{ isPractice ? '回課程' : '回地圖' }}
-          </button>
-          <div class="flex-1" />
-          <button
-            type="button"
-            class="inline-flex min-h-[40px] items-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
-            @click="goNext"
-          >
-            {{ isPractice ? '回課程' : nextPuzzle ? '下一題' : '回到地圖' }} <ArrowRight :size="16" />
-          </button>
+          <template v-if="isPractice">
+            <button
+              type="button"
+              class="inline-flex w-full min-h-[44px] items-center justify-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
+              @click="goNext"
+            >
+              <ArrowLeft :size="16" :stroke-width="1.8" /> 回課程
+            </button>
+          </template>
+          <template v-else>
+            <button
+              type="button"
+              class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 font-sans text-[13px] font-semibold text-ink-on-deep active:scale-[0.98]"
+              @click="router.push('/dungeon')"
+            >
+              <ArrowLeft :size="15" :stroke-width="1.8" /> 回地圖
+            </button>
+            <div class="flex-1" />
+            <button
+              type="button"
+              class="inline-flex min-h-[40px] items-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
+              @click="goNext"
+            >
+              {{ nextPuzzle ? '下一題' : '回到地圖' }} <ArrowRight :size="16" />
+            </button>
+          </template>
         </div>
 
         <!-- 解題：提示（低調收進卡內）+ 概念複習連結 -->

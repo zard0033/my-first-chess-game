@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Check, Lock, ChevronRight } from 'lucide-vue-next'
+import { Check, Lock, ChevronRight, ChevronDown } from 'lucide-vue-next'
 import { lessons } from '@/data/lessons'
 import { LESSON_TIER_LABELS } from '@/types/lesson'
 import type { Lesson, LessonTier } from '@/types/lesson'
@@ -68,9 +68,12 @@ function openLesson(l: Lesson): void {
   if (lessonState(l) !== 'locked') router.push(`/learn/${l.id}`)
 }
 
-function openChapter(c: Chapter): void {
-  // 已完成章節：回顧第一課
-  if (chapterStatus(c) === 'done') router.push(`/learn/${c.lessons[0].id}`)
+// 已完成章節展開/收合狀態
+const expandedDoneTier = ref<LessonTier | null>(null)
+
+function toggleDoneChapter(c: Chapter): void {
+  if (chapterStatus(c) !== 'done') return
+  expandedDoneTier.value = expandedDoneTier.value === c.tier ? null : c.tier
 }
 </script>
 
@@ -187,55 +190,80 @@ function openChapter(c: Chapter): void {
           </div>
         </div>
 
-        <!-- 其他章節：摺疊卡片 -->
-        <button
-          v-else
-          type="button"
-          class="flex items-center gap-3 rounded-[14px] border border-line bg-surface-raised px-3.5 py-3 text-left transition-colors"
-          :class="
-            chapterStatus(c) === 'done'
-              ? 'hover:bg-surface-hover'
-              : 'cursor-default opacity-[0.68]'
-          "
-          :disabled="chapterStatus(c) === 'locked'"
-          @click="openChapter(c)"
-        >
-          <span class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-surface-raised">
-            <span
-              class="block h-[21px] w-[21px]"
-              :class="chapterStatus(c) === 'done' ? 'bg-primary' : 'bg-ink-faint'"
-              aria-hidden="true"
-              :style="{
-                WebkitMaskImage: `url(${base}pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
-                maskImage: `url(${base}pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
-                WebkitMaskRepeat: 'no-repeat',
-                maskRepeat: 'no-repeat',
-                WebkitMaskPosition: 'center',
-                maskPosition: 'center',
-                WebkitMaskSize: 'contain',
-                maskSize: 'contain',
-              }"
+        <!-- 其他章節：摺疊卡片（done 可展開回顧） -->
+        <div v-else class="overflow-hidden rounded-[14px] border border-line bg-surface-raised">
+          <button
+            type="button"
+            class="flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors"
+            :class="
+              chapterStatus(c) === 'done'
+                ? 'hover:bg-surface-hover'
+                : 'cursor-default opacity-[0.68]'
+            "
+            :disabled="chapterStatus(c) === 'locked'"
+            @click="toggleDoneChapter(c)"
+          >
+            <span class="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-surface-raised">
+              <span
+                class="block h-[21px] w-[21px]"
+                :class="chapterStatus(c) === 'done' ? 'bg-primary' : 'bg-ink-faint'"
+                aria-hidden="true"
+                :style="{
+                  WebkitMaskImage: `url(${base}pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
+                  maskImage: `url(${base}pieces/silhouette/${TIER_PIECE[c.tier]}.svg)`,
+                  WebkitMaskRepeat: 'no-repeat',
+                  maskRepeat: 'no-repeat',
+                  WebkitMaskPosition: 'center',
+                  maskPosition: 'center',
+                  WebkitMaskSize: 'contain',
+                  maskSize: 'contain',
+                }"
+              />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="mb-0.5 font-sans text-[11px] text-ink-faint">第{{ TIER_NUM[c.tier] }}章</p>
+              <p
+                class="font-display text-sm font-bold"
+                :class="chapterStatus(c) === 'done' ? 'text-ink' : 'text-ink-muted'"
+              >{{ LESSON_TIER_LABELS[c.tier] }}</p>
+              <p class="mt-0.5 font-sans text-[11px] text-ink-faint">
+                <template v-if="chapterStatus(c) === 'done'">{{ c.done }}/{{ c.total }} · 已完成</template>
+                <template v-else>{{ c.total }} 課</template>
+              </p>
+            </div>
+            <Lock
+              v-if="chapterStatus(c) === 'locked'"
+              :size="15"
+              class="text-ink-faint"
+              :stroke-width="1.8"
             />
-          </span>
-          <div class="min-w-0 flex-1">
-            <p class="mb-0.5 font-sans text-[11px] text-ink-faint">第{{ TIER_NUM[c.tier] }}章</p>
-            <p
-              class="font-display text-sm font-bold"
-              :class="chapterStatus(c) === 'done' ? 'text-ink' : 'text-ink-muted'"
-            >{{ LESSON_TIER_LABELS[c.tier] }}</p>
-            <p class="mt-0.5 font-sans text-[11px] text-ink-faint">
-              <template v-if="chapterStatus(c) === 'done'">{{ c.done }}/{{ c.total }} · 已完成</template>
-              <template v-else>{{ c.total }} 課</template>
-            </p>
+            <component
+              :is="expandedDoneTier === c.tier ? ChevronDown : ChevronRight"
+              v-else
+              :size="15"
+              class="shrink-0 text-ink-faint transition-transform duration-200 motion-reduce:transition-none"
+              :stroke-width="1.8"
+            />
+          </button>
+
+          <!-- 展開的課程列（已完成章節回顧用） -->
+          <div v-if="expandedDoneTier === c.tier" class="border-t border-line bg-surface-card">
+            <button
+              v-for="(l, i) in c.lessons"
+              :key="l.id"
+              type="button"
+              class="flex w-full items-center gap-2.5 px-3.5 py-2.5 text-left transition-colors hover:bg-surface-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-gold"
+              :class="i < c.lessons.length - 1 && 'border-b border-black/[0.04]'"
+              @click="openLesson(l)"
+            >
+              <span class="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full bg-primary-soft">
+                <Check :size="10" class="text-primary" :stroke-width="3.5" />
+              </span>
+              <span class="flex-1 line-clamp-2 font-sans text-xs text-ink-faint line-through decoration-ink-faint/35">{{ l.title }}</span>
+              <span class="shrink-0 rounded-full bg-primary-soft px-2.5 py-1 font-sans text-[11px] font-bold text-primary">完成</span>
+            </button>
           </div>
-          <Lock
-            v-if="chapterStatus(c) === 'locked'"
-            :size="15"
-            class="text-ink-faint"
-            :stroke-width="1.8"
-          />
-          <ChevronRight v-else :size="15" class="text-ink-faint" :stroke-width="1.8" />
-        </button>
+        </div>
       </template>
     </div>
   </div>
