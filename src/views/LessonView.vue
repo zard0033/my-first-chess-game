@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, ArrowRight, RotateCw, Lightbulb, Check, X } from 'lucide-vue-next'
 import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import { Button } from '@/components/ui/button'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { getLessonById } from '@/data/lessons'
+import { getLessonById, lessons } from '@/data/lessons'
 import { COACH } from '@/types/lesson'
 import type { LessonStep } from '@/types/lesson'
 import type { Annotation } from '@/modules/move-annotation/annotation-types'
 import type { MoveMadePayload } from '@/composables/use-chess-board'
 import type { Rect } from '@/utils/board-geometry'
 import { useBoardFit } from '@/composables/use-board-fit'
+import { useReducedMotion } from '@/composables/use-reduced-motion'
 import { useLessonProgressStore } from '@/stores/lesson-progress'
 import { useDungeonProgressStore } from '@/stores/dungeon-progress'
 import { useConceptProgressStore } from '@/stores/concept-progress'
@@ -164,6 +165,42 @@ const lightbulbGlowing = computed(
   () => everWrong.value && !wrongMove.value && !solved.value && !hintShown.value,
 )
 
+// ── Typewriter effect for coach narration ──
+const { prefersReducedMotion } = useReducedMotion()
+const displayedText = ref('')
+let typewriterTimer: ReturnType<typeof setTimeout> | null = null
+
+function startTypewriter(text: string): void {
+  if (typewriterTimer !== null) clearTimeout(typewriterTimer)
+  if (prefersReducedMotion.value) {
+    displayedText.value = text
+    return
+  }
+  displayedText.value = ''
+  let i = 0
+  const step = (): void => {
+    displayedText.value = text.slice(0, i + 1)
+    i++
+    if (i < text.length) typewriterTimer = setTimeout(step, 32)
+  }
+  step()
+}
+
+function skipTypewriter(): void {
+  if (typewriterTimer !== null) {
+    clearTimeout(typewriterTimer)
+    typewriterTimer = null
+  }
+  displayedText.value = currentStep.value?.text ?? ''
+}
+
+watch(
+  () => currentStep.value?.text,
+  (text) => { if (text !== undefined) startTypewriter(text) },
+  { immediate: true },
+)
+onBeforeUnmount(() => { if (typewriterTimer !== null) clearTimeout(typewriterTimer) })
+
 // ── Bridge 1 (Learning Loop #20): lesson completion card + course→puzzle invitation ──
 const completed = ref(false)
 
@@ -188,6 +225,17 @@ const completionConcepts = computed(() => {
 
 function practise(targetId: string): void {
   router.push(`/dungeon/${targetId}?from=lesson`)
+}
+
+// 繼續下一課（從課程正常路徑進入時才顯示，概念側門不顯示）
+const nextLesson = computed(() => {
+  if (!lesson || fromConcept) return null
+  const idx = lessons.findIndex((l) => l.id === lesson!.id)
+  return idx >= 0 ? (lessons[idx + 1] ?? null) : null
+})
+
+function goToNextLesson(): void {
+  if (nextLesson.value) router.push(`/learn/${nextLesson.value.id}`)
 }
 
 function next(): void {
@@ -320,8 +368,11 @@ function prev(): void {
               class="mb-3 border-l-2 border-primary/40 pl-3 font-lesson text-[15px] leading-relaxed text-ink-muted"
             >{{ lesson.scenario }}</p>
 
-            <!-- Step narration -->
-            <p class="font-sans text-base leading-loose text-ink">{{ currentStep?.text }}</p>
+            <!-- Step narration：打字機逐字出現，點擊立即完成 -->
+            <p
+              class="cursor-default font-sans text-base leading-loose text-ink"
+              @click="skipTypewriter"
+            >{{ displayedText }}</p>
 
             <!-- Wrong-move feedback (按鈕在下方釘底動作列) -->
             <Alert v-if="wrongMove" variant="danger" class="mt-3">
@@ -435,6 +486,15 @@ function prev(): void {
             >「{{ c.label }}」的試煉即將加入</p>
           </template>
         </div>
+
+        <!-- 繼續下一課（有下一課時顯示金色 CTA） -->
+        <button
+          v-if="nextLesson"
+          type="button"
+          data-testid="lesson-completion-next"
+          class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
+          @click="goToNextLesson"
+        >繼續下一課 <ArrowRight :size="16" /></button>
 
         <button
           type="button"
