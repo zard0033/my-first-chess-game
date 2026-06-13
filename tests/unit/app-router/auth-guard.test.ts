@@ -6,7 +6,7 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: vi.fn(),
-      signInWithOtp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
       onAuthStateChange: vi.fn(),
     },

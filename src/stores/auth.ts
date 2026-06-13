@@ -13,10 +13,8 @@ export const useAuthStore = defineStore('auth', () => {
   const email = ref<string | null>(null)
   /** True during the initial getSession() call on mount; prevents flash of unauthenticated state. */
   const isAuthLoading = ref(true)
-  /** Set when auth fails. Cleared on successful auth state change or next signIn() attempt. */
+  /** Set when auth fails. Cleared on successful auth state change or next signIn attempt. */
   const authError = ref<string | null>(null)
-  /** True after signIn() succeeds — awaiting Magic Link click. Cleared on SIGNED_IN event. */
-  const pendingEmail = ref(false)
 
   let _subscription: { unsubscribe: () => void } | null = null
 
@@ -46,27 +44,23 @@ export const useAuthStore = defineStore('auth', () => {
       _applySession(session)
       if (session) {
         authError.value = null
-        pendingEmail.value = false
       }
     })
     _subscription = subscription
   }
 
-  /** Send a Magic Link to the given email address. Sets pendingEmail on success. */
-  async function signIn(emailInput: string): Promise<void> {
+  /** Redirect to Google's OAuth consent screen. Returns to the app on completion. */
+  async function signInWithGoogle(): Promise<void> {
     authError.value = null
     const redirectTo = typeof window !== 'undefined'
       ? window.location.origin + (import.meta.env.BASE_URL ?? '/')
       : undefined
-    const { error } = await supabase.auth.signInWithOtp({
-      email: emailInput,
-      ...(redirectTo ? { options: { emailRedirectTo: redirectTo } } : {}),
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      ...(redirectTo ? { options: { redirectTo } } : {}),
     })
     if (error) {
       authError.value = error.message
-    } else {
-      try { localStorage.setItem('gambit:last-email', emailInput) } catch { /* private mode */ }
-      pendingEmail.value = true
     }
   }
 
@@ -74,9 +68,8 @@ export const useAuthStore = defineStore('auth', () => {
   async function signOut(): Promise<void> {
     const { error } = await supabase.auth.signOut()
     _applySession(null)
-    pendingEmail.value = false
     authError.value = error?.message ?? null
   }
 
-  return { userId, email, isAuthLoading, authError, pendingEmail, initAuth, signIn, signOut }
+  return { userId, email, isAuthLoading, authError, initAuth, signInWithGoogle, signOut }
 })

@@ -6,7 +6,7 @@ vi.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {
       getSession: vi.fn(),
-      signInWithOtp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
       onAuthStateChange: vi.fn(),
     },
@@ -173,7 +173,7 @@ describe('useAuthStore', () => {
       expect(store.userId).toBeNull()
     })
 
-    it('SIGNED_IN event clears pendingEmail and authError', async () => {
+    it('SIGNED_IN event clears authError', async () => {
       vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
         data: { session: null },
         error: null,
@@ -182,53 +182,54 @@ describe('useAuthStore', () => {
 
       const store = useAuthStore()
       await store.initAuth()
-      store.pendingEmail = true
       store.authError = 'Previous error'
 
       fireEvent('SIGNED_IN', { user: { id: 'uid-2', email: 'b@c.com' } })
 
-      expect(store.pendingEmail).toBe(false)
       expect(store.authError).toBeNull()
     })
   })
 
-  // ── signIn ────────────────────────────────────────────────────────────────
+  // ── signInWithGoogle ────────────────────────────────────────────────────────
 
-  describe('signIn', () => {
-    it('sets pendingEmail on success and calls signInWithOtp (SUPA-AC-01)', async () => {
-      vi.mocked(supabase.auth.signInWithOtp).mockResolvedValueOnce({ error: null } as never)
+  describe('signInWithGoogle', () => {
+    it('calls signInWithOAuth with the google provider (SUPA-AC-01)', async () => {
+      vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValueOnce({
+        data: { provider: 'google', url: 'https://accounts.google.com' },
+        error: null,
+      } as never)
 
       const store = useAuthStore()
-      await store.signIn('test@example.com')
+      await store.signInWithGoogle()
 
-      expect(store.pendingEmail).toBe(true)
       expect(store.authError).toBeNull()
-      expect(supabase.auth.signInWithOtp).toHaveBeenCalledWith({ email: 'test@example.com' })
+      expect(supabase.auth.signInWithOAuth).toHaveBeenCalledWith(
+        expect.objectContaining({ provider: 'google' })
+      )
     })
 
-    it('sets authError and leaves pendingEmail false on network error', async () => {
-      vi.mocked(supabase.auth.signInWithOtp).mockResolvedValueOnce({
-        data: { user: null, session: null },
-        error: { message: 'Network request failed' } as never,
+    it('sets authError when signInWithOAuth fails', async () => {
+      vi.mocked(supabase.auth.signInWithOAuth).mockResolvedValueOnce({
+        data: { provider: 'google', url: null },
+        error: { message: 'OAuth provider not enabled' } as never,
       })
 
       const store = useAuthStore()
-      await store.signIn('test@example.com')
+      await store.signInWithGoogle()
 
-      expect(store.pendingEmail).toBe(false)
-      expect(store.authError).toBe('Network request failed')
+      expect(store.authError).toBe('OAuth provider not enabled')
     })
 
-    it('clears previous authError before each signIn attempt', async () => {
-      vi.mocked(supabase.auth.signInWithOtp)
-        .mockResolvedValueOnce({ data: { user: null, session: null }, error: { message: 'First error' } as never })
-        .mockResolvedValueOnce({ error: null } as never)
+    it('clears previous authError before each attempt', async () => {
+      vi.mocked(supabase.auth.signInWithOAuth)
+        .mockResolvedValueOnce({ data: { provider: 'google', url: null }, error: { message: 'First error' } as never })
+        .mockResolvedValueOnce({ data: { provider: 'google', url: 'https://accounts.google.com' }, error: null } as never)
 
       const store = useAuthStore()
-      await store.signIn('test@example.com')
+      await store.signInWithGoogle()
       expect(store.authError).toBe('First error')
 
-      await store.signIn('test@example.com')
+      await store.signInWithGoogle()
       expect(store.authError).toBeNull()
     })
   })
@@ -236,7 +237,7 @@ describe('useAuthStore', () => {
   // ── signOut ───────────────────────────────────────────────────────────────
 
   describe('signOut', () => {
-    it('clears userId, email, and pendingEmail; calls supabase.auth.signOut (SUPA-AC-04)', async () => {
+    it('clears userId and email; calls supabase.auth.signOut (SUPA-AC-04)', async () => {
       vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
         data: { session: { user: { id: 'uid-1', email: 'a@b.com' } } as never },
         error: null,
@@ -245,14 +246,12 @@ describe('useAuthStore', () => {
 
       const store = useAuthStore()
       await store.initAuth()
-      store.pendingEmail = true
       expect(store.userId).toBe('uid-1')
 
       await store.signOut()
 
       expect(store.userId).toBeNull()
       expect(store.email).toBeNull()
-      expect(store.pendingEmail).toBe(false)
       expect(store.authError).toBeNull()
       expect(supabase.auth.signOut).toHaveBeenCalledOnce()
     })
