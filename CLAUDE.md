@@ -44,6 +44,18 @@ See `~/interviews/chess-training-companion-brief.md` for the full concept brief.
 > `url()` 會被 Vite 自動補 base；JS 字串不會。本機 dev（base=`/`）看不出來，
 > 只在部署站爆。曾誤判成「iOS Safari 渲染 bug」繞兩輪——先 curl 部署 URL 再下結論。
 
+> **E2E 盲區護欄**：`npm run test:unit`（vitest）全綠 ≠ 安全。改到啟動／路由／auth／
+> mount 時序（`main.ts`、`router/index.ts`、`App.vue`、`stores/auth.ts`）後，push 前
+> 一定本機補跑 `npm run test:e2e`——這類時序問題只有 Playwright 抓得到，CI 會跑 E2E，
+> 本機只跑 vitest 會漏。2026-06-14 PWA 閃爍修復就是只信 vitest 665 綠、漏跑 E2E 而紅 CI。
+
+> **課程／試煉棋理護欄**：新增或修改 `data/lessons/*`、`data/puzzles/*` 的局面後，
+> 內容閘門測試（`tests/unit/data/*.test`）只驗「FEN／走法合法、mate 題結尾將死」，
+> **不驗**最佳解、子力交換結算、概念是否匹配。必須額外用 chess.js 實證：將殺宣稱跑
+> `isCheckmate()`、子力交換逐步推算、確認 expectedMove／solution 是客觀最佳解、局面
+> 真的匹配要教的概念。2026-06-14 一次審出 10 處「合法但棋理錯」（假將殺、升變送子變和棋、
+> 加防守者範例、釘后概念不成立等），全數 chess.js 驗證後才修。
+
 ### Phase 2 Reserved (not yet integrated)
 
 - **PGN Viewer**: pgn-viewer (lichess open source) — for game replay UI
