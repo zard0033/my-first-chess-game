@@ -210,24 +210,12 @@ watch(
  */
 const kingInCheckSquare = computed((): string | null => {
   if (!boardApi.value) return null
-  const currentFen = props.fen
   try {
-    const chess = new Chess(currentFen)
+    const chess = new Chess(props.fen)
     if (!chess.inCheck()) return null
-    // Find the king of the side-to-move (the side in check)
-    const sideToMove = chess.turn() // 'w' or 'b'
-    const kingPiece = sideToMove === 'w' ? 'K' : 'k'
-    const board = chess.board()
-    for (let rank = 0; rank < 8; rank++) {
-      for (let file = 0; file < 8; file++) {
-        const piece = board[rank][file]
-        if (piece && piece.type + '' === kingPiece.toLowerCase() && piece.color === sideToMove) {
-          const fileChar = String.fromCharCode(97 + file) // 'a'..'h'
-          const rankChar = String.fromCharCode(56 - rank)  // '8'..'1'
-          return fileChar + rankChar
-        }
-      }
-    }
+    // King of the side-to-move (the side in check).
+    const [square] = chess.findPiece({ type: 'k', color: chess.turn() })
+    return square ?? null
   } catch {
     // Invalid FEN — no check
   }
@@ -441,12 +429,18 @@ defineExpose({ boardRef, squareToRect, resetPosition, reapplyFen })
       />
     </svg>
 
-    <!-- Assertive live region: check + keyboard move announcements -->
+    <!-- Check is a persistent state → polite, so it doesn't clobber the keyboard move announcements. -->
+    <span
+      class="sr-only"
+      aria-live="polite"
+      aria-atomic="true"
+    >{{ kingInCheckSquare ? '將軍' : '' }}</span>
+    <!-- Keyboard move announcements are one-shot actions → their own assertive region. -->
     <span
       class="sr-only"
       aria-live="assertive"
       aria-atomic="true"
-    >{{ kingInCheckSquare ? 'Check' : keyboardAnnouncement }}</span>
+    >{{ keyboardAnnouncement }}</span>
 
     <!-- Promotion dialog — shown only when a pawn reaches the back rank -->
     <PromotionDialog

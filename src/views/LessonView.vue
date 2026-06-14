@@ -90,9 +90,21 @@ function squareToRect(square: string): Rect | null {
   return board.value?.squareToRect?.(square) ?? null
 }
 
+let _boardRO: ResizeObserver | null = null
 onMounted(async () => {
   await nextTick()
   geomTick.value++
+  // Recompute LessonView's overlay geometry (wrong-tint / ✓✗ badges / boardSizePx) when the board
+  // resizes — viewport rotate or useBoardFit width change otherwise leaves them on stale coords.
+  const el = board.value?.boardRef
+  if (el) {
+    _boardRO = new ResizeObserver(() => geomTick.value++)
+    _boardRO.observe(el)
+  }
+})
+onBeforeUnmount(() => {
+  _boardRO?.disconnect()
+  _boardRO = null
 })
 watch(boardKey, async () => {
   await nextTick()
@@ -194,9 +206,11 @@ function skipTypewriter(): void {
   displayedText.value = currentStep.value?.text ?? ''
 }
 
+// Watch stepIndex (not the text string): two adjacent steps with identical text must still replay
+// the typewriter, which a string-diff watch would skip.
 watch(
-  () => currentStep.value?.text,
-  (text) => { if (text !== undefined) startTypewriter(text) },
+  stepIndex,
+  () => startTypewriter(currentStep.value?.text ?? ''),
   { immediate: true },
 )
 onBeforeUnmount(() => { if (typewriterTimer !== null) clearTimeout(typewriterTimer) })

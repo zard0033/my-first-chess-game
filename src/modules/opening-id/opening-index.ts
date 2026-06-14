@@ -25,7 +25,14 @@ export function identifyOpening(moves: Move[] | string[]): OpeningResult {
   let bookExitPly: number | null = null
 
   for (let i = 0; i < moves.length; i++) {
-    chess.move(moves[i] as Move)
+    try {
+      chess.move(moves[i])
+    } catch {
+      // Corrupted/illegal move in a stored game — stop the walk and return the deepest match so far.
+      // opening-identification GDD edge-case AC: never throw on a bad move list (else ReviewView白屏).
+      console.error(`identifyOpening: illegal move at ply ${i + 1}; stopping walk.`)
+      break
+    }
     const epd = chess.fen().split(' ').slice(0, 4).join(' ')
     const entry = ecoBook.lookupSync(epd)
     if (entry !== undefined) {

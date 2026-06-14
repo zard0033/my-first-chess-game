@@ -36,14 +36,18 @@ export function buildLegalMoveShapes(fromSquare: Key, fen: string): DrawShape[] 
  */
 export function buildAnimationDoneAt(boardRef: HTMLElement | null): Promise<void> {
   return new Promise<void>((resolve) => {
-    const fallback = setTimeout(() => requestAnimationFrame(() => resolve()), PIECE_MOVE_ANIM_MS + 16)
-    if (!boardRef) return
-    const piece = boardRef.querySelector<HTMLElement>('.cg-board piece')
-    if (!piece) return
-    piece.addEventListener('transitionend', function handler() {
+    const piece = boardRef?.querySelector<HTMLElement>('.cg-board piece') ?? null
+    function handler(): void {
       clearTimeout(fallback)
-      piece.removeEventListener('transitionend', handler)
+      piece?.removeEventListener('transitionend', handler)
       requestAnimationFrame(() => resolve())
-    })
+    }
+    // Whichever fires first cleans up the other path, so a piece that never transitions (chessground
+    // replaced the node mid-animation) still resolves without leaving a dangling listener.
+    const fallback = setTimeout(() => {
+      piece?.removeEventListener('transitionend', handler)
+      requestAnimationFrame(() => resolve())
+    }, PIECE_MOVE_ANIM_MS + 16)
+    piece?.addEventListener('transitionend', handler)
   })
 }

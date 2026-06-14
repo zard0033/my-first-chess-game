@@ -65,7 +65,7 @@ const evalDisplay = computed(() => {
         <div class="eval-bar-background" role="img" :aria-label="`評估 ${evalDisplay}`">
           <div
             class="eval-bar-fill"
-            :style="{ width: `${fillPercentage}%`, backgroundColor: barColor }"
+            :style="{ transform: `scaleX(${fillPercentage / 100})`, backgroundColor: barColor }"
           />
         </div>
         <div class="eval-value">{{ evalDisplay }}</div>
@@ -115,7 +115,9 @@ const evalDisplay = computed(() => {
 
 .eval-bar-fill {
   height: 100%;
-  transition: width 120ms ease-out, background-color 120ms ease-out;
+  width: 100%;
+  transform-origin: left;
+  transition: transform 120ms ease-out, background-color 120ms ease-out;
 }
 
 .eval-value {
@@ -159,6 +161,15 @@ const evalDisplay = computed(() => {
 @keyframes spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eval-bar-fill {
+    transition: none;
+  }
+  .spinner {
+    animation: none;
   }
 }
 </style>

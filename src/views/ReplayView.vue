@@ -80,7 +80,12 @@ function goBack(): void {
   router.push('/history')
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Deep-link / refresh lands here before HistoryView ever ran fetchHistory → entries is empty and
+  // game would be null. Load history first so an existing game isn't wrongly bounced to /history.
+  if (historyStore.cacheState !== 'valid') {
+    await historyStore.fetchHistory()
+  }
   if (!game.value) {
     router.push('/history')
     return

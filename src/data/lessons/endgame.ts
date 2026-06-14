@@ -106,12 +106,13 @@ const rookMate: Lesson = {
   ],
 }
 
-// Kf6/Pe6/Ke8, white to move. 1.e7 forces the only legal reply ...Kd7 (the enemy king is shoved
-// aside — visible because the next step's FEN differs by that single move), then 2.e8=Q+. Verified
-// forced + legal by chess.js (no stalemate). A clean beginner promotion: escort, shove, promote.
-const PROMO_BLOCK = '4k3/8/4PK2/8/8/8/8/8 w - - 0 1'
-const PROMO_YIELD = '8/3kP3/5K2/8/8/8/8/8 w - - 1 2'
-const PROMO_DONE = '4Q3/3k4/5K2/8/8/8/8/8 b - - 0 2'
+// Kf7/Pe6/Kd6, white to move. The white king already guards the promotion square e8. 1.e7 (the
+// pawn can't be captured — Kf7 defends e7), scripted reply ...Kd5, then 2.e8=Q with the new queen
+// protected by Kf7 (Kxe8 is illegal) → a clean K+Q vs K win, no stalemate. Verified by chess.js.
+// Teaches: keep your king on the promotion square and escort the pawn home safely.
+const PROMO_BLOCK = '8/5K2/3kP3/8/8/8/8/8 w - - 0 1'
+const PROMO_YIELD = '8/4PK2/8/3k4/8/8/8/8 w - - 1 2'
+const PROMO_DONE = '4Q3/5K2/8/3k4/8/8/8/8 b - - 0 2'
 
 const pawnPromotion: Lesson = {
   id: 'pawn-promotion',
@@ -120,40 +121,40 @@ const pawnPromotion: Lesson = {
   difficulty: 'beginner',
   tier: 4,
   order: 21,
-  summary: '用王護送兵、把擋路的敵王逼開，將兵送到底線升變成后。',
-  scenario: '對手只剩一個王，你有王加一個兵。一個兵只要走到對方底線就能變成后——但敵王正擋在升變格前。看你怎麼用王和兵把它逼開。',
-  objectives: ['理解用自己的王護送兵前進', '用推進逼開擋路的敵王', '把兵送到底線升變成后'],
+  summary: '用王守住升變格、護送兵前進，把兵送到底線升變成后。',
+  scenario: '對手只剩一個王，你有王加一個兵。一個兵只要走到對方底線就能變成后——關鍵是你的王要守住升變格、護著兵一路前進，別讓敵王搆到它。',
+  objectives: ['理解用自己的王守住升變格、護送兵前進', '把兵推進到底線', '升變成后且不被敵王吃掉'],
   playerColor: 'white',
   steps: [
     {
       fen: PROMO_BLOCK,
-      text: '你的兵離底線只剩兩步，王就在旁邊護著它、守住前面的格子。對方的王正擋在升變格前——看怎麼逼開它。',
-      highlights: ['e8'],
+      text: '你的兵離底線只剩兩步，你的王守在 f7、正盯著升變格 e8。敵王在一旁卻搆不到——看你怎麼護著兵走完最後兩步。',
+      highlights: ['e8', 'f7'],
     },
     {
       fen: PROMO_BLOCK,
-      text: '把兵推進一步，踩住對方王的退路，逼它讓開。',
+      text: '把兵推進一步——有王在背後守著，敵王碰不到它。',
       arrows: [{ orig: 'e6', dest: 'e7' }],
       expectedMove: { from: 'e6', to: 'e7' },
-      hint: '兵往前一步會封住對方王旁邊的格子，逼它非讓開升變格不可。',
-      successText: '兵一進逼，對方的王只剩一個地方能去——它被迫讓出了升變格。',
+      hint: '兵往前一步，離升變只剩一步；你的王在 f7 守著 e7 和 e8，敵王吃不到兵。',
+      successText: '兵挺進到 e7，王在 f7 罩著它——敵王碰不到，升變只剩一步。',
     },
     {
       fen: PROMO_YIELD,
-      text: '看到了嗎？對方的王被逼到一旁、讓出了升變格（我替它走了這步）。你的兵和王一推，它就守不住底線了。',
-      highlights: ['e8'],
+      text: '你的王守住 e8、兵也逼近底線，敵王只能在旁邊看著（我替它走了一步）。底線就在眼前。',
+      highlights: ['e8', 'f7'],
     },
     {
       fen: PROMO_YIELD,
-      text: '底線敞開了——把兵送上去，升變成后。',
+      text: '底線就在眼前——把兵送上去，升變成后。',
       arrows: [{ orig: 'e7', dest: 'e8' }],
       expectedMove: { from: 'e7', to: 'e8', promotion: 'q' },
-      hint: '兵踏上底線的瞬間就能升變。回想子力價值——你會想把它變成哪個子？',
-      successText: '升變成后。一個小兵走到底線翻身變后，你的子力一舉壓倒對手，收尾不再是問題。',
+      hint: '兵踏上底線的瞬間就能升變；你的王 f7 守著 e8，升出來的子誰也吃不掉。回想子力價值——你會想把它變成哪個子？',
+      successText: '升變成后，而且你的王 f7 守著它——黑王碰不到。一個小兵走到底線翻身為后，勝勢到手。',
     },
     {
       fen: PROMO_DONE,
-      text: '記住：兵要升變，靠你的王在旁邊護送、守住升變路上的格子，再一步步把擋路的敵王逼開。送到底線，就把它變成后。',
+      text: '記住：兵要升變，靠你的王先守住升變格、再護著兵一步步推進。王罩著，升出來的后才安全——送到底線，就把它變成后。',
     },
   ],
 }

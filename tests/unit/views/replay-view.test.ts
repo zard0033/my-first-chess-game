@@ -7,6 +7,8 @@ import { defineComponent, h } from 'vue'
 
 const t = vi.hoisted(() => ({
   entries: [] as Array<Record<string, unknown>>,
+  cacheState: 'valid' as string,
+  fetchHistory: vi.fn(async () => {}),
   routerPush: vi.fn(),
   routeParams: { gameId: 'g1' } as { gameId: string },
   pgnStub: {
@@ -30,7 +32,11 @@ vi.mock('@/components/pgn-viewer.vue', () => ({
 }))
 
 vi.mock('@/stores/game-history', () => ({
-  useGameHistoryStore: () => ({ entries: t.entries }),
+  useGameHistoryStore: () => ({
+    entries: t.entries,
+    cacheState: t.cacheState,
+    fetchHistory: t.fetchHistory,
+  }),
 }))
 
 vi.mock('vue-router', () => ({
@@ -70,6 +76,7 @@ async function mountReplay() {
 beforeEach(() => {
   vi.clearAllMocks()
   t.entries = [makeEntry()]
+  t.cacheState = 'valid'
   t.routeParams = { gameId: 'g1' }
   t.pgnStub.getCurrentPly = vi.fn(() => 0)
 })

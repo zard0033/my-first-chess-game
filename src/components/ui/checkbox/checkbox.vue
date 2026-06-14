@@ -14,7 +14,7 @@ const emit = defineEmits<{ 'update:modelValue': [value: boolean] }>()
     @update:model-value="emit('update:modelValue', $event === true)"
     :class="
       cn(
-        'peer h-5 w-5 shrink-0 rounded-[5px] border border-line-strong bg-surface-card transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 data-[state=checked]:border-primary data-[state=checked]:bg-primary',
+        'peer relative h-5 w-5 shrink-0 rounded-[5px] border border-line-strong bg-surface-card transition-colors before:absolute before:-inset-3 before:content-[\'\'] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-40 data-[state=checked]:border-primary data-[state=checked]:bg-primary',
         props.class,
       )
     "

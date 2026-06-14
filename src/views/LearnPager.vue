@@ -6,7 +6,7 @@
  * slide). The route (/learn ↔ /learn/concepts) stays in sync for deep-linking — BOTH paths render
  * this component, so the pager instance persists across the sub-tab switch (the tabs never remount).
  */
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LearnTabs from '@/components/learn-tabs.vue'
 import LearnView from '@/views/LearnView.vue'
@@ -71,9 +71,26 @@ watch(
   },
 )
 
+// Viewport resize / rotate changes clientWidth → the snapped scrollLeft no longer aligns to a pane
+// (track stalls between panes). Re-align to the active pane, rAF-coalesced.
+let _resizeRaf: number | null = null
+function onResize(): void {
+  if (_resizeRaf !== null) cancelAnimationFrame(_resizeRaf)
+  _resizeRaf = requestAnimationFrame(() => {
+    _resizeRaf = null
+    progress.value = activeIndex.value
+    scrollToIndex(activeIndex.value, false)
+  })
+}
+
 onMounted(() => {
   // Place the initial pane without animation once the track has measurable width.
   nextTick(() => scrollToIndex(activeIndex.value, false))
+  window.addEventListener('resize', onResize)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+  if (_resizeRaf !== null) cancelAnimationFrame(_resizeRaf)
 })
 </script>
 

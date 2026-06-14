@@ -80,6 +80,20 @@ describe('auth route guard', () => {
     expect(router.currentRoute.value.name).toBe('sign-in')
   })
 
+  // Home is the one synchronously-imported view, so a cold start lands on it first; the landing
+  // gate must still redirect an unauthed, no-flag visitor to sign-in (PWA cold-start flash fix).
+  it('test_landingGate_homeRoute_noFlag_redirectsToSignIn', async () => {
+    vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({
+      data: { session: null }, error: null,
+    })
+    const router = makeRouter()
+    const authStore = useAuthStore()
+    await authStore.initAuth()
+
+    await router.push('/')
+    expect(router.currentRoute.value.name).toBe('sign-in')
+  })
+
   // The sign-in screen itself is always reachable (no flag, no session) — never gates itself.
   it('test_landingGate_signInRoute_alwaysReachable', async () => {
     vi.mocked(supabase.auth.getSession).mockResolvedValueOnce({

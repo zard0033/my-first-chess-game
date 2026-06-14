@@ -154,7 +154,15 @@ export const useDataSyncStore = defineStore('dataSync', () => {
     for (const key of keys) {
       const raw = localStorage.getItem(key)
       if (!raw) continue
-      const game: QueuedGame = JSON.parse(raw)
+      let game: QueuedGame
+      try {
+        game = JSON.parse(raw)
+      } catch {
+        // A single corrupt entry must not abort the whole flush (mirrors _readUnsyncedRows);
+        // drop the poison pill and carry on so the rest still sync + history invalidates.
+        localStorage.removeItem(key)
+        continue
+      }
       const { error } = await supabase
         .from('game_sessions')
         .upsert(buildRow(game, authStore.userId), { onConflict: 'id', ignoreDuplicates: true })

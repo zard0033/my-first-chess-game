@@ -47,7 +47,16 @@ export function useGameExport(
     if (state.value === 'SHARING' || state.value === 'COPYING') return
     clearSuccessTimer() // re-tap during SUCCESS restarts the export
 
-    const payload = assembleExportPayload(game, config, context)
+    let payload: string
+    try {
+      payload = assembleExportPayload(game, config, context)
+    } catch {
+      // Corrupt move list would make buildPgn throw — never let the share gesture silently
+      // dead-lock in IDLE; degrade to FALLBACK with the raw movetext (mirrors data-sync safePgn).
+      fallbackText.value = game.moves.join(' ')
+      state.value = 'FALLBACK'
+      return
+    }
 
     if (_nav.share && _nav.canShare?.({ text: payload })) {
       // Tier 1: Web Share API

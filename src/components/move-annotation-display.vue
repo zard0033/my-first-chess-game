@@ -17,6 +17,9 @@ import {
   formatEvalDisplay,
 } from '../modules/move-annotation/annotation-formulas'
 import type { Rect } from '../utils/board-geometry'
+import { useReducedMotion } from '../composables/use-reduced-motion'
+
+const { prefersReducedMotion } = useReducedMotion()
 
 const props = defineProps<{
   annotations: Annotation[]
@@ -200,10 +203,10 @@ const highlightGeometries = computed<HighlightGeometry[]>(() => {
       <div class="relative w-full h-full bg-gray-700 rounded">
         <!-- White fill from bottom -->
         <div
-          class="absolute bottom-0 left-0 right-0 bg-white rounded"
-          :style="{ height: `${fillRatio * 100}%`, transition: 'height 0.2s ease' }"
+          class="absolute bottom-0 left-0 right-0 h-full origin-bottom bg-white rounded"
+          :style="{ transform: `scaleY(${fillRatio})`, transition: prefersReducedMotion ? 'none' : 'transform 0.2s ease' }"
           role="img"
-          :aria-label="`Evaluation: ${evalDisplay}`"
+          :aria-label="`評估：${evalDisplay}`"
         />
       </div>
     </div>
@@ -214,7 +217,7 @@ const highlightGeometries = computed<HighlightGeometry[]>(() => {
     v-if="evaluation !== null"
     class="absolute bottom-0 right-0 text-xs font-mono bg-gray-900 text-white px-1 py-0.5 rounded"
     style="transform: translateY(100%)"
-    :aria-label="`Evaluation: ${evalDisplay}`"
+    :aria-label="`評估：${evalDisplay}`"
   >
     {{ evalDisplay }}
   </div>

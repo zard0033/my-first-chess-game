@@ -9,6 +9,14 @@ export interface Span {
  * Supports **bold** and _italic_ inline markdown only.
  * HTML is treated as plain text — never interpreted as markup.
  */
+// Underscore is only an italic delimiter at a word boundary, so coordinates / code-like tokens
+// (e2_e4, g1_f3) aren't mangled into italic. Opening _ must follow start-of-string or whitespace;
+// closing _ must be followed by end-of-string, whitespace, or punctuation.
+const openItalic = (body: string, idx: number): boolean =>
+  body[idx] === '_' && (idx === 0 || /\s/.test(body[idx - 1]))
+const closeItalicAfter = (body: string, idx: number): boolean =>
+  idx >= body.length || /[\s.,!?;:)\]，。！？；：）」』]/.test(body[idx])
+
 export function parseInlineMarkdown(body: string): Span[] {
   const spans: Span[] = []
   let i = 0
@@ -24,9 +32,12 @@ export function parseInlineMarkdown(body: string): Span[] {
       }
     }
 
-    // Italic: _text_
-    if (body[i] === '_') {
-      const end = body.indexOf('_', i + 1)
+    // Italic: _text_ (word-boundary delimited)
+    if (openItalic(body, i)) {
+      let end = -1
+      for (let j = i + 1; j < body.length; j++) {
+        if (body[j] === '_' && closeItalicAfter(body, j + 1)) { end = j; break }
+      }
       if (end !== -1) {
         spans.push({ text: body.slice(i + 1, end), bold: false, italic: true })
         i = end + 1
@@ -34,11 +45,11 @@ export function parseInlineMarkdown(body: string): Span[] {
       }
     }
 
-    // Plain text: collect until next ** or _
+    // Plain text: collect until next ** or boundary-_
     let next = i + 1
     for (let j = i + 1; j < body.length; j++) {
       const isBoldStart = body[j] === '*' && j + 1 < body.length && body[j + 1] === '*'
-      const isItalicStart = body[j] === '_'
+      const isItalicStart = openItalic(body, j)
       if (isBoldStart || isItalicStart) {
         next = j
         break

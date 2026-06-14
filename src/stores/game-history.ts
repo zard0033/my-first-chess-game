@@ -64,7 +64,9 @@ export const useGameHistoryStore = defineStore('gameHistory', () => {
       hasMore.value = rows.length === HISTORY_LOAD_LIMIT
       nextCursor.value = rows.length > 0 ? buildCursor(rows[rows.length - 1]) : null
     } catch (e) {
-      error.value = e instanceof Error ? e.message : 'Failed to load more history'
+      // Surface to the caller (HistoryView shows a load-more-specific message). Do NOT write the
+      // shared `error` — that drives the page-level "重新整理失敗" banner and would misfire here.
+      throw e instanceof Error ? e : new Error('Failed to load more history')
     } finally {
       isLoadingMore.value = false
     }

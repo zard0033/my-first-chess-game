@@ -69,7 +69,7 @@ function continueLearning() {
     <!-- 問候 -->
     <p class="font-sans text-base font-medium text-ink-muted">{{ greeting }}</p>
     <h1 class="font-display font-bold text-[26px] md:text-[30px] leading-tight text-ink mt-0.5" tabindex="-1">
-      今天想下一盤嗎？
+      棋盤未曾離開，你來了。
     </h1>
 
     <!-- 主區：桌機 hero | 繼續學習 雙欄等高；手機堆疊 -->
@@ -100,7 +100,7 @@ function continueLearning() {
               </Button>
               <button
                 type="button"
-                class="font-sans text-[13px] text-ink-on-deep-dim underline-offset-2 transition-colors hover:text-ink-on-deep hover:underline"
+                class="inline-flex items-center min-h-[44px] px-1 -mx-1 font-sans text-[13px] text-ink-on-deep-dim underline-offset-2 transition-colors hover:text-ink-on-deep hover:underline"
                 @click.stop="startGame"
               >另開新對局</button>
             </div>

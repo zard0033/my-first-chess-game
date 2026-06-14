@@ -115,9 +115,11 @@ watch(terminal, (t) => {
   if (t) void resumeStore.clear()
 })
 
-// Leaving the board → push the latest local snapshot to the cloud (best-effort; no-op logged out).
+// Leaving the board → push the latest local snapshot to the cloud (best-effort; no-op logged out),
+// then dispose the engine so its Stockfish Worker + visibilitychange listener don't leak per visit.
 onBeforeUnmount(() => {
   if (resumeStore.hasResume) void resumeStore.syncToCloud()
+  engine.dispose()
 })
 
 /** Consume a pending setup (set by the global modal) and start the game. */
@@ -152,7 +154,16 @@ onMounted(async () => {
 
 /** Ask the engine for a move from the current position and apply it. */
 async function requestAiMove(): Promise<void> {
-  if (engine.state.value !== 'IDLE') return
+  // Authoritative phase guard: only move when it is genuinely the AI's turn. Guards against a stale
+  // call landing after the phase changed during the move animation window.
+  if (phase.value !== 'AI_THINKING') return
+  // Engine dead (e.g. init/handshake failed) but we owe a move → concede so the board never
+  // dead-locks in AI_THINKING with no playable side. Mirrors the catch-block fallback below.
+  if (engine.state.value === 'CRASHED') {
+    lifecycle.handleAiMove('0000')
+    return
+  }
+  if (engine.state.value !== 'IDLE') return // busy/handshaking — a play is already in flight
   try {
     const engineResult = await engine.play({ fen: fen.value, skillLevel: chosenLevel.value, movetimeMs: 3000 })
     if (!engineResult.bestMove || engineResult.bestMove === '(none)' || engineResult.bestMove === '0000') {
@@ -236,7 +247,10 @@ const devFenInput = ref('')
 
 function injectFen(): void {
   const trimmed = devFenInput.value.trim()
-  if (trimmed) lifecycle.setDevFen(trimmed)
+  if (!trimmed) return
+  lifecycle.setDevFen(trimmed)
+  // If the injected FEN is the AI's turn, kick off its move (setDevFen only sets the phase).
+  if (phase.value === 'AI_THINKING') void requestAiMove()
 }
 
 function handleDevToggle(e: KeyboardEvent): void {

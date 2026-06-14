@@ -40,7 +40,7 @@ const NAV_ITEMS = [
           aria-hidden="true"
           class="h-[18px] w-auto drop-shadow-[0_0_8px_rgba(248,181,0,0.35)]"
         />
-        <span class="font-brand font-black text-lg tracking-[0.04em] text-ink-on-deep">GAMBIT</span>
+        <span class="font-brand font-black text-lg tracking-[0.04em] text-ink-on-deep translate-y-[1px]">GAMBIT</span>
       </RouterLink>
 
       <!-- Desktop primary nav (mobile uses the bottom bar) -->
@@ -63,7 +63,7 @@ const NAV_ITEMS = [
       <RouterLink
         v-if="!authStore.userId"
         to="/sign-in"
-        class="flex items-center h-9 px-4 rounded-full text-sm font-medium text-ink-on-deep-dim hover:text-ink-on-deep hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        class="flex items-center min-h-[44px] px-4 rounded-full text-sm font-medium text-ink-on-deep-dim hover:text-ink-on-deep hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         active-class="!text-ink-on-deep"
       >
         登入
@@ -72,7 +72,7 @@ const NAV_ITEMS = [
         v-else
         to="/profile"
         aria-label="我的"
-        class="flex items-center justify-center h-9 w-9 rounded-full text-ink-on-deep-dim hover:text-ink-on-deep hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+        class="flex items-center justify-center h-11 w-11 rounded-full text-ink-on-deep-dim hover:text-ink-on-deep hover:bg-white/[0.08] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold"
         active-class="!text-white bg-primary"
       >
         <CircleUserRound :size="20" :stroke-width="1.8" aria-hidden="true" />

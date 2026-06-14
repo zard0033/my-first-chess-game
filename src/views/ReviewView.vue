@@ -397,7 +397,7 @@ function handleExit(): void {
 
     <!-- No big swings empty state (Rule 32) -->
     <div
-      v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor === null && review.totalPositions.value > 0"
+      v-if="review.phase.value === 'COMPLETE' && biggestSwingCursor === null && review.totalPositions.value > 0 && !review.analysisResults.value.every(r => r === null)"
       class="text-sm text-ink-muted text-center"
     >
       這盤沒有大轉折 — 全程穩定

@@ -1,7 +1,7 @@
 import type { Lesson } from '../../types/lesson'
 
 const QUEEN_OUT = 'rnb1kbnr/pppp1ppp/8/4p1q1/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 2 3'
-const QUEEN_BACK = 'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 4 3'
+const QUEEN_BACK = 'rnbqkbnr/pppp1ppp/8/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 4 4'
 
 /**
  * Tier 3 (opening) — Don't Bring the Queen Out Early.

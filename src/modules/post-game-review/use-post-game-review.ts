@@ -382,6 +382,8 @@ export function usePostGameReview(deps?: PostGameReviewDeps) {
   /** Abort analysis and transition to CANCELLED. */
   function abort(): void {
     _abortController.abort()
+    // Drop any pending debounced flush so it can't fire (and hold a closure) after unmount.
+    if (_debounceTimer) { clearTimeout(_debounceTimer); _debounceTimer = null }
     if (phase.value === 'ANALYZING') {
       phase.value = 'CANCELLED'
     }

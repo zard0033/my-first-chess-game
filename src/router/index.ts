@@ -72,6 +72,9 @@ export function createAppRouter() {
   })
 
   router.afterEach(() => {
+    // A navigation succeeded → clear the one-shot reload guard so a *later* chunk-load failure in
+    // this session (e.g. a redeploy changed the hashes) can still self-heal with one reload.
+    sessionStorage.removeItem('routerReloadAttempted')
     nextTick(() => {
       // preventScroll: this is an a11y focus reset to the page heading, not a viewport move —
       // without it, focusing a top-of-page h1 yanks the scroll up and fights any view that

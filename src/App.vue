@@ -60,6 +60,10 @@ const pageBg = computed(() => {
 })
 
 // Flush offline queue + reconcile lesson progress when player logs in (SUPA-AC-08).
+// immediate: on routes that pass the landing gate the router awaits isAuthLoading before mount
+// (main.ts), so a restored session already has userId set when this watcher registers — immediate
+// catches it. On /sign-in the guard returns early without waiting, so userId may still be null at
+// mount; there the later reactive change drives the reconcile. The userId guard makes guest a no-op.
 watch(() => authStore.userId, (userId) => {
   if (userId) {
     dataSyncStore.flushUnsyncedQueue()
@@ -67,12 +71,9 @@ watch(() => authStore.userId, (userId) => {
     dungeonProgressStore.reconcileOnLogin()
     resumeGameStore.reconcileOnLogin()
   }
-})
+}, { immediate: true })
 
-// initAuth() not awaited — isAuthLoading guards against flash of unauthenticated state
 onMounted(() => {
-  authStore.initAuth()
-
   // Warm the primary tab route chunks during idle so tab taps swap instantly on mobile
   // (first visit otherwise blocks on downloading/parsing each view's lazy chunk). Importing
   // only loads the module — PlayView's Stockfish init still waits for the view to actually mount.

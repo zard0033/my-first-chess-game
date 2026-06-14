@@ -1,7 +1,7 @@
 <!-- STATUS -->
-Epic: 課程/試煉 UI 修正批 + 2-3 升變框
-Feature: 一批 bug/語氣/連接性修正（未 commit，待 Eason 測）
-Task: 下一步＝2-3 升變框 redesign + 變身動畫
+Epic: code review + 棋理內容修復批（2026-06-14）
+Feature: 兩輪 workflow → code 53 findings + 棋理 10 瑕疵全修（已 push）
+Task: 賽後檢討頁打磨待 Eason 細列；header/招呼語/PWA 待實機複看
 <!-- /STATUS -->
 
 > **交接快照**：只留現況 + 待辦 + 鐵則。歷史細節在 git log；詳盡規格在各 GDD / EPIC。
@@ -38,55 +38,68 @@ Task: 下一步＝2-3 升變框 redesign + 變身動畫
 - **教練人格 Neve（已 push `24c1e3d`）**：SoT `design/gambit-design-system/persona-neve.md`。課程＝Neve 第一
   人稱對你說、試煉 brief＝你內化後的第三人稱觀察、概念＝中性。寫任何課程/試煉/概念文案前先讀此 SoT。
 
-## 🟡 未 commit／push（working tree）
+## ✅ 前批全數落地（2026-06-12～13 push，詳見 git log）
 
-- **S05 課程內容撰寫**（新增 `data/lessons/{develop-your-pieces,king-safety-castling,dont-bring-queen-out-early,
-  endgame}.ts`、改 `index.ts`、`rules.ts`+`control-the-center.ts` 語氣巡檢）：
-  開局補 3 課 + 殘局 tier 從零建 3 課；既有課反射式讚美 9 處收掉（對齊 Neve「不輕易讚美」）。
-  殘局將殺已用 chess.js 實證（Qd7#/Ra8# checkmate=true、對王邏輯正確、升變合法）。
-- **驗證**：vue-tsc 0、vitest **664 passed**。**新課互動步（易位 O-O、升變 e8=Q）的 chessground 拖放待實機點一輪**
-  （合成事件 Playwright 難觸發；資料層已 chess.js 驗證）。
+> 之前 active.md 標記的「未 commit」三批現已全部 push。互動步的 chessground 拖放驗收併入下方實機累積項。
 
-### 🟡 UI 修正批（本輪，未 commit，待 Eason 一起測）
+- **S05 課程內容**（`02e1133`）：四階課綱 21 課全到位（開局補 3、殘局從零建 3）；既有課反射式讚美 9 處收掉
+  （對齊 Neve）。殘局將殺 chess.js 實證（Qd7#/Ra8# checkmate=true、升變合法）。
+- **課程/試煉 UI 修正批 + 多項 Bug 修復**（PR #1 `da752e6`）：4 bug（首頁學習進度 RouterLink、LessonView 頭像
+  `COACH.name.charAt(0)`、試煉 `lastResult` 單筆覆蓋頂 CTA、走錯滑回清 lastMove 綠格）、17 處慶祝式語氣收冷靜、
+  升變課 2-2 重寫 + endgame 連接性修正（chess.js 掃相鄰步）、複習按鈕 → concept hub 金框呼吸脈動。
+- **2-3 升變框 redesign + 變身動畫**（`51fd786`，走 Option A CSS reskin 原生 `.promotion-dialog`）：Gambit reskin
+  + Gioco Wood 棋子、兵→選定子變身 overlay、升變壓暗 scrim、每顆棋子獨立 tile + focus 金邊（reward only）。
 
-> dev server 跑著（`http://localhost:5173/`，base=`/`）。`?from=concept` 可繞課程鎖直達任何課；
-> 訪客閘門需 `sessionStorage['gambit:guest-entry']='1'`。
+## ✅ 登入遷移 Magic Link → Google OAuth（2026-06-13 push，手機 PR #2/#3）
 
-- **4 bug**：①首頁「學習進度」StatCard 包 `RouterLink to=/learn`（原本點了沒反應）；②`LessonView` 教練頭像
-  寫死「貝」→ `COACH.name.charAt(0)`（Cubic 字體、`translate-y-[1.5px]` 置中）、「教練 ·」拿掉只留 Neve；
-  ③試煉走錯：`moveLog` 累積頂掉 CTA → 改 `lastResult` 單筆覆蓋、釘卡片右上 turn 列；④`chess-board.vue`
-  `resetPosition()` 走錯滑回時清 `lastMove` 高亮（綠格殘留修正）。
-- **語氣全面 review**：17 處慶祝式「！」/興奮詞（將死/將軍/易位完成/升變/威風/抓到了…）收成冷靜陳述（對齊 Neve）。
-- **升變課（2-2）重寫**＋**endgame 連接性修正**：chess.js 掃全 21 課相鄰步，scenario 三課（后王/城堡/升變）的
-  「互動後跳場」修掉——rook-mate 重建連貫線、queen/pawn 收尾敘述步改「動完後」盤面。基礎規則/捉雙等「換範例跳」
-  Eason 同意維持（刻意分例教學）。
-- **複習按鈕（B）**：`DungeonPuzzleView` 複習 → `/learn/concepts?focus=<conceptId>`（concept hub，1:N）；
-  `ConceptMapView` 讀 `focus` query → 金框**呼吸脈動 2.4s fade-out**（`.concept-focus-ring`，只動 opacity）+ 捲到該概念。
-- **驗證**：vue-tsc 0、vitest 664、endgame 連接性 chess.js 掃過乾淨。**待 Eason 重測後一起 commit**。
+- **PR #2（`fadac05`）**：auth store 移除 `signIn`/`pendingEmail`、新增 `signInWithGoogle`（`signInWithOAuth`）；
+  `SignInView` 改 Google 登入按鈕、移除 email 輸入與待確認 UI；測試同步更新；CLAUDE.md 技術棧改 Google OAuth。
+- **PR #3（`954fe86`）**：Google 按鈕改玻璃語言（`bg-white/10` + backdrop-blur + hairline border + 頂光），
+  字色 ink-on-deep、hover/press 對齊設計系統。Quick spec `design/quick-specs/google-signin-button-style-tweak-2026-06-13.md`。
+- **驗證**：vue-tsc 0、vitest **664 passed**。**Google OAuth 完整登入流程 + PWA 冷啟動待 Eason 實機**（見待辦）。
 
-### 2-3 升變框 redesign + 變身動畫 — done（未 commit，待 Eason 實機測）
+### 遺留 dead code（待 Eason 決定是否清）
 
-- **走 Option A（CSS 重塑原生 dialog，Eason 拍板）**：反編譯 vue3-chessboard 確認原生升變 UI 硬綁在內部
-  `changeTurn`（`movable.events.after`），永遠搶先、boardConfig 擋不掉；接管原生需碰 private 內部（風險高），
-  故改最小可行解＝CSS reskin 原生 `.promotion-dialog`。
-- **改了什麼**：①`board-theme.css` 加 `.promotion-dialog` Gambit reskin（surface.card 米底＋line.strong 邊＋
-  card 陰影/圓角）＋棋子換成 Gioco Wood `/pieces/*.svg`（原生 cburnett base64 棄用）；按鈕用 `aspect-ratio:1/1`
-  自撐高度（原生 `height:100%` 在 content-driven 父層會塌 0）。②`chess-board.vue` 加「兵→選定子」變身 overlay：
-  升變格上疊 pawn SVG `opacity/scale` 淡出 + 選定子 `scale .55→1 + opacity` 淡入，只動 transform/opacity、
-  300ms 對齊 `PIECE_MOVE_ANIM_MS`、reduced-motion 跳過。③**升變時棋盤壓暗 scrim**（`.main-board::after`，
-  deep-jade rgba(16,48,41,.28)，掛 library 既有的 `.main-wrap.disabledBoard`，z-index 10 在棋子上、dialog 999 下）。
-  ④**升變框美化（redesign，Eason 拍板 H+M+L）**：每顆棋子獨立 tile（surface.raised 底＋line 邊＋圓角）、
-  hover/focus 金邊 `#F8B500`＋金光圈＋`translateY(-2px)`（只過渡 transform，box-shadow 即時不過渡守 Gambit）、
-  卡片頂金色細線（reward cue）、棋子 `background-size:72%` 留白。**金色只在升變 reward 瞬間出現，不違鐵則**。
-- **驗證**：vue-tsc 0、vitest 664。Playwright 注入 dialog 驗 reskin（米卡片＋4 Gioco Wood 棋子）✅。
-  **變身動畫＋實際升變拖放待 Eason 實機**（合成事件難觸發）。驗證點：`/learn/pawn-promotion?from=concept` 第 4 步、對局/試煉升變。
-- **遺留**：自訂 `components/promotion-dialog.vue` ＋ `chess-board.vue` 的 `pendingPromotion`/`handlePromotionSelect`/
-  `handlePromotionCancel`/`isPromotionMove` 分支現為 dead code（原生永遠搶先，Option A 不走自訂路徑）。未刪，待 Eason 決定是否清。
+- 自訂 `components/promotion-dialog.vue` ＋ `chess-board.vue` 的 `pendingPromotion`/`handlePromotionSelect`/
+  `handlePromotionCancel`/`isPromotionMove` 分支為 dead code（升變走 Option A 原生 reskin，永遠搶先不走自訂路徑）。
+
+## ✅ 全站 code review 修復批（2026-06-14 push）
+
+> workflow（gambit-fullsite-review，11 模組 + adversarial verify）出 53 findings → 修 **H2 + M19 + L16**，
+> 其餘 L 列「不擅改」（dead code 尊重暫緩、字級/♚ 全站設計決策、純維護性提醒）。vue-tsc 0、vitest **665**（+1）。
+
+- **H**：PlayView engine 從不 dispose（Worker/listener 洩漏）→ onBeforeUnmount 加 `engine.dispose()`；
+  opening-index `identifyOpening` 非法走法無 try/catch 會白屏賽後檢討 → 包 try/catch break。
+- **M 對局**：引擎掛掉執黑卡 AI_THINKING 死盤 → requestAiMove 加 phase guard + CRASHED 投降收尾；
+  setDevFen 依 FEN 走子方決定 phase；chess-board check live-region 拆 polite/assertive + `將軍`；
+  data-sync flush 單筆毀損不中斷整批；export buildPgn 包 try/catch 退 FALLBACK。
+- **M UI/a11y**：ReviewView 全失敗不再同時「全程穩定+無法分析」；eval bar height/width 動畫→transform
+  + reduced-motion（move-annotation、replay-overlay）；LessonView/LearnPager 加 resize 重算；
+  觸控 44px（DungeonPuzzle×5、app-nav 帳號、HomeView 另開新對局、input font-size、slider、checkbox）；
+  ReplayView 深連結先載 history 再判 redirect；HistoryView loadMore 改 re-throw（修錯置 banner + dead UI）。
+- **L**：auth `??` 死碼、router onError flag 清除、debounceTimer/setTimeout/transitionend listener cleanup、
+  typewriter 同字串重播、parse-inline-markdown underscore word-boundary、chess-board findPiece 簡化、✓✗→Lucide。
+- **不擅改（列報告，待 Eason 定）**：dead code 刪除（use-chess-board/use-stockfish/cploss/recommend、HistoryRow
+  is-expanded）、課文字級 16px（全站決策）、Profile/NotFound ♚→品牌棋子、greeting/perf 邊角、ConceptMap gradient
+  進度條 width（改 transform 會破壞漸層）、identifyPosition console.error（需 FEN/EPD 格式判斷）。
+
+## ✅ 棋理內容修復批（2026-06-14 push）
+
+> workflow（gambit-chess-content-review，11 組逐局面 chess.js 實證）驗了 82 個局面，找出 **10 個棋理瑕疵**（H4 M4 L2），全部修正並逐一 chess.js 把關。內容閘門測試（lessons/puzzles/concepts.test）全通過。
+
+- **H 假將殺/錯解**：①`rules.ts` tier1Capstone「一步將死」Qb8+ 其實非將死（白王太遠，Kxb8）→ 改 FEN（白王 c6 撐腰）+ Qb7#；②`rules.ts` 逼和題 Qb8+ 假將殺 → 改 Qc7 當逼和陷阱、Qb7# 當正解（保留逼和教學）；③`endgame.ts` 升變課升完后立刻被吃變和棋（白王 f6 不守 e8）→ 整線改白王 f7 護送、安全升變；④`puzzles/l2-pin-win-queen` 釘后用兵收割根本不成立（后沿線可逃 + 城堡可直接換后）→ 重設計成「釘騎士（有保護）推兵收割」（與 l3 互補）。
+- **M**：①`tactics.ts` protection（Eason 發現的校準案例）→ 重設計成主教 d3 被城堡攻、加防守者真正化解（前一版城堡 vs 城堡有 Rxd8+ 免費吃漏洞，已換）；②升變課文案配合改「王守升變格」；③`l2-knight-fork-rook` successText 高估收穫（說白吃城堡，實為騎士換城堡）→ 改正確結算；④`l3-pin-knight-pawn` 推兵 suboptimal（城堡可直接 Rxa5+ 一步吃）→ solution 改單步。
+- **L**：protection hint「逃不掉」假前提（已隨重設計修）；`dont-bring-queen-out-early` QUEEN_BACK FEN 的 side-to-move/move number 與敘事不符 → 改 `w … 4 4`。
+- **驗證**：vue-tsc 0、vitest **665**。每個改動的 FEN/將殺/子力交換/最佳解都用 chess.js 實證。
 
 ## 🚧 待辦 / 開放項
 
 - **migration**：`in_progress_game` 已確認套用（2026-06-12 查 `to_regclass` 有表）。Supabase 6 張表全到位，無待套 migration。
-- **push 後待 iPhone 實機驗收（累積）**：①Resume「每步存」真實 chessground 落子（合成事件 Playwright 難觸發）；②課程換步殘留綠格已消（`f9be8df`）；③登入開場動線——Magic Link 回跳登入、PWA 冷啟動擋 sign-in／點訪客放行；④`14fa407` 那批（試煉下一題、棋盤對齊、last-move 高亮、易位點城堡、座標木框）；⑤Magic Link 登入流程（S8-06）、game-replay、apple-touch/PWA 圖標。
+- ~~**push 後待 iPhone 實機驗收（累積）**~~ **2026-06-14 實機過一輪，大致 PASS**：Google 登入 OK、PWA 有擋、訪客 OK、續玩 OK、升變 OK、易位 OK、殘留綠格 OK、試煉全 OK、換頁效能 OK。剩兩個 issue（見下）。
+- ✅ **PWA 冷啟動登入閃爍（已修，已 push）**：root cause＝`main.ts` 沒 `await router.isReady()` 就 mount，而 `HomeView` 是同步元件、`initAuth()` 又延到 App `onMounted` 才跑 → 初始導航在 session 未定時先 render home，guard 解析完才重導 sign-in（閃首頁→sign-in）。修法：`main.ts` mount 前先 `useAuthStore().initAuth()`（不 await，交給 guard 內 isAuthLoading watch）+ `router.isReady().then(mount)`，畫面一次到位；`App.vue` 移除 onMounted 的 initAuth、`watch(userId)` 加 `immediate:true`（避免登入態 mount 漏跑 reconcile）。加 regression `test_landingGate_homeRoute_noFlag_redirectsToSignIn`。vue-tsc 0、vitest **665**。**待 Eason iPhone 實機複看冷啟動不再閃**。
+- 🆕 **賽後檢討頁還有不少要調整（待 Eason 細列）**：2026-06-14 實機覺得需要打磨，尚未逐項列出。下次開工先請 Eason 指出具體點，或跑 `/redesign` 對賽後檢討頁出 H/M/L。
+- ✅ **header logo/GAMBIT 字標對齊**：Cinzel cap-height 偏上致字標視覺高於金徽，`app-nav.vue` 字標加 `translate-y-[1px]` 光學對齊。**待 Eason 實機複看**（本機未截圖驗，純光學微調）。
+- ✅ **首頁招呼語 Neve 化**：`HomeView.vue` 大標「今天想下一盤嗎？」→「棋盤未曾離開，你來了。」（neve-home-greeting workflow 6 角度生成 + 3 評審 panel 全票最高分；時間小字早安/午安維持）。**header／招呼語／PWA 三項 2026-06-14 已 push，待 Eason 實機複看**。
 - **對局頁「專注模式」自動收 navbar（Eason 提案，未來獨立任務）**：Eason 想要 IG 式「靜止縮小／滑動回復」navbar。
   結論：**捲動驅動不適用對局頁**（一屏不捲＝沒手勢叫回，會卡死）。若要做，改**狀態驅動**——對局進行中
   （PLAYER_TURN/AI_THINKING）自動收底部 nav 進專注模式、結束或底緣上滑叫回。屬**全站導覽改動**（影響每頁），
@@ -95,7 +108,7 @@ Task: 下一步＝2-3 升變框 redesign + 變身動畫
   ⑥**不可用 `max-w` 依高度硬縮棋盤**：棋盤高度被內部 pin 住，縮木框寬會把棋盤壓成非正方（h 檔被裁）。要省空間改縮周邊（合併列、棋譜上限），別碰棋盤寬。Tailwind arbitrary calc 內 `-` 兩側要用底線：`calc(100dvh_-_Nrem)`。
 
 - **#3 過場效能**：上面那批是推測性修法，**待 Eason 下次實機確認**點 tab 換頁/膠囊動畫是否變順。
-- ~~**試煉題卡「補充描述」逐題撰寫**~~ **done（未 commit，見上節）**：Puzzle 加必填 `brief`、30 題逐題撰寫、
+- ~~**試煉題卡「補充描述」逐題撰寫**~~ **done+push**：Puzzle 加必填 `brief`、30 題逐題撰寫、
   題卡常駐渲染、測試內容閘門 + Playwright 截圖驗證。文案討論於 git log。
 - **B5 桌機棋盤尺寸已解（root cause 紀錄，重要）**：vue3-chessboard 的 `.main-wrap` SECTION 被釘死
   `width:700px` 撐爆容器（不是 cg-wrap）。解法＝board wrapper 加 class `board-fit` ＋ scoped
@@ -111,7 +124,7 @@ Task: 下一步＝2-3 升變框 redesign + 變身動畫
   左偏 ~5px），導致 keySquare 高亮/箭頭比真實格子算大 sq、整體偏 dx≈-2 dy≈+4。修法：annotation 改用
   `elements.board`（cg-board）的尺寸＋原點，或讓 cg-board=cg-wrap（coords overlay／chessground 重繪）。牽涉
   全站箭頭/標註定位（課程/試煉/review/replay），需獨立驗證故未在 B5 收尾動。
-- ~~**課程內容撰寫 (S05)**~~ **done（未 commit，見上）**：四階課綱 21 課全到位（開局補完、殘局從零建）。
+- ~~**課程內容撰寫 (S05)**~~ **done+push（`02e1133`）**：四階課綱 21 課全到位（開局補完、殘局從零建）。
 - **dead-file 稽核（Eason 喊暫緩，未動）**：src ~11 orphan（ui/checkbox·label·progress·tooltip、
   composables/use-stockfish）、模板殘留 `docs/engine-reference/`、`CCGS Skill Testing Framework/`、
   引擎 specialist agents、`public/board/wood12_bg.jpg` 皆可清。

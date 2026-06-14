@@ -308,18 +308,22 @@ export function useGameLifecycle(deps?: GameLifecycleDeps) {
 
   /**
    * DEV-ONLY: inject a FEN position into the chess instance and fen ref.
-   * Transitions phase to PLAYER_TURN so moves can be made from the injected position.
-   * Does nothing in production — call only from DEV panel.
+   * Phase follows whose turn the FEN says it is (so a "Black to move" position isn't frozen in
+   * PLAYER_TURN with a white-only board). When it lands on AI_THINKING the DEV caller must fire
+   * the AI move (PlayView.injectFen), mirroring startFromPayload. Does nothing in production.
    */
   function setDevFen(newFen: string): void {
     try {
       chess = new Chess(newFen)
       fen.value = chess.fen()
-      phase.value = 'PLAYER_TURN'
       _moves = []
       _playerMoveTimes = []
       moveHistory.value = []
       lastMove.value = null
+      terminal.value = null
+      const turn = chess.turn() === 'w' ? 'white' : 'black'
+      if (turn === playerColor.value) enterPlayerTurn()
+      else phase.value = 'AI_THINKING'
     } catch {
       // Invalid FEN — ignore silently
     }

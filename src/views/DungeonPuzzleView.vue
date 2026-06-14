@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Chess } from 'chess.js'
-import { ArrowLeft, ArrowRight, Lightbulb, Check, BookOpen } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Lightbulb, Check, X, BookOpen } from 'lucide-vue-next'
 import ChessBoard from '@/components/chess-board.vue'
 import MoveAnnotationDisplay from '@/components/move-annotation-display.vue'
 import { getPuzzleById, puzzles } from '@/data/puzzles'
@@ -126,6 +126,15 @@ function describeMove(piece: string, captured?: string): string {
   return captured ? `${p}吃掉${PIECE_ZH[captured] ?? '一子'}` : `${p}就位`
 }
 
+// Deferred move timers — cleared on unmount so a fast 返回/下一題 (RouteView remount) can't fire a
+// reset or opponent reply into a discarded puzzle instance.
+let wrongTimer: ReturnType<typeof setTimeout> | undefined
+let replyTimer: ReturnType<typeof setTimeout> | undefined
+onBeforeUnmount(() => {
+  clearTimeout(wrongTimer)
+  clearTimeout(replyTimer)
+})
+
 function handleMove(payload: MoveMadePayload): void {
   if (!pz) return
   const result = pz.submitMove({ from: payload.from, to: payload.to, promotion: payload.promotion })
@@ -135,7 +144,7 @@ function handleMove(payload: MoveMadePayload): void {
     lastResult.value = { ok: false, text: '不是這步' }
     // Snap the wrong piece home AFTER the move animation settles — doing it immediately lets
     // chessground's in-flight animation overwrite the reset (the piece stayed put). 600ms 後還原。
-    setTimeout(() => {
+    wrongTimer = setTimeout(() => {
       board.value?.resetPosition()
       wrongActive.value = false
       pz.wrong.value = false
@@ -147,7 +156,7 @@ function handleMove(payload: MoveMadePayload): void {
     lastResult.value = { ok: true, text: describeMove(result.piece, result.captured) }
     lastCorrectSquare.value = payload.to
     hintStage.value = 0
-    setTimeout(() => pz.commitOpponentReply(), prefersReducedMotion.value ? 0 : OPPONENT_REPLY_DELAY_MS)
+    replyTimer = setTimeout(() => pz.commitOpponentReply(), prefersReducedMotion.value ? 0 : OPPONENT_REPLY_DELAY_MS)
     return
   }
 
@@ -206,7 +215,7 @@ function goNext(): void {
     <div class="flex items-center justify-between px-4 pt-[calc(0.75rem+env(safe-area-inset-top))]">
       <button
         type="button"
-        class="flex min-h-[36px] items-center gap-1 px-1 font-sans text-xs font-semibold text-gold/70 active:scale-95"
+        class="flex min-h-[44px] items-center gap-1 px-1 font-sans text-xs font-semibold text-gold/70 active:scale-95"
         @click="router.push(isPractice ? '/learn' : '/dungeon')"
       >
         <ArrowLeft :size="16" :stroke-width="1.8" /> {{ isPractice ? '課程' : '地圖' }}
@@ -292,7 +301,7 @@ function goNext(): void {
               v-if="lastResult"
               class="ml-auto inline-flex shrink-0 items-center gap-1 whitespace-nowrap font-num text-[11px]"
             >
-              <span :class="lastResult.ok ? 'text-[#7FCBA9]' : 'text-[#E8A892]'">{{ lastResult.ok ? '✓' : '✗' }}</span>
+              <component :is="lastResult.ok ? Check : X" :size="13" :stroke-width="3" :class="lastResult.ok ? 'text-[#7FCBA9]' : 'text-[#E8A892]'" />
               <span class="text-ink-on-deep-dim">{{ lastResult.text }}</span>
             </span>
           </div>
@@ -325,7 +334,7 @@ function goNext(): void {
           <template v-else>
             <button
               type="button"
-              class="inline-flex min-h-[40px] items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 font-sans text-[13px] font-semibold text-ink-on-deep active:scale-[0.98]"
+              class="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.06] px-4 font-sans text-[13px] font-semibold text-ink-on-deep active:scale-[0.98]"
               @click="router.push('/dungeon')"
             >
               <ArrowLeft :size="15" :stroke-width="1.8" /> 回地圖
@@ -333,7 +342,7 @@ function goNext(): void {
             <div class="flex-1" />
             <button
               type="button"
-              class="inline-flex min-h-[40px] items-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
+              class="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
               @click="goNext"
             >
               {{ nextPuzzle ? '下一題' : '回到地圖' }} <ArrowRight :size="16" />
@@ -345,7 +354,7 @@ function goNext(): void {
         <div v-else class="mt-3.5 flex items-center justify-between border-t border-white/[0.08] pt-3">
           <button
             type="button"
-            class="inline-flex min-h-[36px] items-center gap-1.5 rounded-full border border-gold/25 bg-gold/[0.08] px-3.5 font-sans text-[13px] font-semibold text-[#F5D070] active:scale-[0.98]"
+            class="inline-flex min-h-[44px] items-center gap-1.5 rounded-full border border-gold/25 bg-gold/[0.08] px-3.5 font-sans text-[13px] font-semibold text-[#F5D070] active:scale-[0.98]"
             @click="showHint"
           >
             <Lightbulb :size="15" :stroke-width="1.8" /> {{ hintLabel }}
@@ -356,7 +365,7 @@ function goNext(): void {
             v-if="reviewLink"
             type="button"
             data-testid="concept-review-link"
-            class="inline-flex min-h-[36px] items-center gap-1.5 font-sans text-[12.5px] font-medium text-ink-on-deep-dim/80 active:scale-[0.98]"
+            class="inline-flex min-h-[44px] items-center gap-1.5 font-sans text-[12.5px] font-medium text-ink-on-deep-dim/80 active:scale-[0.98]"
             @click="reviewConcept"
           >
             <BookOpen :size="15" :stroke-width="1.8" /> 複習「{{ reviewLink.label }}」
