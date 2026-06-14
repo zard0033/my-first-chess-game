@@ -193,7 +193,7 @@ function startTypewriter(text: string): void {
   const step = (): void => {
     displayedText.value = text.slice(0, i + 1)
     i++
-    if (i < text.length) typewriterTimer = setTimeout(step, 32)
+    if (i < text.length) typewriterTimer = setTimeout(step, 16)
   }
   step()
 }
@@ -206,6 +206,20 @@ function skipTypewriter(): void {
   displayedText.value = currentStep.value?.text ?? ''
 }
 
+// 對話框自動捲：教練文字逐字長出、或提示／回饋／成功訊息新增時，把焦點維持在最新內容。
+const coachScroll = ref<HTMLElement | null>(null)
+function scrollCoachToBottom(): void {
+  const el = coachScroll.value
+  if (el) el.scrollTop = el.scrollHeight
+}
+watch(
+  [displayedText, hintShown, wrongMove, answerRevealed, solved],
+  async () => {
+    await nextTick()
+    scrollCoachToBottom()
+  },
+)
+
 // Watch stepIndex (not the text string): two adjacent steps with identical text must still replay
 // the typewriter, which a string-diff watch would skip.
 watch(
@@ -215,8 +229,21 @@ watch(
 )
 onBeforeUnmount(() => { if (typewriterTimer !== null) clearTimeout(typewriterTimer) })
 
-// ── Bridge 1 (Learning Loop #20): lesson completion card + course→puzzle invitation ──
-const completed = ref(false)
+// ── Bridge 1 (Learning Loop #20): in-bubble lesson wrap-up + course→puzzle invitation ──
+// 課末不跳彈窗：最後一步按「完成課程」才就地切成收尾（重點 + 練習邀請），動作列換成下一課／返回。
+// 必須由使用者明確觸發——不能在「走到最後一步」自動完成，否則敘述型 5/5 會被秒跳過（4/5 走對就快轉）。
+const finished = ref(false)
+function complete(): void {
+  if (finished.value) return
+  finished.value = true
+  // Side-door entry lights 已學 via the separate signal only — it must NOT advance linear progress
+  // (no markComplete → no isUnlocked leak; GDD §3.2 D1 pattern).
+  if (lesson) {
+    if (fromConcept) progress.markSideLearned(lesson.id)
+    else progress.markComplete(lesson.id)
+  }
+  nextTick().then(scrollCoachToBottom)
+}
 
 // A puzzle counts as practised whether cleared in the dungeon or from a prior lesson CTA.
 function isPuzzleSolved(id: string): boolean {
@@ -253,16 +280,6 @@ function goToNextLesson(): void {
 }
 
 function next(): void {
-  if (isLastStep.value) {
-    // Side-door entry lights 已學 via the separate signal only — it must NOT advance linear progress
-    // (no markComplete → no isUnlocked leak; GDD §3.2 D1 pattern).
-    if (lesson) {
-      if (fromConcept) progress.markSideLearned(lesson.id)
-      else progress.markComplete(lesson.id)
-    }
-    completed.value = true // show the completion card; Bridge-1 invitation lives here
-    return
-  }
   stepIndex.value++
 }
 function prev(): void {
@@ -294,13 +311,13 @@ function prev(): void {
     >你從概念地圖提前學這個戰術</p>
 
     <!-- Content: board (fixed) on mobile stacked, side-by-side on desktop -->
-    <div class="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-2">
+    <div class="flex min-h-0 flex-1 flex-col lg:mx-auto lg:w-full lg:max-w-5xl lg:flex-row lg:items-start lg:gap-6 lg:px-4 lg:py-2" :class="{ 'lg:justify-center': finished }">
 
       <!-- Board floats on jade; capped so the coach bubble keeps room on the first screen.
            Padding/size live on the OUTER box; the inner `relative` box hugs the board so the
            annotation overlay (absolute inset-0) aligns with the squares — padding on the positioned
            ancestor would shift every arrow sideways (課程答案箭頭偏移修正). -->
-      <div class="mx-auto w-full shrink-0 px-4 pt-1 lg:mx-0 lg:min-w-0 lg:max-w-none lg:flex-1 lg:self-start lg:px-0 lg:pt-1">
+      <div v-if="!finished" class="mx-auto w-full shrink-0 px-4 pt-1 lg:mx-0 lg:min-w-0 lg:max-w-none lg:flex-1 lg:self-start lg:px-0 lg:pt-1">
         <!-- wooden tray：棋盤木框（與試煉／對局同款木盤） -->
         <div class="rounded-[12px] bg-[linear-gradient(160deg,#6f4b30,#523722)] p-3 ring-1 ring-black/30 shadow-[0_12px_32px_rgba(10,30,24,0.45),inset_0_1px_0_rgba(255,228,194,0.20),inset_0_-2px_6px_rgba(0,0,0,0.38)]">
         <div ref="boardFit" class="relative board-fit">
@@ -363,27 +380,32 @@ function prev(): void {
 
       <!-- Coach bubble:暖色對話框浮在 jade。氣泡自身 flex column——上半教練文字可捲、下半動作列釘在
            氣泡底（手機/桌機統一，按鈕永遠可見、不被捲走）。底部 safe-area 留白防 iPhone 圓角吃按鈕。 -->
-      <div class="flex min-h-0 flex-1 items-start gap-2.5 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-1 lg:w-[26rem] lg:flex-none lg:px-0 lg:pb-0 lg:pt-0">
-        <span
-          class="mt-0.5 flex h-8 w-8 shrink-0 self-start items-center justify-center rounded-full bg-primary font-num text-base leading-none text-primary-fg"
-          aria-hidden="true"
-        ><span class="block translate-y-[1.5px]">{{ COACH.name.charAt(0) }}</span></span>
-        <div class="flex max-h-full min-h-0 min-w-0 flex-1 flex-col rounded-[6px_18px_18px_18px] bg-surface-card shadow-[0_6px_20px_rgba(8,24,18,0.28)]">
+      <div class="flex min-h-0 flex-1 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] pt-1 lg:w-[26rem] lg:flex-none lg:px-0 lg:pb-0 lg:pt-0" :class="finished ? 'items-center' : 'items-start'">
+        <div
+          class="flex max-h-full min-h-0 min-w-0 flex-1 flex-col rounded-[18px] bg-surface-card shadow-[0_6px_20px_rgba(8,24,18,0.28)]"
+        >
+          <!-- 釘頂 header：頭像 + Neve + 步數，捲動時永遠可見（完成頁不需要，收起） -->
+          <div v-if="!finished" class="flex shrink-0 items-center justify-between gap-2 px-4 pb-2.5 pt-3.5 font-sans text-xs font-medium text-ink-muted">
+            <span class="flex items-center gap-2">
+              <span
+                class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary font-num text-[11px] leading-none text-primary-fg"
+                aria-hidden="true"
+              ><span class="block translate-y-px">{{ COACH.name.charAt(0) }}</span></span>
+              <span class="text-sm text-ink">{{ COACH.name }}</span>
+            </span>
+            <span class="shrink-0 font-num text-ink-faint">{{ stepIndex + 1 }} / {{ lesson.steps.length }}</span>
+          </div>
           <!-- 可捲教練內容（捲軸隱藏，靠 footer 上緣漸層暗示） -->
-          <div class="coach-scroll min-h-0 flex-1 overflow-y-auto p-4">
-            <div class="mb-2.5 flex items-center justify-between gap-2 font-sans text-xs font-medium text-ink-muted">
-              <span>{{ COACH.name }}</span>
-              <span class="shrink-0 font-num text-ink-faint">{{ stepIndex + 1 }} / {{ lesson.steps.length }}</span>
-            </div>
-
+          <div ref="coachScroll" class="coach-scroll min-h-0 flex-1 overflow-y-auto px-4 pb-4" :class="{ 'flex flex-col justify-center': finished }">
             <!-- Scenario (step 0 only) -->
             <p
               v-if="stepIndex === 0 && lesson.scenario"
               class="mb-3 border-l-2 border-primary/40 pl-3 font-lesson text-[15px] leading-relaxed text-ink-muted"
             >{{ lesson.scenario }}</p>
 
-            <!-- Step narration：打字機逐字出現，點擊立即完成 -->
+            <!-- Step narration：打字機逐字出現，點擊立即完成。完成後棋盤與敘述都收起，只留收尾卡。 -->
             <p
+              v-if="!finished"
               class="cursor-default font-sans text-base leading-loose text-ink"
               @click="skipTypewriter"
             >{{ displayedText }}</p>
@@ -406,20 +428,82 @@ function prev(): void {
               </Alert>
             </div>
 
-            <!-- Success -->
-            <Alert v-if="solved && currentStep?.successText" variant="success" class="mt-3">
+            <!-- Success（完成後由收尾卡接手，不再並存） -->
+            <Alert v-if="solved && currentStep?.successText && !finished" variant="success" class="mt-3">
               <AlertDescription class="text-success">{{ currentStep.successText }}</AlertDescription>
             </Alert>
+
+            <!-- 課末收尾：單一卡內置中徽章 + 重點 takeaway + 練習邀請（去掉卡中卡的 sage 內框）。
+                 下一課／返回在底部動作列；金色保留給 footer CTA，這裡用 success 徽章表達「達成」。 -->
+            <div
+              v-if="finished"
+              data-testid="lesson-completion"
+              class="lesson-complete flex flex-col items-center px-2 py-2 text-center"
+            >
+              <span
+                class="flex h-16 w-16 items-center justify-center rounded-full bg-success text-success-fg shadow-[0_4px_14px_rgba(74,124,89,0.35)] ring-4 ring-success/15"
+                aria-hidden="true"
+              ><Check :size="32" :stroke-width="2.5" /></span>
+              <p class="mt-4 font-display text-xl font-bold text-ink">這一課完成了</p>
+              <p v-if="lesson.summary" class="mt-2 font-lesson text-base leading-relaxed text-ink-muted">{{ lesson.summary }}</p>
+
+              <div v-if="completionConcepts.length" class="mt-5 flex w-full flex-col gap-2">
+                <template v-for="c in completionConcepts" :key="c.id">
+                  <button
+                    v-if="c.hasPuzzles && c.targetId"
+                    type="button"
+                    data-testid="lesson-practice-cta"
+                    class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-[12px] border border-line-subtle bg-surface-base px-4 py-2.5 font-sans text-sm font-semibold text-ink transition-colors hover:bg-surface-hover active:scale-95"
+                    @click="practise(c.targetId)"
+                  >
+                    想趁熱練幾題「{{ c.label }}」嗎？ <ArrowRight :size="16" />
+                  </button>
+                  <p
+                    v-else
+                    data-testid="lesson-practice-hint"
+                    class="w-full rounded-[10px] bg-black/[0.04] px-4 py-2.5 text-center font-sans text-sm text-ink-muted"
+                  >「{{ c.label }}」的試煉即將加入</p>
+                </template>
+              </div>
+            </div>
           </div>
 
           <!-- 動作列：釘在氣泡底，永遠可見。上緣分隔線 + 漸層（暗示上方教練文字可捲）。 -->
           <div class="relative shrink-0 border-t border-line-subtle px-4 py-3 before:pointer-events-none before:absolute before:inset-x-0 before:-top-5 before:h-5 before:bg-gradient-to-t before:from-surface-card before:to-transparent">
             <div class="flex items-center gap-2">
+              <!-- 課末收尾：返回 + 繼續下一課（練習邀請在上方氣泡內容） -->
+              <template v-if="finished">
+                <template v-if="nextLesson">
+                  <Button
+                    variant="secondary"
+                    size="sm" class="text-sm"
+                    data-testid="lesson-completion-return"
+                    @click="router.push(backTo)"
+                  >{{ fromConcept ? '回概念地圖' : '回課程列表' }}</Button>
+                  <div class="flex-1" />
+                  <Button
+                    variant="gold"
+                    size="sm" class="text-sm"
+                    data-testid="lesson-completion-next"
+                    @click="goToNextLesson"
+                  >繼續下一課 <ArrowRight :size="16" :stroke-width="1.8" /></Button>
+                </template>
+                <template v-else>
+                  <div class="flex-1" />
+                  <Button
+                    variant="gold"
+                    size="sm" class="text-sm"
+                    data-testid="lesson-completion-return"
+                    @click="router.push(backTo)"
+                  >{{ fromConcept ? '回概念地圖' : '回課程列表' }}</Button>
+                </template>
+              </template>
+
               <!-- 走錯：只留 揭曉答案 + 重試（重試靠右為主行動），不顯示上一步／下一步 -->
-              <template v-if="wrongMove">
+              <template v-else-if="wrongMove">
                 <div class="flex-1" />
-                <Button v-if="!answerRevealed" variant="secondary" class="text-sm" @click="answerRevealed = true">揭曉答案</Button>
-                <Button variant="danger" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
+                <Button v-if="!answerRevealed" variant="secondary" size="sm" class="text-sm" @click="answerRevealed = true">揭曉答案</Button>
+                <Button variant="danger" size="sm" class="text-sm" @click="retry"><RotateCw :size="15" :stroke-width="1.8" /> 重試</Button>
               </template>
 
               <template v-else>
@@ -428,6 +512,7 @@ function prev(): void {
                   <Button
                     v-if="!hintShown"
                     variant="outline"
+                    size="sm"
                     class="border-hint-ring bg-hint-light text-sm text-hint-fg hover:bg-hint-ring"
                     :class="{ 'lightbulb-glow': lightbulbGlowing }"
                     @click="hintShown = true"
@@ -436,6 +521,7 @@ function prev(): void {
                   </Button>
                   <Button
                     v-else-if="!answerRevealed"
+                    size="sm"
                     class="bg-hint-ring text-sm text-hint-fg hover:bg-hint"
                     @click="answerRevealed = true"
                   >揭曉答案</Button>
@@ -443,79 +529,31 @@ function prev(): void {
 
                 <div class="flex-1" />
 
-                <!-- prev / next -->
+                <!-- prev / next（最後一步走完即進收尾分支，這裡不再有「完成課程」） -->
                 <Button
                   v-if="stepIndex > 0"
                   variant="secondary"
-                  class="text-sm"
+                  size="sm" class="text-sm"
                   @click="prev"
                 ><ArrowLeft :size="15" :stroke-width="1.8" /> 上一步</Button>
                 <Button
-                  class="text-sm"
-                  :variant="isLastStep ? 'gold' : 'default'"
+                  v-if="!isLastStep"
+                  size="sm" class="text-sm"
+                  variant="default"
                   :disabled="!canAdvance"
                   @click="next"
-                >
-                  <template v-if="isLastStep"><Check :size="16" :stroke-width="1.8" /> 完成課程</template>
-                  <template v-else>下一步 <ArrowRight :size="16" :stroke-width="1.8" /></template>
-                </Button>
+                >下一步 <ArrowRight :size="16" :stroke-width="1.8" /></Button>
+                <Button
+                  v-else
+                  size="sm" class="text-sm"
+                  variant="gold"
+                  :disabled="!canAdvance"
+                  @click="complete"
+                ><Check :size="16" :stroke-width="1.8" /> 完成課程</Button>
               </template>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- Bridge 1: lesson completion card (Learning Loop #20) -->
-    <div
-      v-if="completed"
-      data-testid="lesson-completion-card"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(16,48,41,0.72)] px-6"
-    >
-      <div class="flex w-full max-w-[340px] flex-col items-center gap-5 rounded-[20px] border border-white/[0.14] bg-[linear-gradient(160deg,#163929,#0C2118)] p-7 shadow-[0_12px_40px_rgba(61,34,16,0.45)]">
-        <div class="flex h-14 w-14 items-center justify-center rounded-full bg-success/25 ring-2 ring-success">
-          <Check :size="28" :stroke-width="2.5" class="text-success" />
-        </div>
-        <div class="text-center">
-          <p class="font-display text-xl font-bold text-ink-on-deep">這一課完成了</p>
-          <p class="mt-2 font-lesson text-sm leading-relaxed text-ink-on-deep-dim">{{ lesson?.summary }}</p>
-        </div>
-
-        <!-- Per-concept Bridge-1 invitation / hint -->
-        <div v-if="completionConcepts.length" class="flex w-full flex-col gap-2">
-          <template v-for="c in completionConcepts" :key="c.id">
-            <button
-              v-if="c.hasPuzzles && c.targetId"
-              type="button"
-              data-testid="lesson-practice-cta"
-              class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 py-3 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
-              @click="practise(c.targetId)"
-            >
-              想趁熱練幾題「{{ c.label }}」嗎？ <ArrowRight :size="16" />
-            </button>
-            <p
-              v-else
-              data-testid="lesson-practice-hint"
-              class="w-full rounded-[10px] bg-white/[0.05] px-4 py-3 text-center font-sans text-sm text-ink-on-deep-dim"
-            >「{{ c.label }}」的試煉即將加入</p>
-          </template>
-        </div>
-
-        <!-- 繼續下一課（有下一課時顯示金色 CTA） -->
-        <button
-          v-if="nextLesson"
-          type="button"
-          data-testid="lesson-completion-next"
-          class="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-gradient-to-b from-gold-light to-gold px-5 font-sans text-sm font-bold text-gold-ink shadow-[0_2px_12px_rgba(248,181,0,0.4)] active:scale-95"
-          @click="goToNextLesson"
-        >繼續下一課 <ArrowRight :size="16" /></button>
-
-        <button
-          type="button"
-          data-testid="lesson-completion-return"
-          class="font-sans text-sm font-semibold text-ink-on-deep-dim/80 active:scale-95"
-          @click="router.push(backTo)"
-        >{{ fromConcept ? '回概念地圖' : '回課程列表' }}</button>
       </div>
     </div>
   </div>
@@ -535,6 +573,19 @@ function prev(): void {
 }
 .coach-scroll::-webkit-scrollbar {
   display: none;
+}
+/* 完成收尾卡入場：opacity + translateY 落定（只動 transform/opacity，box-shadow 不做動畫）。 */
+@keyframes lesson-complete-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lesson-complete {
+  animation: lesson-complete-in 0.25s cubic-bezier(0, 0, 0.2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lesson-complete {
+    animation: none;
+  }
 }
 @keyframes lightbulb-glow {
   0%, 100% { box-shadow: 0 0 0 0 rgba(201, 135, 46, 0.0); }
